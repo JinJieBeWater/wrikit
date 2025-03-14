@@ -10,12 +10,13 @@ import {
 import { timestamps } from "../columns.helpers";
 import { users } from "./users";
 import { createTable } from "../tables.heplers";
+import { z } from "zod";
 
-const pageTypeArray = ["md", "pure", "item", "iframe"] as const;
+export const PageTypeArray = ["md", "pure", "item", "iframe"] as const;
 
-export type PageTypeUnion = (typeof pageTypeArray)[number];
+export type PageTypeUnion = (typeof PageTypeArray)[number];
 
-export const PageType = pageTypeArray.reduce(
+export const PageType = PageTypeArray.reduce(
   (acc, type) => {
     // @ts-expect-error 此处似乎ts无法推断出来
     acc[type] = type;
@@ -24,7 +25,7 @@ export const PageType = pageTypeArray.reduce(
   {} as { [K in PageTypeUnion]: K },
 ) as { readonly [K in PageTypeUnion]: K };
 
-export const pageEnum = pgEnum("pageTy", pageTypeArray);
+export const pageEnum = pgEnum("pageTy", PageTypeArray);
 
 export const pages = createTable("page", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
@@ -94,22 +95,42 @@ export const PageItemType = PageItemTypeArray.reduce(
   {} as { [K in PageItemTypeUnion]: K },
 ) as { readonly [K in PageItemTypeUnion]: K };
 
-export type PageItem = {
-  label: string;
-  type: PageItemTypeUnion;
-  order?: number;
-  props: {
-    content?: string;
-    url?: string;
-    alt?: string;
-    referenceType?: PageTypeUnion;
-    referenceId?: string;
-  };
-};
+export const PageItemZod = z.object({
+  label: z.string(),
+  type: z.enum(PageItemTypeArray),
+  order: z.number(),
+  props: z.object({
+    content: z.string().optional(),
+    url: z.string().optional(),
+    alt: z.string().optional(),
+    referenceType: z.enum(PageTypeArray).optional(),
+    referenceId: z.string().optional(),
+  }),
+});
+
+export type PageItem = z.infer<typeof PageItemZod>;
 
 export const pageItems = createTable("page_items", {
   pageId: integer("page_id").notNull(),
   json: json("json").$type<PageItem[]>().default([]),
 });
 
-// export const itemTemplates = createTable('item_templates', {
+export const PageItemTemplateZod = z.array(
+  z.object({
+    label: z.string(),
+    type: z.enum(PageItemTypeArray),
+    order: z.number(),
+  }),
+);
+
+export type PageItemTemplate = z.infer<typeof PageItemTemplateZod>;
+
+export const pageItemTemplates = createTable("page_item_templates", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  name: varchar("name", { length: 256 }),
+  template: json("template").$type<PageItemTemplate>().default([]),
+  createdById: varchar("created_by", { length: 255 })
+    .notNull()
+    .references(() => users.id),
+  ...timestamps,
+});
