@@ -9,7 +9,7 @@ import {
   users,
   verificationTokens,
 } from "@/server/db/schema";
-import GitHub from "next-auth/providers/github"
+import GitHub from "next-auth/providers/github";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
