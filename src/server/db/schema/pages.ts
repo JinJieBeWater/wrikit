@@ -12,7 +12,7 @@ import { users } from "./users";
 import { createTable } from "../tables.heplers";
 import { z } from "zod";
 
-export const PageTypeArray = ["md", "pure", "item", "iframe"] as const;
+export const PageTypeArray = ["md", "pure", "object", "iframe"] as const;
 
 export type PageTypeUnion = (typeof PageTypeArray)[number];
 
@@ -25,7 +25,7 @@ export const PageType = PageTypeArray.reduce(
   {} as { [K in PageTypeUnion]: K },
 ) as { readonly [K in PageTypeUnion]: K };
 
-export const pageEnum = pgEnum("pageTy", PageTypeArray);
+export const pageEnum = pgEnum("page_ty", PageTypeArray);
 
 export const pages = createTable("page", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
@@ -72,7 +72,24 @@ export const pagesToChildrenRelations = relations(
   }),
 );
 
-export const PageItemTypeArray = [
+export const pageObjects = createTable("page_objects", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  pageId: integer("page_id").notNull(),
+  templateId: integer("template_id").notNull(),
+});
+
+export const pageObjectRelations = relations(pageObjects, ({ one }) => ({
+  page: one(pages, {
+    fields: [pageObjects.pageId],
+    references: [pages.id],
+  }),
+  template: one(pageObjectTemplates, {
+    fields: [pageObjects.templateId],
+    references: [pageObjectTemplates.id],
+  }),
+}));
+
+export const PageObjectItemTypeArray = [
   "text",
   "image",
   "video",
@@ -84,53 +101,67 @@ export const PageItemTypeArray = [
   "reference",
 ] as const;
 
-export type PageItemTypeUnion = (typeof PageItemTypeArray)[number];
+export type PageObjectItemTypeUnion = (typeof PageObjectItemTypeArray)[number];
 
-export const PageItemType = PageItemTypeArray.reduce(
+export const PageObjectItemType = PageObjectItemTypeArray.reduce(
   (acc, type) => {
     // @ts-expect-error 此处似乎ts无法推断出来
     acc[type] = type;
     return acc;
   },
-  {} as { [K in PageItemTypeUnion]: K },
-) as { readonly [K in PageItemTypeUnion]: K };
+  {} as { [K in PageObjectItemTypeUnion]: K },
+) as { readonly [K in PageObjectItemTypeUnion]: K };
 
-export const PageItemZod = z.object({
-  label: z.string(),
-  type: z.enum(PageItemTypeArray),
-  order: z.number(),
-  props: z.object({
-    content: z.string().optional(),
-    url: z.string().optional(),
-    alt: z.string().optional(),
-    referenceType: z.enum(PageTypeArray).optional(),
-    referenceId: z.string().optional(),
-  }),
+export const pageObjectItemEnum = pgEnum(
+  "page_object_item_ty",
+  PageObjectItemTypeArray,
+);
+
+export const PageObjectItemJsonZod = z.object({
+  content: z.string().optional(),
+  url: z.string().optional(),
+  alt: z.string().optional(),
 });
 
-export type PageItem = z.infer<typeof PageItemZod>;
+export type PageObjectItemJson = z.infer<typeof PageObjectItemJsonZod>;
 
-export const pageItems = createTable("page_items", {
+export const pageObjectItems = createTable("page_object_items", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   pageId: integer("page_id").notNull(),
-  json: json("json").$type<PageItem[]>().default([]),
+  label: varchar("label", { length: 256 }),
+  type: pageObjectItemEnum("type").default(PageObjectItemType.text).notNull(),
+  order: integer("order").default(0).notNull(),
+  referenceType: pageEnum("reference_type"),
+  referenceId: integer("reference_id"),
+  json: json("json").$type<PageObjectItemJson>().default({}),
 });
 
-export const PageItemTemplateZod = z.array(
+export const PageObjectTemplateZod = z.array(
   z.object({
     label: z.string(),
-    type: z.enum(PageItemTypeArray),
+    type: z.enum(PageObjectItemTypeArray),
     order: z.number(),
   }),
 );
 
-export type PageItemTemplate = z.infer<typeof PageItemTemplateZod>;
+export type PageObjectTemplate = z.infer<typeof PageObjectTemplateZod>;
 
-export const pageItemTemplates = createTable("page_item_templates", {
+export const pageObjectTemplates = createTable("page_object_templates", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   name: varchar("name", { length: 256 }),
-  template: json("template").$type<PageItemTemplate>().default([]),
+  template: json("template").$type<PageObjectTemplate>().default([]),
   createdById: varchar("created_by", { length: 255 })
     .notNull()
     .references(() => users.id),
   ...timestamps,
 });
+
+export const pageObjectTemplateRelations = relations(
+  pageObjectTemplates,
+  ({ one }) => ({
+    createdBy: one(users, {
+      fields: [pageObjectTemplates.createdById],
+      references: [users.id],
+    }),
+  }),
+);
