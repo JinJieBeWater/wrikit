@@ -15,10 +15,9 @@ import {
   Trash2,
 } from "lucide-react";
 
-import { NavFavorites } from "@/components/nav-favorites";
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
-import { NavWorkspaces } from "@/components/nav-workspaces";
+import { NavPages } from "@/components/nav-pages";
 import { TeamSwitcher } from "@/components/team-switcher";
 import {
   Sidebar,
@@ -97,7 +96,7 @@ const data = {
       icon: MessageCircleQuestion,
     },
   ],
-  favorites: [
+  pinnedItems: [
     {
       name: "Project Management & Task Tracking",
       url: "#",
@@ -127,26 +126,6 @@ const data = {
       name: "Language Learning Progress & Resources",
       url: "#",
       emoji: "🗣️",
-    },
-    {
-      name: "Home Renovation Ideas & Budget Tracker",
-      url: "#",
-      emoji: "🏠",
-    },
-    {
-      name: "Personal Finance & Investment Portfolio",
-      url: "#",
-      emoji: "💰",
-    },
-    {
-      name: "Movie & TV Show Watchlist with Reviews",
-      url: "#",
-      emoji: "🎬",
-    },
-    {
-      name: "Daily Habit Tracker & Goal Setting",
-      url: "#",
-      emoji: "✅",
     },
   ],
   workspaces: [
@@ -266,8 +245,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={data.navMain} />
       </SidebarHeader>
       <SidebarContent>
-        <NavFavorites favorites={data.favorites} />
-        <NavWorkspaces workspaces={data.workspaces} />
+        {/* <NavPinned pinnedItems={data.pinnedItems} /> */}
+        <NavPages pages={data.workspaces} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarRail />
