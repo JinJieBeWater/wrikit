@@ -13,7 +13,7 @@ import { ZodError } from "zod";
 
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
-import { TRPCPanelMeta } from "trpc-ui";
+import { type TRPCPanelMeta } from "trpc-ui";
 
 /**
  * 1. CONTEXT
