@@ -18,6 +18,12 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 
+export type Page = {
+  name: string;
+  emoji: React.ReactNode;
+  pages?: Page[];
+};
+
 export function NavPages({
   pages,
 }: {

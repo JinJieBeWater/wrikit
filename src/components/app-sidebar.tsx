@@ -25,6 +25,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { NavPageTree } from "./nav-page-tree";
 
 // This is sample data.
 const data = {
@@ -128,7 +129,7 @@ const data = {
       emoji: "🗣️",
     },
   ],
-  workspaces: [
+  pages: [
     {
       name: "Personal Life Management",
       emoji: "🏠",
@@ -137,11 +138,40 @@ const data = {
           name: "Daily Journal & Reflection",
           url: "#",
           emoji: "📔",
+          pages: [
+            {
+              name: "Daily Journal & Reflection",
+              url: "#",
+              emoji: "📔",
+            },
+            {
+              name: "Health & Wellness Tracker",
+              url: "#",
+              emoji: "🍏",
+            },
+            {
+              name: "Personal Growth & Learning Goals",
+              url: "#",
+              emoji: "🌟",
+            },
+          ],
         },
         {
           name: "Health & Wellness Tracker",
           url: "#",
           emoji: "🍏",
+          pages: [
+            {
+              name: "Health & Wellness Tracker",
+              url: "#",
+              emoji: "🍏",
+            },
+            {
+              name: "Fitness Tracker & Workout Routines",
+              url: "#",
+              emoji: "💪",
+            },
+          ],
         },
         {
           name: "Personal Growth & Learning Goals",
@@ -246,7 +276,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         {/* <NavPinned pinnedItems={data.pinnedItems} /> */}
-        <NavPages pages={data.workspaces} />
+        <NavPages pages={data.pages} />
+        <NavPageTree pages={data.pages} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarRail />
