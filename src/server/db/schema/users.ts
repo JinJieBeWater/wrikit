@@ -10,7 +10,7 @@ import {
 import { type AdapterAccount } from "next-auth/adapters";
 import { timestamps } from "../columns.helpers";
 import { createTable } from "../tables.heplers";
-import { pages } from "./pages";
+import { pageObjectTemplates, pages } from "./pages";
 
 export const posts = createTable(
   "post",
@@ -45,6 +45,7 @@ export const users = createTable("user", {
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   pages: many(pages),
+  objectTemplates: many(pageObjectTemplates),
 }));
 
 export const accounts = createTable(

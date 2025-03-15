@@ -44,6 +44,10 @@ export const pagesRelations = relations(pages, ({ one }) => ({
     fields: [pages.parentId],
     references: [pages.id],
   }),
+  author: one(users, {
+    fields: [pages.createdById],
+    references: [users.id],
+  }),
 }));
 
 export const pagesToChildren = createTable(
@@ -71,23 +75,6 @@ export const pagesToChildrenRelations = relations(
     }),
   }),
 );
-
-export const pageObjects = createTable("page_objects", {
-  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
-  pageId: integer("page_id").notNull(),
-  templateId: integer("template_id").notNull(),
-});
-
-export const pageObjectRelations = relations(pageObjects, ({ one }) => ({
-  page: one(pages, {
-    fields: [pageObjects.pageId],
-    references: [pages.id],
-  }),
-  template: one(pageObjectTemplates, {
-    fields: [pageObjects.templateId],
-    references: [pageObjectTemplates.id],
-  }),
-}));
 
 export const PageObjectItemTypeArray = [
   "text",
@@ -117,24 +104,38 @@ export const pageObjectItemEnum = pgEnum(
   PageObjectItemTypeArray,
 );
 
-export const PageObjectItemJsonZod = z.object({
-  content: z.string().optional(),
-  url: z.string().optional(),
-  alt: z.string().optional(),
+export const PageObjectItemZod = z.object({
+  label: z.string().describe("标签"),
+  type: z
+    .enum(PageObjectItemTypeArray)
+    .describe("类型" + PageObjectItemTypeArray.join("|")),
+  order: z.number().describe("排序"),
+  content: z.string().optional().describe("内容"),
 });
 
-export type PageObjectItemJson = z.infer<typeof PageObjectItemJsonZod>;
+export type PageObjectItem = z.infer<typeof PageObjectItemZod>;
 
-export const pageObjectItems = createTable("page_object_items", {
+export const PageObjectJsonZod = z.array(PageObjectItemZod);
+
+export type PageObjectJson = z.infer<typeof PageObjectJsonZod>;
+
+export const pageObjects = createTable("page_object", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   pageId: integer("page_id").notNull(),
-  label: varchar("label", { length: 256 }),
-  type: pageObjectItemEnum("type").default(PageObjectItemType.text).notNull(),
-  order: integer("order").default(0).notNull(),
-  referenceType: pageEnum("reference_type"),
-  referenceId: integer("reference_id"),
-  json: json("json").$type<PageObjectItemJson>().default({}),
+  templateId: integer("template_id").notNull(),
+  json: json("json").$type<PageObjectJson>().default([]),
 });
+
+export const pageObjectRelations = relations(pageObjects, ({ one }) => ({
+  page: one(pages, {
+    fields: [pageObjects.pageId],
+    references: [pages.id],
+  }),
+  template: one(pageObjectTemplates, {
+    fields: [pageObjects.templateId],
+    references: [pageObjectTemplates.id],
+  }),
+}));
 
 export const PageObjectTemplateZod = z.array(
   z.object({
