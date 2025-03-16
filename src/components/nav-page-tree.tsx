@@ -9,12 +9,11 @@ import {
   FileText,
   Heading1,
   Link,
-  LucideIcon,
+  type LucideIcon,
   MoreHorizontal,
   PiIcon,
   Pin,
   Plus,
-  Share2,
   TableProperties,
   Trash2,
 } from "lucide-react";
@@ -44,7 +43,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "./ui/collapsible";
-import { PageType, PageTree as PageTreeType } from "@/types/page";
+import { PageType, type PageTree as PageTreeType } from "@/types/page";
 
 const addType: { label: keyof typeof PageType; icon: LucideIcon }[] = [
   {
@@ -121,7 +120,7 @@ export function NavPageTree({ id }: { id: string }) {
 export function PageTreeIconn({ icon }: { icon: PageTreeType["icon"] }) {
   if (!icon) return <FileText className="text-muted-foreground" />;
 
-  const { type, value } = icon;
+  // const { type, value } = icon;
   return <PiIcon className="text-muted-foreground" />;
 }
 

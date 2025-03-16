@@ -1,6 +1,6 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { pages } from "@/server/db/schema/pages";
-import { PageTree, PageTypeArray } from "@/types/page";
+import { type PageTree, PageTypeArray } from "@/types/page";
 import { z } from "zod";
 
 export const createPageZod = z.object({

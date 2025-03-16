@@ -1,5 +1,5 @@
-import { pages } from "@/server/db/schema";
-import { InferInsertModel, InferSelectModel } from "drizzle-orm";
+import { type pages } from "@/server/db/schema";
+import { type InferSelectModel } from "drizzle-orm";
 import { z } from "zod";
 
 export const PageTypeArray = ["md", "pure", "object", "iframe"] as const;

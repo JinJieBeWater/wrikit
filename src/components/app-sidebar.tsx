@@ -4,7 +4,6 @@ import * as React from "react";
 import {
   AudioWaveform,
   Blocks,
-  Calendar,
   Command,
   Home,
   Inbox,
@@ -17,7 +16,6 @@ import {
 
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
-import { NavPages } from "@/components/nav-pages";
 import { TeamSwitcher } from "@/components/team-switcher";
 import {
   Sidebar,
@@ -26,8 +24,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { NavPageTree } from "./nav-page-tree";
-import { Session } from "next-auth";
-import { useTheme } from "next-themes";
+import { type Session } from "next-auth";
 import { ThemeSwitch } from "./theme-switch";
 
 // This is sample data.
@@ -274,8 +271,6 @@ export function AppSidebar({
   session,
   ...props
 }: React.ComponentProps<typeof Sidebar> & { session: Session | null }) {
-  const { setTheme, theme } = useTheme();
-
   return (
     <Sidebar className="border-r-0" {...props}>
       <SidebarHeader>

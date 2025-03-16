@@ -11,12 +11,11 @@ import {
 import { timestamps } from "../columns.helpers";
 import { users } from "./users";
 import { createTable } from "../tables.heplers";
-import { z } from "zod";
 import {
-  Icon,
+  type Icon,
   PageObjectItemTypeArray,
-  PageObjectJson,
-  PageObjectTemplate,
+  type PageObjectJson,
+  type PageObjectTemplate,
   PageTypeArray,
 } from "@/types/page";
 
