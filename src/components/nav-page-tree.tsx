@@ -104,7 +104,7 @@ export function NavPageTree({ id }: { id: string }) {
             <DropdownMenuItem
               key={index}
               onClick={() => {
-                createPage.mutate({ type: type.label, name: "新建页面" });
+                createPage.mutate({ type: type.label });
               }}
             >
               <type.icon className="text-muted-foreground" />
@@ -143,7 +143,7 @@ export function PageTree({ page }: { page: PageTreeType }) {
         >
           <a href="#">
             <PageTreeIconn icon={page.icon} />
-            <span>{page.name}</span>
+            <span>{page.name ?? "Untitled"}</span>
           </a>
         </SidebarMenuButton>
         <CollapsibleTrigger asChild>
