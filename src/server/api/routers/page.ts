@@ -21,7 +21,7 @@ export const pageRouter = createTRPCRouter({
       });
     }),
 
-  getPagetree: protectedProcedure
+  getTree: protectedProcedure
     .input(
       z.object({
         authorId: z.string().describe("作者id"),
@@ -76,7 +76,27 @@ export const pageRouter = createTRPCRouter({
       return pageTree;
     }),
 
-  getPagesByParentId: protectedProcedure
+  getRoots: protectedProcedure
+    .input(
+      z.object({
+        authorId: z.string().describe("作者id"),
+        isDeleted: z.boolean().default(false).describe("是否删除"),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const rootPages = await ctx.db.query.pages.findMany({
+        where(fields, operators) {
+          return operators.and(
+            operators.eq(fields.createdById, input.authorId),
+            operators.isNull(fields.parentId),
+          );
+        },
+        orderBy: (posts, { desc }) => [desc(posts.createdAt)],
+      });
+      return rootPages ?? null;
+    }),
+
+  ByParentId: protectedProcedure
     .input(
       z.object({
         parentId: z.number().describe("父页面id"),

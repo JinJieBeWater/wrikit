@@ -23,7 +23,7 @@ export default async function Layout({
   const session = await auth();
 
   if (session?.user) {
-    void api.page.getPagetree.prefetch({
+    void api.page.getRoots.prefetch({
       authorId: session.user.id,
     });
   }

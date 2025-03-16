@@ -29,7 +29,7 @@ import {
   SidebarGroupAction,
   useSidebar,
 } from "./ui/sidebar";
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,7 +43,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "./ui/collapsible";
-import { PageType, type PageTree as PageTreeType } from "@/types/page";
+import { Page, PageType, type PageTree as PageTreeType } from "@/types/page";
 
 const addType: { label: keyof typeof PageType; icon: LucideIcon }[] = [
   {
@@ -67,7 +67,7 @@ const addType: { label: keyof typeof PageType; icon: LucideIcon }[] = [
 export function NavPageTree({ id }: { id: string }) {
   const { isMobile } = useSidebar();
 
-  const [pageTree] = api.page.getPagetree.useSuspenseQuery({
+  const [roots] = api.page.getRoots.useSuspenseQuery({
     authorId: id,
   });
 
@@ -83,7 +83,7 @@ export function NavPageTree({ id }: { id: string }) {
       <SidebarGroupLabel>Private</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
-          {pageTree.map((page) => (
+          {roots.map((page) => (
             <PageTree key={page.id} page={page} />
           ))}
         </SidebarMenu>
@@ -124,10 +124,25 @@ export function PageTreeIconn({ icon }: { icon: PageTreeType["icon"] }) {
   return <PiIcon className="text-muted-foreground" />;
 }
 
-export function PageTree({ page }: { page: PageTreeType }) {
+export function PageTree({ page }: { page: Page }) {
   const { isMobile } = useSidebar();
 
   const [open, setOpen] = useState(false);
+
+  const getChildren = api.page.ByParentId.useQuery(
+    {
+      parentId: page.id,
+    },
+    {
+      enabled: false,
+    },
+  );
+
+  useEffect(() => {
+    if (open) {
+      getChildren.refetch();
+    }
+  }, [open]);
 
   return (
     <SidebarMenuItem>
@@ -201,13 +216,26 @@ export function PageTree({ page }: { page: PageTreeType }) {
 
         <CollapsibleContent>
           <SidebarMenuSub className="ml-2 mr-0 px-0">
-            {page.child.length > 0 ? (
+            {/* {page.child.length > 0 ? (
               page.child?.map((subPage, index) => (
                 <PageTree key={index} page={subPage} />
               ))
             ) : (
               <span className="pl-8 text-muted-foreground">No Pages</span>
-            )}
+            )} */}
+            <Suspense
+              fallback={
+                <span className="pl-8 text-muted-foreground">Loading...</span>
+              }
+            >
+              {getChildren.data && getChildren.data.length > 0 ? (
+                getChildren.data?.map((subPage, index) => (
+                  <PageTree key={index} page={subPage} />
+                ))
+              ) : (
+                <span className="pl-8 text-muted-foreground">No Pages</span>
+              )}
+            </Suspense>
           </SidebarMenuSub>
         </CollapsibleContent>
       </Collapsible>
