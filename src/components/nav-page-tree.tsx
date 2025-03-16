@@ -1,9 +1,13 @@
 import {
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
-} from "@radix-ui/react-collapsible";
-import { ChevronRight, MoreHorizontal, Plus } from "lucide-react";
+  ALargeSmall,
+  AppWindow,
+  ChevronRight,
+  Heading1,
+  LucideIcon,
+  MoreHorizontal,
+  Plus,
+  TableProperties,
+} from "lucide-react";
 import {
   SidebarMenuButton,
   SidebarMenuItem,
@@ -22,11 +26,47 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { Button } from "./ui/button";
+import { PageType } from "@/server/db/schema/pages";
+import { api } from "@/trpc/react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "./ui/collapsible";
+
+const addType: { label: keyof typeof PageType; icon: LucideIcon }[] = [
+  {
+    label: PageType.md,
+    icon: Heading1,
+  },
+  {
+    label: PageType.pure,
+    icon: ALargeSmall,
+  },
+  {
+    label: PageType.object,
+    icon: TableProperties,
+  },
+  {
+    label: PageType.iframe,
+    icon: AppWindow,
+  },
+];
 
 export function NavPageTree({ pages }: { pages: Page[] }) {
+  const { isMobile } = useSidebar();
+
+  const utils = api.useUtils();
+  const createPage = api.page.create.useMutation({
+    onSuccess: async () => {
+      await utils.page.invalidate();
+    },
+  });
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Private</SidebarGroupLabel>
@@ -37,9 +77,31 @@ export function NavPageTree({ pages }: { pages: Page[] }) {
           ))}
         </SidebarMenu>
       </SidebarGroupContent>
-      <SidebarGroupAction title="Add Page">
-        <Plus /> <span className="sr-only">Add Page</span>
-      </SidebarGroupAction>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <SidebarGroupAction title="Add Page">
+            <Plus /> <span className="sr-only">Add Page</span>
+          </SidebarGroupAction>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          className="w-56 rounded-lg"
+          side={isMobile ? "bottom" : "right"}
+          align={isMobile ? "end" : "start"}
+        >
+          {addType.map((type, index) => (
+            <DropdownMenuItem
+              key={index}
+              onClick={() => {
+                createPage.mutate({ type: type.label, name: "新建页面" });
+              }}
+            >
+              <type.icon className="text-muted-foreground" />
+              <span>{type.label}</span>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </SidebarGroup>
   );
 }
@@ -52,15 +114,14 @@ export function PageTree({ page }: { page: Page }) {
   return (
     <SidebarMenuItem>
       <Collapsible
-        className="group/collapsible [&>button]:hover:opacity-100 [&[data-state=open]>button:first-child>svg:first-child]:rotate-90"
-        defaultOpen={page.name === "components" || page.name === "ui"}
+        className="group/collapsible [&>a]:hover:pr-8 [&>button]:hover:opacity-100 [&[data-state=open]>button:first-child>svg:first-child]:rotate-90"
         open={open}
         onOpenChange={setOpen}
       >
         <SidebarMenuButton
           asChild
           // onClick={() => setOpen((open) => !open)}
-          // className="group-has-[[data-sidebar=menu-action]]/menu-item:pr-12"
+          // className="group-has-[[data-sidebar=menu-action]]/menu-item:pr-0"
         >
           <a href="#">
             <span>{page.emoji}</span>

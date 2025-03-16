@@ -70,33 +70,6 @@ const data = {
       badge: "10",
     },
   ],
-  navSecondary: [
-    {
-      title: "Calendar",
-      url: "#",
-      icon: Calendar,
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-    },
-    {
-      title: "Templates",
-      url: "#",
-      icon: Blocks,
-    },
-    {
-      title: "Trash",
-      url: "#",
-      icon: Trash2,
-    },
-    {
-      title: "Help",
-      url: "#",
-      icon: MessageCircleQuestion,
-    },
-  ],
   pinnedItems: [
     {
       name: "Project Management & Task Tracking",
@@ -265,6 +238,33 @@ const data = {
       ],
     },
   ],
+  navSecondary: [
+    // {
+    //   title: "Calendar",
+    //   url: "#",
+    //   icon: Calendar,
+    // },
+    {
+      title: "Settings",
+      url: "#",
+      icon: Settings2,
+    },
+    {
+      title: "Templates",
+      url: "#",
+      icon: Blocks,
+    },
+    {
+      title: "Trash",
+      url: "#",
+      icon: Trash2,
+    },
+    {
+      title: "Help",
+      url: "#",
+      icon: MessageCircleQuestion,
+    },
+  ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -276,7 +276,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         {/* <NavPinned pinnedItems={data.pinnedItems} /> */}
-        <NavPages pages={data.pages} />
+        {/* <NavPages pages={data.pages} /> */}
         <NavPageTree pages={data.pages} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>

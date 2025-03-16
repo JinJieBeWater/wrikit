@@ -14,9 +14,13 @@ export const pageRouter = createTRPCRouter({
     }),
 
   getRootPage: protectedProcedure.query(async ({ ctx }) => {
-    const post = await ctx.db.query.posts.findMany({
+    const post = await ctx.db.query.pages.findMany({
       where(fields, operators) {
-        return operators.eq(fields.createdById, ctx.session.user.id);
+        // 为当前用户创建且没有parentId的页面
+        return operators.and(
+          operators.eq(fields.createdById, ctx.session.user.id),
+          operators.isNull(fields.parentId),
+        );
       },
       orderBy: (posts, { desc }) => [desc(posts.createdAt)],
     });
