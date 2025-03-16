@@ -25,6 +25,7 @@ export const pageRouter = createTRPCRouter({
     .input(
       z.object({
         authorId: z.string().describe("作者id"),
+        isDeleted: z.boolean().default(false).describe("是否删除"),
       }),
     )
     .query(async ({ ctx, input }) => {
@@ -33,6 +34,7 @@ export const pageRouter = createTRPCRouter({
           return operators.and(
             operators.eq(fields.createdById, input.authorId),
             operators.isNull(fields.parentId),
+            operators.eq(fields.isDeleted, input.isDeleted),
           );
         },
         orderBy: (posts, { desc }) => [desc(posts.createdAt)],
@@ -43,7 +45,10 @@ export const pageRouter = createTRPCRouter({
       ): Promise<PageTree[]> => {
         const pages = await ctx.db.query.pages.findMany({
           where(fields, operators) {
-            return operators.eq(fields.parentId, parentId);
+            return operators.and(
+              operators.eq(fields.parentId, parentId),
+              operators.eq(fields.isDeleted, input.isDeleted),
+            );
           },
           orderBy: (posts, { desc }) => [desc(posts.createdAt)],
         });
@@ -71,36 +76,20 @@ export const pageRouter = createTRPCRouter({
       return pageTree;
     }),
 
-  getRootPages: protectedProcedure
-    .input(
-      z.object({
-        authorId: z.string().describe("作者id"),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      const pages = await ctx.db.query.pages.findMany({
-        where(fields, operators) {
-          // 为当前用户创建且没有parentId的页面
-          return operators.and(
-            operators.eq(fields.createdById, input.authorId),
-            operators.isNull(fields.parentId),
-          );
-        },
-        orderBy: (posts, { desc }) => [desc(posts.createdAt)],
-      });
-      return pages ?? null;
-    }),
-
   getPagesByParentId: protectedProcedure
     .input(
       z.object({
         parentId: z.number().describe("父页面id"),
+        isDeleted: z.boolean().default(false).describe("是否删除"),
       }),
     )
     .query(async ({ ctx, input }) => {
       const post = await ctx.db.query.pages.findMany({
         where(fields, operators) {
-          return operators.and(operators.eq(fields.parentId, input.parentId));
+          return operators.and(
+            operators.eq(fields.parentId, input.parentId),
+            operators.eq(fields.isDeleted, input.isDeleted),
+          );
         },
         orderBy: (posts, { desc }) => [desc(posts.createdAt)],
       });

@@ -1,15 +1,22 @@
+"use client";
+
 import {
   ALargeSmall,
   AppWindow,
+  ArrowUpRight,
   ChevronRight,
-  File,
+  CopyPlus,
   FileText,
   Heading1,
+  Link,
   LucideIcon,
   MoreHorizontal,
   PiIcon,
+  Pin,
   Plus,
+  Share2,
   TableProperties,
+  Trash2,
 } from "lucide-react";
 import {
   SidebarMenuButton,
@@ -23,11 +30,12 @@ import {
   SidebarGroupAction,
   useSidebar,
 } from "./ui/sidebar";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { api } from "@/trpc/react";
@@ -36,7 +44,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "./ui/collapsible";
-import { Page, PageType, PageTree as PageTreeType } from "@/types/page";
+import { PageType, PageTree as PageTreeType } from "@/types/page";
 
 const addType: { label: keyof typeof PageType; icon: LucideIcon }[] = [
   {
@@ -79,9 +87,6 @@ export function NavPageTree({ id }: { id: string }) {
           {pageTree.map((page) => (
             <PageTree key={page.id} page={page} />
           ))}
-          {/* {rootPages.map((page) => (
-            <div key={page.id}>{page.name}</div>
-          ))} */}
         </SidebarMenu>
       </SidebarGroupContent>
 
@@ -167,10 +172,30 @@ export function PageTree({ page }: { page: PageTreeType }) {
             align={isMobile ? "end" : "start"}
           >
             <DropdownMenuItem>
-              <span>Edit Project</span>
+              <Pin className="text-muted-foreground" />
+              <span>Pin</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              <ArrowUpRight className="text-muted-foreground" />
+              <span>Open in New Tab</span>
+            </DropdownMenuItem>
+            {/* <DropdownMenuItem>
+              <Share2 className="text-muted-foreground" />
+              <span>Share</span>
+            </DropdownMenuItem> */}
+            <DropdownMenuItem>
+              <Link className="text-muted-foreground" />
+              <span>Copy Link</span>
             </DropdownMenuItem>
             <DropdownMenuItem>
-              <span>Delete Project</span>
+              <CopyPlus className="text-muted-foreground" />
+              <span>Add a Copy</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              <Trash2 className="text-muted-foreground" />
+              <span>Move to Trash</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

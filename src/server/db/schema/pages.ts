@@ -6,6 +6,7 @@ import {
   index,
   json,
   text,
+  boolean,
 } from "drizzle-orm/pg-core";
 import { timestamps } from "../columns.helpers";
 import { users } from "./users";
@@ -27,7 +28,8 @@ export const pages = createTable("page", {
   name: varchar("name", { length: 256 }),
   content: text("content"),
   parentId: integer("parent_id"),
-  icon: json("icon").$type<Icon>(), // 使用一个字段存储图标信息
+  icon: json("icon").$type<Icon>(),
+  isDeleted: boolean("is_deleted").default(false).notNull(),
   createdById: varchar("created_by", { length: 255 })
     .notNull()
     .references(() => users.id),

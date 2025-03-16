@@ -27,6 +27,8 @@ import {
 } from "@/components/ui/sidebar";
 import { NavPageTree } from "./nav-page-tree";
 import { Session } from "next-auth";
+import { useTheme } from "next-themes";
+import { ThemeSwitch } from "./theme-switch";
 
 // This is sample data.
 const data = {
@@ -272,10 +274,15 @@ export function AppSidebar({
   session,
   ...props
 }: React.ComponentProps<typeof Sidebar> & { session: Session | null }) {
+  const { setTheme, theme } = useTheme();
+
   return (
     <Sidebar className="border-r-0" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <div className="flex justify-between">
+          <TeamSwitcher teams={data.teams} />
+          <ThemeSwitch />
+        </div>
         <NavMain items={data.navMain} />
       </SidebarHeader>
       <SidebarContent>
