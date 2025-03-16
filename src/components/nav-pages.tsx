@@ -18,12 +18,6 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 
-export type Page = {
-  name: string;
-  emoji: React.ReactNode;
-  pages?: Page[];
-};
-
 export function NavPages({
   pages,
 }: {
@@ -52,7 +46,7 @@ export function NavPages({
                 </SidebarMenuButton>
                 <CollapsibleTrigger asChild>
                   <SidebarMenuAction
-                    className="bg-sidebar-accent text-sidebar-accent-foreground left-2 data-[state=open]:rotate-90"
+                    className="left-2 bg-sidebar-accent text-sidebar-accent-foreground data-[state=open]:rotate-90"
                     showOnHover
                   >
                     <ChevronRight />

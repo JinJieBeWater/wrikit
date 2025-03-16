@@ -26,6 +26,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { NavPageTree } from "./nav-page-tree";
+import { Session } from "next-auth";
 
 // This is sample data.
 const data = {
@@ -267,7 +268,10 @@ const data = {
   ],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+  session,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & { session: Session | null }) {
   return (
     <Sidebar className="border-r-0" {...props}>
       <SidebarHeader>
@@ -277,7 +281,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         {/* <NavPinned pinnedItems={data.pinnedItems} /> */}
         {/* <NavPages pages={data.pages} /> */}
-        <NavPageTree pages={data.pages} />
+        {session?.user?.id && <NavPageTree id={session?.user?.id} />}
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarRail />

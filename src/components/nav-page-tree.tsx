@@ -2,9 +2,12 @@ import {
   ALargeSmall,
   AppWindow,
   ChevronRight,
+  File,
+  FileText,
   Heading1,
   LucideIcon,
   MoreHorizontal,
+  PiIcon,
   Plus,
   TableProperties,
 } from "lucide-react";
@@ -20,23 +23,20 @@ import {
   SidebarGroupAction,
   useSidebar,
 } from "./ui/sidebar";
-import { Page } from "./nav-pages";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { PageType } from "@/server/db/schema/pages";
 import { api } from "@/trpc/react";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "./ui/collapsible";
+import { Page, PageType, PageTree as PageTreeType } from "@/types/page";
 
 const addType: { label: keyof typeof PageType; icon: LucideIcon }[] = [
   {
@@ -57,8 +57,12 @@ const addType: { label: keyof typeof PageType; icon: LucideIcon }[] = [
   },
 ];
 
-export function NavPageTree({ pages }: { pages: Page[] }) {
+export function NavPageTree({ id }: { id: string }) {
   const { isMobile } = useSidebar();
+
+  const [pageTree] = api.page.getPagetree.useSuspenseQuery({
+    authorId: id,
+  });
 
   const utils = api.useUtils();
   const createPage = api.page.create.useMutation({
@@ -72,9 +76,12 @@ export function NavPageTree({ pages }: { pages: Page[] }) {
       <SidebarGroupLabel>Private</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
-          {pages.map((page, index) => (
-            <PageTree key={index} page={page} />
+          {pageTree.map((page) => (
+            <PageTree key={page.id} page={page} />
           ))}
+          {/* {rootPages.map((page) => (
+            <div key={page.id}>{page.name}</div>
+          ))} */}
         </SidebarMenu>
       </SidebarGroupContent>
 
@@ -106,7 +113,14 @@ export function NavPageTree({ pages }: { pages: Page[] }) {
   );
 }
 
-export function PageTree({ page }: { page: Page }) {
+export function PageTreeIconn({ icon }: { icon: PageTreeType["icon"] }) {
+  if (!icon) return <FileText className="text-muted-foreground" />;
+
+  const { type, value } = icon;
+  return <PiIcon className="text-muted-foreground" />;
+}
+
+export function PageTree({ page }: { page: PageTreeType }) {
   const { isMobile } = useSidebar();
 
   const [open, setOpen] = useState(false);
@@ -124,13 +138,13 @@ export function PageTree({ page }: { page: Page }) {
           // className="group-has-[[data-sidebar=menu-action]]/menu-item:pr-0"
         >
           <a href="#">
-            <span>{page.emoji}</span>
+            <PageTreeIconn icon={page.icon} />
             <span>{page.name}</span>
           </a>
         </SidebarMenuButton>
         <CollapsibleTrigger asChild>
           <SidebarMenuAction
-            className="bg-sidebar-accent text-sidebar-accent-foreground left-2 data-[state=open]:rotate-90"
+            className="left-2 bg-sidebar-accent text-sidebar-accent-foreground data-[state=open]:rotate-90"
             showOnHover
           >
             <ChevronRight />
@@ -163,8 +177,8 @@ export function PageTree({ page }: { page: Page }) {
 
         <CollapsibleContent>
           <SidebarMenuSub className="ml-2 mr-0 px-0">
-            {page.pages ? (
-              page.pages?.map((subPage, index) => (
+            {page.child.length > 0 ? (
+              page.child?.map((subPage, index) => (
                 <PageTree key={index} page={subPage} />
               ))
             ) : (
