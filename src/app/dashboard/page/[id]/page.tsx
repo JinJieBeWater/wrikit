@@ -28,8 +28,8 @@ export default async function Page({ params }: Props) {
 
   return (
     <>
-      <div className={cn("flex h-[calc(100vh-3.5rem)] w-full flex-col")}>
-        <div className="sm:px-page relative flex h-52 items-end overflow-hidden border-t bg-background px-12">
+      <div className={cn("flex w-full flex-col")}>
+        <div className="sm:px-page relative flex h-52 w-full shrink-0 items-end overflow-hidden bg-background px-12 pb-4">
           <GridPattern
             width={20}
             height={20}
@@ -40,7 +40,7 @@ export default async function Page({ params }: Props) {
             )}
           />
           <Button size={"icon"} variant={"ghost"} className="size-20">
-            <PageIcon icon={page.icon} className="!size-16" />
+            <PageIcon icon={page.icon} className="!size-14" />
             <span className="sr-only">Edit Page Icon</span>
           </Button>
         </div>

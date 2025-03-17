@@ -273,7 +273,9 @@ export function PageTree({ page }: { page: Page }) {
                   <PageTree key={index} page={subPage} />
                 ))
               ) : (
-                <span className="pl-8 text-muted-foreground">No Pages</span>
+                <span className="pl-8 text-muted-foreground">
+                  No Page Inside
+                </span>
               )}
             </Suspense>
           </SidebarMenuSub>
