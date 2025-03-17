@@ -217,7 +217,7 @@ export function CommentCreateForm({
       comments: [
         {
           id: nanoid(),
-          contentRich: commentValue!,
+          contentRich: commentValue,
           createdAt: new Date(),
           discussionId,
           isEdited: false,

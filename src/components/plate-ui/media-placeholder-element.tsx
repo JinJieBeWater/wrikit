@@ -114,7 +114,7 @@ export const MediaPlaceholderElement = withHOC(
             isUpload: true,
             name: element.mediaType === FilePlugin.key ? uploadedFile.name : '',
             placeholderId: element.id as string,
-            type: element.mediaType!,
+            type: element.mediaType,
             url: uploadedFile.url,
           };
 

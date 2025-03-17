@@ -55,7 +55,11 @@ const config = {
           "ctx.db"
         ]
       }
-    ]
-  }
+    ],
+    "@typescript-eslint/await-thenable": "off",
+    "@typescript-eslint/no-empty-object-type": "off"
+  },
+  "ignorePatterns": ['/src/components/editor', '/src/components/plate-ui']
+
 }
-module.exports = config;
+module.exports = config
