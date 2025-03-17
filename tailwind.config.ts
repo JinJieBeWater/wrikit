@@ -106,6 +106,9 @@ export default {
           foreground: "hsl(var(--highlight-foreground))",
         },
       },
+      padding: {
+        page: "max(64px,calc(50% - 380px))",
+      },
     },
   },
   plugins: [require("tailwindcss-animate"), require("tailwind-scrollbar-hide")],

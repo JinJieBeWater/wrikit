@@ -4,6 +4,9 @@ import { PageType } from "@/types/page";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { TitleEditor } from "../_components/title-editor";
+import { GridPattern } from "@/components/magicui/grid-pattern";
+import { PageIcon } from "@/components/page-icon";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   params: {
@@ -25,15 +28,26 @@ export default async function Page({ params }: Props) {
 
   return (
     <>
-      <div
-        className={cn(
-          "size-full px-12 pb-72 pt-4 text-base sm:px-[max(64px,calc(50%-350px))]",
-          "h-[calc(100vh-3.5rem)] w-full",
-        )}
-      >
+      <div className={cn("flex h-[calc(100vh-3.5rem)] w-full flex-col")}>
+        <div className="sm:px-page relative flex h-52 items-end overflow-hidden border-t bg-background px-12">
+          <GridPattern
+            width={20}
+            height={20}
+            x={-1}
+            y={-1}
+            className={cn(
+              "[mask-image:linear-gradient(to_bottom_right,white,transparent,transparent)]",
+            )}
+          />
+          <Button size={"icon"} variant={"ghost"} className="size-20">
+            <PageIcon icon={page.icon} className="!size-16" />
+            <span className="sr-only">Edit Page Icon</span>
+          </Button>
+        </div>
         <TitleEditor page={page} />
-        <Separator />
-        {page.type === PageType.md && <MdEditor page={page}></MdEditor>}
+        <div className="grow">
+          {page.type === PageType.md && <MdEditor page={page}></MdEditor>}
+        </div>
       </div>
     </>
   );

@@ -93,7 +93,7 @@ const editorVariants = cva(
         fullWidth: "size-full px-16 pt-4 pb-72 text-base sm:px-24",
         none: "",
         select: "px-3 py-2 text-base data-readonly:w-fit",
-        wrikit: "size-full pt-4 pb-72 text-base",
+        wrikit: "size-full px-12 pb-72 text-base sm:px-page",
       },
     },
   },

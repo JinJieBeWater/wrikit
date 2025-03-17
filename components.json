@@ -25,6 +25,13 @@
         "ui": "@/components/plate-ui"
       },
       "url": "https://platejs.org/r"
+    },
+    "magicui": {
+      "style": "default",
+      "aliases": {
+        "ui": "@/components/magicui-ui"
+      },
+      "url": "https://magicui.vercel.app/r"
     }
   }
 }

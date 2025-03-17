@@ -2,6 +2,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { useImperativeHandle } from "react";
+import { useWindowSize } from "usehooks-ts";
 
 interface UseAutosizeTextAreaProps {
   textAreaRef: React.MutableRefObject<HTMLTextAreaElement | null>;
@@ -85,9 +86,16 @@ export const AutosizeTextarea = React.forwardRef<
       minHeight,
     }));
 
+    // 浏览器窗口改变时，重新计算自适应高度
+    const { width = 0 } = useWindowSize();
+
     React.useEffect(() => {
       setTriggerAutoSize(value as string);
     }, [props?.defaultValue, value]);
+
+    React.useEffect(() => {
+      setTriggerAutoSize(width.toString());
+    }, [width]);
 
     return (
       <textarea

@@ -1,10 +1,19 @@
 "use client";
-import { AutosizeTextarea } from "@/components/ui/autosize-textarea";
+import {
+  AutosizeTextarea,
+  AutosizeTextAreaRef,
+} from "@/components/ui/autosize-textarea";
+import { Separator } from "@/components/ui/separator";
 import { api } from "@/trpc/react";
 import { type Page } from "@/types/page";
+import { RefAttributes, TextareaHTMLAttributes } from "react";
 import { useDebounceCallback } from "usehooks-ts";
 
-export function TitleEditor({ page }: { page: Page }) {
+export function TitleEditor({
+  page,
+  ...props
+}: { page: Page } & TextareaHTMLAttributes<HTMLTextAreaElement> &
+  RefAttributes<AutosizeTextAreaRef>) {
   const utils = api.useUtils();
 
   const updatePage = api.page.update.useMutation({
@@ -28,14 +37,13 @@ export function TitleEditor({ page }: { page: Page }) {
     });
   }, 1000);
   return (
-    // <Balancer>
     <AutosizeTextarea
-      className="resize-none border-none px-0 text-4xl font-bold focus-visible:rounded-none focus-visible:outline-none focus-visible:ring-0"
+      className="sm:px-page h-full w-full resize-none overflow-hidden border-none px-12 text-4xl font-bold focus-visible:rounded-none focus-visible:outline-none focus-visible:ring-0"
       defaultValue={page.name ?? ""}
       placeholder="Untitled"
       onChange={(e) => updateTitleDebounced(e.target.value)}
       maxLength={256}
+      {...props}
     />
-    // </Balancer>
   );
 }

@@ -124,7 +124,7 @@ export function NavPageTree({ id }: { id: string }) {
   );
 }
 
-export function PageTreeIconn({ icon }: { icon: PageTreeType["icon"] }) {
+export function PageTreeIcon({ icon }: { icon: PageTreeType["icon"] }) {
   if (!icon) return <FileText className="text-muted-foreground" />;
 
   // const { type, value } = icon;
@@ -195,7 +195,7 @@ export function PageTree({ page }: { page: Page }) {
           // className="group-has-[[data-sidebar=menu-action]]/menu-item:pr-0"
         >
           <Link href={`/dashboard/page/${page.id}`}>
-            <PageTreeIconn icon={page.icon} />
+            <PageTreeIcon icon={page.icon} />
             <span>{page.name ?? "Untitled"}</span>
           </Link>
         </SidebarMenuButton>
