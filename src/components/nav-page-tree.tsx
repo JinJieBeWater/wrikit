@@ -46,6 +46,7 @@ import {
 import { Page, PageType, type PageTree as PageTreeType } from "@/types/page";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useParams } from "next/navigation";
 
 const addType: { label: keyof typeof PageType; icon: LucideIcon }[] = [
   {
@@ -128,6 +129,7 @@ export function PageTreeIconn({ icon }: { icon: PageTreeType["icon"] }) {
 
 export function PageTree({ page }: { page: Page }) {
   const { isMobile } = useSidebar();
+  const { id } = useParams();
 
   const [open, setOpen] = useState(false);
 
@@ -184,6 +186,7 @@ export function PageTree({ page }: { page: Page }) {
       >
         <SidebarMenuButton
           asChild
+          isActive={page.id === Number(id)}
           // onClick={() => setOpen((open) => !open)}
           // className="group-has-[[data-sidebar=menu-action]]/menu-item:pr-0"
         >
