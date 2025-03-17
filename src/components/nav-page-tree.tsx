@@ -8,7 +8,7 @@ import {
   CopyPlus,
   FileText,
   Heading1,
-  Link,
+  LinkIcon,
   type LucideIcon,
   MoreHorizontal,
   PiIcon,
@@ -44,6 +44,8 @@ import {
   CollapsibleTrigger,
 } from "./ui/collapsible";
 import { Page, PageType, type PageTree as PageTreeType } from "@/types/page";
+import Link from "next/link";
+import { toast } from "sonner";
 
 const addType: { label: keyof typeof PageType; icon: LucideIcon }[] = [
   {
@@ -144,6 +146,35 @@ export function PageTree({ page }: { page: Page }) {
     }
   }, [open]);
 
+  const utils = api.useUtils();
+
+  const restorePageFromTrash = api.page.restoreFromTrash.useMutation({
+    onSuccess: async () => {
+      await utils.page.invalidate();
+      toast.success("Page restored from trash");
+    },
+  });
+
+  const movePageToTrash = api.page.moveToTrash.useMutation({
+    onMutate(variables) {
+      toast.loading("Moving page to trash...");
+    },
+    onSuccess: async (data, variables) => {
+      await utils.page.invalidate();
+      toast.dismiss();
+      toast.success("Page moved to trash", {
+        description: "You can restore it from the trash",
+        action: {
+          label: "restore",
+          onClick: () =>
+            restorePageFromTrash.mutate({
+              id: variables.id,
+            }),
+        },
+      });
+    },
+  });
+
   return (
     <SidebarMenuItem>
       <Collapsible
@@ -156,10 +187,10 @@ export function PageTree({ page }: { page: Page }) {
           // onClick={() => setOpen((open) => !open)}
           // className="group-has-[[data-sidebar=menu-action]]/menu-item:pr-0"
         >
-          <a href="#">
+          <Link href={`/dashboard/page/${page.id}`}>
             <PageTreeIconn icon={page.icon} />
             <span>{page.name ?? "Untitled"}</span>
-          </a>
+          </Link>
         </SidebarMenuButton>
         <CollapsibleTrigger asChild>
           <SidebarMenuAction
@@ -199,7 +230,7 @@ export function PageTree({ page }: { page: Page }) {
               <span>Share</span>
             </DropdownMenuItem> */}
             <DropdownMenuItem>
-              <Link className="text-muted-foreground" />
+              <LinkIcon className="text-muted-foreground" />
               <span>Copy Link</span>
             </DropdownMenuItem>
             <DropdownMenuItem>
@@ -207,7 +238,9 @@ export function PageTree({ page }: { page: Page }) {
               <span>Add a Copy</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => movePageToTrash.mutateAsync({ id: page.id })}
+            >
               <Trash2 className="text-muted-foreground" />
               <span>Move to Trash</span>
             </DropdownMenuItem>

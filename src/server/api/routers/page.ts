@@ -1,6 +1,7 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { pages } from "@/server/db/schema/pages";
 import { type PageTree, PageTypeArray } from "@/types/page";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 export const createPageZod = z.object({
@@ -19,6 +20,74 @@ export const pageRouter = createTRPCRouter({
         ...input,
         createdById: ctx.session.user.id,
       });
+    }),
+
+  moveToTrash: protectedProcedure
+    .input(
+      z.object({
+        id: z.number().describe("页面id"),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .update(pages)
+        .set({ isDeleted: true })
+        .where(eq(pages.id, input.id));
+
+      const deleteChildren = async (id: number) => {
+        const childPages = await ctx.db.query.pages.findMany({
+          where(fields, operators) {
+            return operators.and(
+              operators.eq(fields.parentId, id),
+              operators.eq(fields.isDeleted, false),
+            );
+          },
+        });
+
+        for (const childPage of childPages) {
+          await ctx.db
+            .update(pages)
+            .set({ isDeleted: true })
+            .where(eq(pages.id, childPage.id));
+          await deleteChildren(childPage.id);
+        }
+      };
+
+      await deleteChildren(input.id);
+    }),
+
+  restoreFromTrash: protectedProcedure
+    .input(
+      z.object({
+        id: z.number().describe("页面id"),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .update(pages)
+        .set({ isDeleted: false })
+        .where(eq(pages.id, input.id));
+
+      const restoreChildren = async (id: number) => {
+        const childPages = await ctx.db.query.pages.findMany({
+          where(fields, operators) {
+            return operators.and(
+              operators.eq(fields.parentId, id),
+              operators.eq(fields.isDeleted, true),
+            );
+          },
+        });
+
+        for (const childPage of childPages) {
+          await ctx.db
+            .update(pages)
+            .set({ isDeleted: false })
+            .where(eq(pages.id, childPage.id));
+          await restoreChildren(childPage.id);
+        }
+      };
+
+      await restoreChildren(input.id);
     }),
 
   getTree: protectedProcedure
@@ -88,6 +157,7 @@ export const pageRouter = createTRPCRouter({
         where(fields, operators) {
           return operators.and(
             operators.eq(fields.createdById, input.authorId),
+            operators.eq(fields.isDeleted, input.isDeleted),
             operators.isNull(fields.parentId),
           );
         },
@@ -115,4 +185,14 @@ export const pageRouter = createTRPCRouter({
       });
       return post ?? null;
     }),
+
+  getLatest: protectedProcedure.query(async ({ ctx, input }) => {
+    const page = await ctx.db.query.pages.findFirst({
+      where(fields, operators) {
+        return operators.and(operators.eq(fields.isDeleted, false));
+      },
+      orderBy: (posts, { desc }) => [desc(posts.updatedAt)],
+    });
+    return page ?? null;
+  }),
 });
