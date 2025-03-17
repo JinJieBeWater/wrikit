@@ -6,6 +6,7 @@ import { type Metadata } from "next";
 import { TRPCReactProvider } from "@/trpc/react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { Provider as WrapBalancerProvider } from "react-wrap-balancer";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -29,8 +30,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <TRPCReactProvider>{children}</TRPCReactProvider>
-          <Toaster closeButton />
+          <WrapBalancerProvider>
+            <TRPCReactProvider>
+              {children}
+              <Toaster closeButton />
+            </TRPCReactProvider>
+          </WrapBalancerProvider>
         </ThemeProvider>
       </body>
     </html>

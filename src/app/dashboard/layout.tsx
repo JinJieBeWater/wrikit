@@ -33,7 +33,7 @@ export default async function Layout({
       <SidebarProvider>
         <AppSidebar session={session} />
         <SidebarInset>
-          <header className="flex h-14 shrink-0 items-center gap-2">
+          <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-background">
             <div className="flex flex-1 items-center gap-2 px-3">
               <SidebarTrigger />
               <Separator orientation="vertical" className="mr-2 h-4" />
@@ -51,7 +51,7 @@ export default async function Layout({
               <NavActions />
             </div>
           </header>
-          {children}
+          <div className="h-[calc(100vh-3.5rem)] overflow-auto">{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </HydrateClient>

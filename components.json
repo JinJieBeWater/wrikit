@@ -17,5 +17,21 @@
     "lib": "@/lib",
     "hooks": "@/hooks"
   },
-  "iconLibrary": "lucide"
+  "iconLibrary": "lucide",
+  "registries": {
+    "plate": {
+      "style": "default",
+      "aliases": {
+        "ui": "@/components/plate-ui"
+      },
+      "url": "https://platejs.org/r"
+    },
+    "magicui": {
+      "style": "default",
+      "aliases": {
+        "ui": "@/components/magicui-ui"
+      },
+      "url": "https://magicui.vercel.app/r"
+    }
+  }
 }

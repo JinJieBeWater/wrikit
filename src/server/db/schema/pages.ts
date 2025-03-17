@@ -5,7 +5,6 @@ import {
   varchar,
   index,
   json,
-  text,
   boolean,
 } from "drizzle-orm/pg-core";
 import { timestamps } from "../columns.helpers";
@@ -25,7 +24,7 @@ export const pages = createTable("page", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   type: pageEnum("type").default("md").notNull(),
   name: varchar("name", { length: 256 }),
-  content: text("content"),
+  content: json("content"),
   parentId: integer("parent_id"),
   icon: json("icon").$type<Icon>(),
   isDeleted: boolean("is_deleted").default(false).notNull(),

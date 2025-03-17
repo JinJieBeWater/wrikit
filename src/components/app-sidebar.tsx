@@ -61,7 +61,6 @@ const data = {
       title: "Home",
       url: "/dashboard/home",
       icon: Home,
-      isActive: true,
     },
     {
       title: "Inbox",

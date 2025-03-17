@@ -43,9 +43,14 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "./ui/collapsible";
-import { Page, PageType, type PageTree as PageTreeType } from "@/types/page";
+import {
+  type Page,
+  PageType,
+  type PageTree as PageTreeType,
+} from "@/types/page";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useParams } from "next/navigation";
 
 const addType: { label: keyof typeof PageType; icon: LucideIcon }[] = [
   {
@@ -119,7 +124,7 @@ export function NavPageTree({ id }: { id: string }) {
   );
 }
 
-export function PageTreeIconn({ icon }: { icon: PageTreeType["icon"] }) {
+export function PageTreeIcon({ icon }: { icon: PageTreeType["icon"] }) {
   if (!icon) return <FileText className="text-muted-foreground" />;
 
   // const { type, value } = icon;
@@ -128,6 +133,7 @@ export function PageTreeIconn({ icon }: { icon: PageTreeType["icon"] }) {
 
 export function PageTree({ page }: { page: Page }) {
   const { isMobile } = useSidebar();
+  const { id } = useParams();
 
   const [open, setOpen] = useState(false);
 
@@ -142,25 +148,25 @@ export function PageTree({ page }: { page: Page }) {
 
   useEffect(() => {
     if (open) {
-      getChildren.refetch();
+      void getChildren.refetch();
     }
-  }, [open]);
+  }, [open, getChildren]);
 
   const utils = api.useUtils();
 
   const restorePageFromTrash = api.page.restoreFromTrash.useMutation({
     onSuccess: async () => {
-      await utils.page.invalidate();
+      await utils.page.getRoots.invalidate();
       toast.success("Page restored from trash");
     },
   });
 
   const movePageToTrash = api.page.moveToTrash.useMutation({
-    onMutate(variables) {
+    onMutate() {
       toast.loading("Moving page to trash...");
     },
-    onSuccess: async (data, variables) => {
-      await utils.page.invalidate();
+    onSuccess: async (_data, variables) => {
+      await utils.page.getRoots.invalidate();
       toast.dismiss();
       toast.success("Page moved to trash", {
         description: "You can restore it from the trash",
@@ -178,17 +184,18 @@ export function PageTree({ page }: { page: Page }) {
   return (
     <SidebarMenuItem>
       <Collapsible
-        className="group/collapsible [&>a]:hover:pr-8 [&>button]:hover:opacity-100 [&[data-state=open]>button:first-child>svg:first-child]:rotate-90"
+        className="group/collapsible [&>a]:hover:pr-11 [&>button]:hover:opacity-100 [&[data-state=open]>button:first-child>svg:first-child]:rotate-90"
         open={open}
         onOpenChange={setOpen}
       >
         <SidebarMenuButton
           asChild
+          isActive={page.id === Number(id)}
           // onClick={() => setOpen((open) => !open)}
           // className="group-has-[[data-sidebar=menu-action]]/menu-item:pr-0"
         >
           <Link href={`/dashboard/page/${page.id}`}>
-            <PageTreeIconn icon={page.icon} />
+            <PageTreeIcon icon={page.icon} />
             <span>{page.name ?? "Untitled"}</span>
           </Link>
         </SidebarMenuButton>
@@ -200,10 +207,10 @@ export function PageTree({ page }: { page: Page }) {
             <ChevronRight />
           </SidebarMenuAction>
         </CollapsibleTrigger>
-        {/* <SidebarMenuAction className="right-7" showOnHover title="Add">
+        <SidebarMenuAction className="right-6" showOnHover title="Add">
           <Plus />
           <span className="sr-only">Add</span>
-        </SidebarMenuAction> */}
+        </SidebarMenuAction>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuAction showOnHover title="More">
@@ -266,7 +273,9 @@ export function PageTree({ page }: { page: Page }) {
                   <PageTree key={index} page={subPage} />
                 ))
               ) : (
-                <span className="pl-8 text-muted-foreground">No Pages</span>
+                <span className="pl-8 text-muted-foreground">
+                  No Page Inside
+                </span>
               )}
             </Suspense>
           </SidebarMenuSub>
