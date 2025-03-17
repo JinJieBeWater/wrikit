@@ -4,7 +4,6 @@ import * as React from "react";
 import {
   AudioWaveform,
   Blocks,
-  Calendar,
   Command,
   Home,
   Inbox,
@@ -15,10 +14,8 @@ import {
   Trash2,
 } from "lucide-react";
 
-import { NavFavorites } from "@/components/nav-favorites";
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
-import { NavWorkspaces } from "@/components/nav-workspaces";
 import { TeamSwitcher } from "@/components/team-switcher";
 import {
   Sidebar,
@@ -26,6 +23,9 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { NavPageTree } from "./nav-page-tree";
+import { type Session } from "next-auth";
+import { ThemeSwitch } from "./theme-switch";
 
 // This is sample data.
 const data = {
@@ -59,7 +59,7 @@ const data = {
     },
     {
       title: "Home",
-      url: "#",
+      url: "/dashboard/home",
       icon: Home,
       isActive: true,
     },
@@ -70,34 +70,7 @@ const data = {
       badge: "10",
     },
   ],
-  navSecondary: [
-    {
-      title: "Calendar",
-      url: "#",
-      icon: Calendar,
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-    },
-    {
-      title: "Templates",
-      url: "#",
-      icon: Blocks,
-    },
-    {
-      title: "Trash",
-      url: "#",
-      icon: Trash2,
-    },
-    {
-      title: "Help",
-      url: "#",
-      icon: MessageCircleQuestion,
-    },
-  ],
-  favorites: [
+  pinnedItems: [
     {
       name: "Project Management & Task Tracking",
       url: "#",
@@ -128,28 +101,8 @@ const data = {
       url: "#",
       emoji: "🗣️",
     },
-    {
-      name: "Home Renovation Ideas & Budget Tracker",
-      url: "#",
-      emoji: "🏠",
-    },
-    {
-      name: "Personal Finance & Investment Portfolio",
-      url: "#",
-      emoji: "💰",
-    },
-    {
-      name: "Movie & TV Show Watchlist with Reviews",
-      url: "#",
-      emoji: "🎬",
-    },
-    {
-      name: "Daily Habit Tracker & Goal Setting",
-      url: "#",
-      emoji: "✅",
-    },
   ],
-  workspaces: [
+  pages: [
     {
       name: "Personal Life Management",
       emoji: "🏠",
@@ -158,11 +111,40 @@ const data = {
           name: "Daily Journal & Reflection",
           url: "#",
           emoji: "📔",
+          pages: [
+            {
+              name: "Daily Journal & Reflection",
+              url: "#",
+              emoji: "📔",
+            },
+            {
+              name: "Health & Wellness Tracker",
+              url: "#",
+              emoji: "🍏",
+            },
+            {
+              name: "Personal Growth & Learning Goals",
+              url: "#",
+              emoji: "🌟",
+            },
+          ],
         },
         {
           name: "Health & Wellness Tracker",
           url: "#",
           emoji: "🍏",
+          pages: [
+            {
+              name: "Health & Wellness Tracker",
+              url: "#",
+              emoji: "🍏",
+            },
+            {
+              name: "Fitness Tracker & Workout Routines",
+              url: "#",
+              emoji: "💪",
+            },
+          ],
         },
         {
           name: "Personal Growth & Learning Goals",
@@ -256,18 +238,52 @@ const data = {
       ],
     },
   ],
+  navSecondary: [
+    // {
+    //   title: "Calendar",
+    //   url: "#",
+    //   icon: Calendar,
+    // },
+    {
+      title: "Settings",
+      url: "#",
+      icon: Settings2,
+    },
+    {
+      title: "Templates",
+      url: "#",
+      icon: Blocks,
+    },
+    {
+      title: "Trash",
+      url: "#",
+      icon: Trash2,
+    },
+    {
+      title: "Help",
+      url: "#",
+      icon: MessageCircleQuestion,
+    },
+  ],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+  session,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & { session: Session | null }) {
   return (
     <Sidebar className="border-r-0" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <div className="flex justify-between">
+          <TeamSwitcher teams={data.teams} />
+          <ThemeSwitch />
+        </div>
         <NavMain items={data.navMain} />
       </SidebarHeader>
       <SidebarContent>
-        <NavFavorites favorites={data.favorites} />
-        <NavWorkspaces workspaces={data.workspaces} />
+        {/* <NavPinned pinnedItems={data.pinnedItems} /> */}
+        {/* <NavPages pages={data.pages} /> */}
+        {session?.user?.id && <NavPageTree id={session?.user?.id} />}
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarRail />
