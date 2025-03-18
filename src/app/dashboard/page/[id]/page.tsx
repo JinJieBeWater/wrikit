@@ -1,7 +1,6 @@
 import { api } from "@/trpc/server";
 import { MdEditor } from "../_components/md-editor";
 import { PageType } from "@/types/page";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { TitleEditor } from "../_components/title-editor";
 import { GridPattern } from "@/components/magicui/grid-pattern";
@@ -23,7 +22,7 @@ export default async function Page({ params }: Props) {
 
   return (
     <>
-      <div className={cn("flex w-full flex-col")}>
+      <div className={cn("flex h-full w-full flex-col")}>
         <div className="relative flex h-52 w-full shrink-0 items-end overflow-hidden bg-background px-12 pb-4 sm:px-page">
           <GridPattern
             width={20}

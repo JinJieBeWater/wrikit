@@ -24,8 +24,8 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { NavPageTree } from "./nav-page-tree";
-import { type Session } from "next-auth";
 import { ThemeSwitch } from "./theme-switch";
+import { useSession } from "./provider/session-provider";
 
 // This is sample data.
 const data = {
@@ -266,10 +266,8 @@ const data = {
   ],
 };
 
-export function AppSidebar({
-  session,
-  ...props
-}: React.ComponentProps<typeof Sidebar> & { session: Session | null }) {
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const session = useSession();
   return (
     <Sidebar className="border-r-0" {...props}>
       <SidebarHeader>

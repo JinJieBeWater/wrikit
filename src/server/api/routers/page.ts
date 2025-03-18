@@ -31,10 +31,14 @@ export const pageRouter = createTRPCRouter({
     .meta({ description: "创建新页面" })
     .input(createPageZod)
     .mutation(async ({ ctx, input }) => {
-      await ctx.db.insert(pages).values({
-        ...input,
-        createdById: ctx.session.user.id,
-      });
+      const [insertedPage] = await ctx.db
+        .insert(pages)
+        .values({
+          ...input,
+          createdById: ctx.session.user.id,
+        })
+        .returning();
+      return insertedPage;
     }),
 
   update: protectedProcedure
@@ -194,12 +198,12 @@ export const pageRouter = createTRPCRouter({
             operators.isNull(fields.parentId),
           );
         },
-        orderBy: (posts, { asc }) => [asc(posts.createdAt)],
+        orderBy: (posts, { desc }) => [desc(posts.createdAt)],
       });
       return rootPages ?? null;
     }),
 
-  ByParentId: protectedProcedure
+  getByParentId: protectedProcedure
     .input(
       z.object({
         parentId: z.number().describe("父页面id"),
