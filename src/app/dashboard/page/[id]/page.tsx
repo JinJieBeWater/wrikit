@@ -7,6 +7,7 @@ import { TitleEditor } from "../_components/title-editor";
 import { GridPattern } from "@/components/magicui/grid-pattern";
 import { PageIcon } from "@/components/page-icon";
 import { Button } from "@/components/ui/button";
+import { notFound } from "next/navigation";
 
 interface Props {
   params: {
@@ -18,18 +19,12 @@ export default async function Page({ params }: Props) {
   const { id } = await params;
   const page = await api.page.get({ id: Number(id) });
 
-  if (!page)
-    return (
-      <div className="flex flex-1 flex-col gap-4 px-4 py-10">
-        <div className="mx-auto h-24 w-full max-w-3xl rounded-xl bg-muted/50" />
-        <div className="mx-auto h-full w-full max-w-3xl rounded-xl bg-muted/50" />
-      </div>
-    );
+  if (!page) notFound();
 
   return (
     <>
       <div className={cn("flex w-full flex-col")}>
-        <div className="sm:px-page relative flex h-52 w-full shrink-0 items-end overflow-hidden bg-background px-12 pb-4">
+        <div className="relative flex h-52 w-full shrink-0 items-end overflow-hidden bg-background px-12 pb-4 sm:px-page">
           <GridPattern
             width={20}
             height={20}

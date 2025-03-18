@@ -52,7 +52,10 @@ interface SettingsContextType {
 }
 
 export const models: Model[] = [
-  { label: "gpt-4o-mini", value: "gpt-4o-mini" },
+  {
+    label: "openai/gpt-4o-mini",
+    value: "openai/gpt-4o-mini",
+  },
   { label: "gpt-4o", value: "gpt-4o" },
   { label: "gpt-4-turbo", value: "gpt-4-turbo" },
   { label: "gpt-4", value: "gpt-4" },
