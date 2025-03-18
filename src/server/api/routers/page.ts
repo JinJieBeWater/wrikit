@@ -1,5 +1,5 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { pages, pagesPinned } from "@/server/db/schema/pages";
+import { pages } from "@/server/db/schema/pages";
 import { PageTypeArray } from "@/types/page";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -72,15 +72,16 @@ export const pageRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       await ctx.db
         .update(pages)
-        .set({ isDeleted: true })
+        .set({ isDeleted: input.isDeleted })
         .where(eq(pages.id, input.id));
 
-      const deleteChildren = async (id: number) => {
+      // 递归子页面
+      const toggleChildren = async (id: number) => {
         const childPages = await ctx.db.query.pages.findMany({
           where(fields, operators) {
             return operators.and(
               operators.eq(fields.parentId, id),
-              operators.eq(fields.isDeleted, input.isDeleted),
+              operators.eq(fields.isDeleted, !input.isDeleted),
             );
           },
         });
@@ -88,13 +89,13 @@ export const pageRouter = createTRPCRouter({
         for (const childPage of childPages) {
           await ctx.db
             .update(pages)
-            .set({ isDeleted: true })
+            .set({ isDeleted: input.isDeleted })
             .where(eq(pages.id, childPage.id));
-          await deleteChildren(childPage.id);
+          await toggleChildren(childPage.id);
         }
       };
 
-      await deleteChildren(input.id);
+      await toggleChildren(input.id);
     }),
 
   // getTree: protectedProcedure
@@ -199,24 +200,5 @@ export const pageRouter = createTRPCRouter({
         orderBy: (posts, { desc }) => [desc(posts.updatedAt)],
       });
       return page ?? null;
-    }),
-
-  createPinned: protectedProcedure
-    .input(
-      z.object({
-        userId: z.string().describe("用户id"),
-        pageId: z.number().describe("页面id"),
-        order: z.number().default(0).describe("排序顺序 0为默认"),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      await ctx.db
-        .insert(pagesPinned)
-        .values({
-          userId: input.userId,
-          pageId: input.pageId,
-          order: input.order,
-        })
-        .returning();
     }),
 });
