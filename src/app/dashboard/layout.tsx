@@ -23,9 +23,7 @@ export default async function Layout({
   const session = await auth();
 
   if (session?.user) {
-    void api.page.getRoots.prefetch({
-      authorId: session.user.id,
-    });
+    void api.page.getByParentId.prefetch({});
   }
 
   return (

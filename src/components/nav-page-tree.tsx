@@ -44,9 +44,7 @@ import { PageIcon } from "./page-icon";
 import { PageAddButton } from "./page-add-button";
 
 export function NavPageTree({ id }: { id: string }) {
-  const [roots] = api.page.getRoots.useSuspenseQuery({
-    authorId: id,
-  });
+  const [roots] = api.page.getByParentId.useSuspenseQuery({});
 
   return (
     <SidebarGroup>
@@ -91,35 +89,32 @@ export function PageTree({ page }: { page: Page }) {
         parentId: page.parentId,
       });
     } else {
-      void utils.page.getRoots.invalidate();
+      void utils.page.getByParentId.invalidate({});
     }
   }, [page.parentId, utils]);
 
-  const restorePageFromTrash = api.page.restoreFromTrash.useMutation({
-    onSuccess: async () => {
-      invalidateCache();
-      toast.success("Page restored from trash");
-    },
-  });
-
-  const movePageToTrash = api.page.moveToTrash.useMutation({
+  const toggleTrash = api.page.toggleTrash.useMutation({
     onMutate() {
       toast.loading("Moving page to trash...");
     },
     onSuccess: async (_data, variables) => {
       invalidateCache();
-
-      toast.dismiss();
-      toast.success("Page moved to trash", {
-        description: "You can restore it from the trash",
-        action: {
-          label: "restore",
-          onClick: () =>
-            restorePageFromTrash.mutate({
-              id: variables.id,
-            }),
-        },
-      });
+      if (variables.isDeleted) {
+        toast.dismiss();
+        toast.success("Page moved to trash", {
+          description: "You can restore it from the trash",
+          action: {
+            label: "restore",
+            onClick: () =>
+              toggleTrash.mutate({
+                id: variables.id,
+                isDeleted: false,
+              }),
+          },
+        });
+      } else {
+        toast.success("Page restored from trash");
+      }
     },
   });
 
@@ -191,7 +186,9 @@ export function PageTree({ page }: { page: Page }) {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => movePageToTrash.mutateAsync({ id: page.id })}
+              onClick={() =>
+                toggleTrash.mutateAsync({ id: page.id, isDeleted: true })
+              }
             >
               <Trash2 className="text-muted-foreground" />
               <span>Move to Trash</span>

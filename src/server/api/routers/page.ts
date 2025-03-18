@@ -47,6 +47,8 @@ export const pageRouter = createTRPCRouter({
         id: z.number().describe("页面id"),
         name: z.string().optional().describe("页面名称"),
         content: z.string().optional().describe("页面内容"),
+        order: z.number().optional().describe("排序顺序"),
+        isPinned: z.boolean().optional().describe("是否置顶"),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -55,14 +57,17 @@ export const pageRouter = createTRPCRouter({
         .set({
           name: input.name,
           content: input.content,
+          order: input.order,
+          isPinned: input.isPinned,
         })
         .where(and(eq(pages.id, input.id)));
     }),
 
-  moveToTrash: protectedProcedure
+  toggleTrash: protectedProcedure
     .input(
       z.object({
         id: z.number().describe("页面id"),
+        isDeleted: z.boolean().describe("是否删除"),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -76,7 +81,7 @@ export const pageRouter = createTRPCRouter({
           where(fields, operators) {
             return operators.and(
               operators.eq(fields.parentId, id),
-              operators.eq(fields.isDeleted, false),
+              operators.eq(fields.isDeleted, input.isDeleted),
             );
           },
         });
@@ -91,40 +96,6 @@ export const pageRouter = createTRPCRouter({
       };
 
       await deleteChildren(input.id);
-    }),
-
-  restoreFromTrash: protectedProcedure
-    .input(
-      z.object({
-        id: z.number().describe("页面id"),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      await ctx.db
-        .update(pages)
-        .set({ isDeleted: false })
-        .where(eq(pages.id, input.id));
-
-      const restoreChildren = async (id: number) => {
-        const childPages = await ctx.db.query.pages.findMany({
-          where(fields, operators) {
-            return operators.and(
-              operators.eq(fields.parentId, id),
-              operators.eq(fields.isDeleted, true),
-            );
-          },
-        });
-
-        for (const childPage of childPages) {
-          await ctx.db
-            .update(pages)
-            .set({ isDeleted: false })
-            .where(eq(pages.id, childPage.id));
-          await restoreChildren(childPage.id);
-        }
-      };
-
-      await restoreChildren(input.id);
     }),
 
   // getTree: protectedProcedure
@@ -182,54 +153,52 @@ export const pageRouter = createTRPCRouter({
   //     return pageTree;
   //   }),
 
-  getRoots: protectedProcedure
+  getByParentId: protectedProcedure
     .input(
       z.object({
-        authorId: z.string().describe("作者id"),
+        parentId: z.number().optional().describe("父页面id，不传则获取根页面"),
         isDeleted: z.boolean().default(false).describe("是否删除"),
       }),
     )
     .query(async ({ ctx, input }) => {
       const rootPages = await ctx.db.query.pages.findMany({
         where(fields, operators) {
+          if (input.parentId === undefined) {
+            return operators.and(
+              operators.isNull(fields.parentId),
+              operators.eq(fields.isDeleted, input.isDeleted),
+            );
+          }
           return operators.and(
-            operators.eq(fields.createdById, input.authorId),
-            operators.eq(fields.isDeleted, input.isDeleted),
+            operators.eq(fields.parentId, input.parentId),
             operators.isNull(fields.parentId),
           );
         },
-        orderBy: (posts, { desc }) => [desc(posts.createdAt)],
+        orderBy: (posts, { asc, desc }) => [
+          asc(posts.order),
+          desc(posts.createdAt),
+        ],
       });
       return rootPages ?? null;
     }),
 
-  getByParentId: protectedProcedure
+  getLatest: protectedProcedure
     .input(
-      z.object({
-        parentId: z.number().describe("父页面id"),
-        isDeleted: z.boolean().default(false).describe("是否删除"),
-      }),
+      z
+        .object({
+          isDeleted: z.boolean().default(false).describe("是否删除"),
+        })
+        .default({
+          isDeleted: false,
+        }),
     )
     .query(async ({ ctx, input }) => {
-      const post = await ctx.db.query.pages.findMany({
+      const page = await ctx.db.query.pages.findFirst({
         where(fields, operators) {
-          return operators.and(
-            operators.eq(fields.parentId, input.parentId),
-            operators.eq(fields.isDeleted, input.isDeleted),
-          );
+          return operators.and(operators.eq(fields.isDeleted, input.isDeleted));
         },
-        orderBy: (posts, { desc }) => [desc(posts.createdAt)],
+        orderBy: (posts, { desc }) => [desc(posts.updatedAt)],
       });
-      return post ?? null;
+      return page ?? null;
     }),
-
-  getLatest: protectedProcedure.query(async ({ ctx }) => {
-    const page = await ctx.db.query.pages.findFirst({
-      where(fields, operators) {
-        return operators.and(operators.eq(fields.isDeleted, false));
-      },
-      orderBy: (posts, { desc }) => [desc(posts.updatedAt)],
-    });
-    return page ?? null;
-  }),
 });

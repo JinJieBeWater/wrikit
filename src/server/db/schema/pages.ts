@@ -29,6 +29,8 @@ export const pages = createTable("page", {
   icon: json("icon").$type<Icon>(),
   isDeleted: boolean("is_deleted").default(false).notNull(),
   isPrivate: boolean("is_private").default(true).notNull(),
+  order: integer("order").default(0).notNull(),
+  isPinned: boolean("is_pinned").default(false).notNull(),
   createdById: varchar("created_by", { length: 255 })
     .notNull()
     .references(() => users.id),
