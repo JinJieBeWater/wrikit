@@ -23,7 +23,7 @@ export function TitleEditor({
       });
       await utils.page.getRoots.invalidate();
       if (page.parentId) {
-        await utils.page.ByParentId.invalidate({
+        await utils.page.getByParentId.invalidate({
           parentId: page.parentId,
         });
       }
@@ -38,7 +38,7 @@ export function TitleEditor({
   }, 1000);
   return (
     <AutosizeTextarea
-      className="sm:px-page h-full w-full resize-none overflow-hidden border-none px-12 text-4xl font-bold focus-visible:rounded-none focus-visible:outline-none focus-visible:ring-0"
+      className="h-full w-full resize-none overflow-hidden border-none px-12 text-4xl font-bold focus-visible:rounded-none focus-visible:outline-none focus-visible:ring-0 sm:px-page"
       defaultValue={page.name ?? ""}
       placeholder="Untitled"
       onChange={(e) => updateTitleDebounced(e.target.value)}

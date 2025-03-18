@@ -199,7 +199,7 @@ export const pageRouter = createTRPCRouter({
       return rootPages ?? null;
     }),
 
-  ByParentId: protectedProcedure
+  getByParentId: protectedProcedure
     .input(
       z.object({
         parentId: z.number().describe("父页面id"),

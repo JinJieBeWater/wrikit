@@ -51,6 +51,7 @@ import {
 import Link from "next/link";
 import { toast } from "sonner";
 import { useParams } from "next/navigation";
+import { PageIcon } from "./page-icon";
 
 const addType: { label: keyof typeof PageType; icon: LucideIcon }[] = [
   {
@@ -124,20 +125,13 @@ export function NavPageTree({ id }: { id: string }) {
   );
 }
 
-export function PageTreeIcon({ icon }: { icon: PageTreeType["icon"] }) {
-  if (!icon) return <FileText className="text-muted-foreground" />;
-
-  // const { type, value } = icon;
-  return <PiIcon className="text-muted-foreground" />;
-}
-
 export function PageTree({ page }: { page: Page }) {
   const { isMobile } = useSidebar();
   const { id } = useParams();
 
   const [open, setOpen] = useState(false);
 
-  const getChildren = api.page.ByParentId.useQuery(
+  const getChildren = api.page.getByParentId.useQuery(
     {
       parentId: page.id,
     },
@@ -195,7 +189,7 @@ export function PageTree({ page }: { page: Page }) {
           // className="group-has-[[data-sidebar=menu-action]]/menu-item:pr-0"
         >
           <Link href={`/dashboard/page/${page.id}`}>
-            <PageTreeIcon icon={page.icon} />
+            <PageIcon icon={page.icon} />
             <span>{page.name ?? "Untitled"}</span>
           </Link>
         </SidebarMenuButton>
