@@ -4,9 +4,11 @@ import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 
 import { TRPCReactProvider } from "@/trpc/react";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider } from "@/components/provider/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { Provider as WrapBalancerProvider } from "react-wrap-balancer";
+import { auth } from "@/server/auth";
+import { SessionProvider } from "@/components/provider/session-provider";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -14,9 +16,11 @@ export const metadata: Metadata = {
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const session = await auth();
+
   return (
     <html
       lang="en"
@@ -32,8 +36,8 @@ export default function RootLayout({
         >
           <WrapBalancerProvider>
             <TRPCReactProvider>
-              {children}
-              <Toaster closeButton />
+              <SessionProvider session={session}>{children}</SessionProvider>
+              <Toaster />
             </TRPCReactProvider>
           </WrapBalancerProvider>
         </ThemeProvider>

@@ -1,20 +1,13 @@
 "use client";
 
 import {
-  ALargeSmall,
-  AppWindow,
   ArrowUpRight,
   ChevronRight,
   CopyPlus,
-  FileText,
-  Heading1,
   LinkIcon,
-  type LucideIcon,
   MoreHorizontal,
-  PiIcon,
   Pin,
   Plus,
-  TableProperties,
   Trash2,
 } from "lucide-react";
 import {
@@ -26,10 +19,10 @@ import {
   SidebarGroupLabel,
   SidebarGroupContent,
   SidebarMenu,
-  SidebarGroupAction,
   useSidebar,
+  SidebarGroupAction,
 } from "./ui/sidebar";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,47 +36,16 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "./ui/collapsible";
-import {
-  type Page,
-  PageType,
-  type PageTree as PageTreeType,
-} from "@/types/page";
+import { type Page } from "@/types/page";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useParams } from "next/navigation";
 import { PageIcon } from "./page-icon";
-
-const addType: { label: keyof typeof PageType; icon: LucideIcon }[] = [
-  {
-    label: PageType.md,
-    icon: Heading1,
-  },
-  {
-    label: PageType.pure,
-    icon: ALargeSmall,
-  },
-  {
-    label: PageType.object,
-    icon: TableProperties,
-  },
-  {
-    label: PageType.iframe,
-    icon: AppWindow,
-  },
-];
+import { PageAddButton } from "./page-add-button";
 
 export function NavPageTree({ id }: { id: string }) {
-  const { isMobile } = useSidebar();
-
   const [roots] = api.page.getRoots.useSuspenseQuery({
     authorId: id,
-  });
-
-  const utils = api.useUtils();
-  const createPage = api.page.create.useMutation({
-    onSuccess: async () => {
-      await utils.page.invalidate();
-    },
   });
 
   return (
@@ -97,30 +59,11 @@ export function NavPageTree({ id }: { id: string }) {
         </SidebarMenu>
       </SidebarGroupContent>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <SidebarGroupAction title="Add Page">
-            <Plus /> <span className="sr-only">Add Page</span>
-          </SidebarGroupAction>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          className="w-56 rounded-lg"
-          side={isMobile ? "bottom" : "right"}
-          align={isMobile ? "end" : "start"}
-        >
-          {addType.map((type, index) => (
-            <DropdownMenuItem
-              key={index}
-              onClick={() => {
-                createPage.mutate({ type: type.label });
-              }}
-            >
-              <type.icon className="text-muted-foreground" />
-              <span>{type.label}</span>
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <PageAddButton>
+        <SidebarGroupAction title="Add Page">
+          <Plus /> <span className="sr-only">Add Page</span>
+        </SidebarGroupAction>
+      </PageAddButton>
     </SidebarGroup>
   );
 }
@@ -128,29 +71,33 @@ export function NavPageTree({ id }: { id: string }) {
 export function PageTree({ page }: { page: Page }) {
   const { isMobile } = useSidebar();
   const { id } = useParams();
-
   const [open, setOpen] = useState(false);
 
-  const getChildren = api.page.getByParentId.useQuery(
-    {
-      parentId: page.id,
-    },
-    {
-      enabled: false,
-    },
-  );
+  const getChildren = api.page.getByParentId.useQuery({
+    parentId: page.id,
+  });
 
   useEffect(() => {
-    if (open) {
+    if (open === true) {
       void getChildren.refetch();
     }
-  }, [open, getChildren]);
+  }, [open]);
 
   const utils = api.useUtils();
 
+  const invalidateCache = useCallback(() => {
+    if (page.parentId) {
+      void utils.page.getByParentId.invalidate({
+        parentId: page.parentId,
+      });
+    } else {
+      void utils.page.getRoots.invalidate();
+    }
+  }, [page.parentId, utils]);
+
   const restorePageFromTrash = api.page.restoreFromTrash.useMutation({
     onSuccess: async () => {
-      await utils.page.getRoots.invalidate();
+      invalidateCache();
       toast.success("Page restored from trash");
     },
   });
@@ -160,7 +107,8 @@ export function PageTree({ page }: { page: Page }) {
       toast.loading("Moving page to trash...");
     },
     onSuccess: async (_data, variables) => {
-      await utils.page.getRoots.invalidate();
+      invalidateCache();
+
       toast.dismiss();
       toast.success("Page moved to trash", {
         description: "You can restore it from the trash",
@@ -201,10 +149,13 @@ export function PageTree({ page }: { page: Page }) {
             <ChevronRight />
           </SidebarMenuAction>
         </CollapsibleTrigger>
-        <SidebarMenuAction className="right-6" showOnHover title="Add">
-          <Plus />
-          <span className="sr-only">Add</span>
-        </SidebarMenuAction>
+        <PageAddButton parentPage={page} setParentOpen={setOpen}>
+          <SidebarMenuAction className="right-6" showOnHover title="Add">
+            <Plus />
+            <span className="sr-only">Add</span>
+          </SidebarMenuAction>
+        </PageAddButton>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuAction showOnHover title="More">
@@ -250,13 +201,6 @@ export function PageTree({ page }: { page: Page }) {
 
         <CollapsibleContent>
           <SidebarMenuSub className="ml-2 mr-0 px-0">
-            {/* {page.child.length > 0 ? (
-              page.child?.map((subPage, index) => (
-                <PageTree key={index} page={subPage} />
-              ))
-            ) : (
-              <span className="pl-8 text-muted-foreground">No Pages</span>
-            )} */}
             <Suspense
               fallback={
                 <span className="pl-8 text-muted-foreground">Loading...</span>
@@ -266,6 +210,8 @@ export function PageTree({ page }: { page: Page }) {
                 getChildren.data?.map((subPage, index) => (
                   <PageTree key={index} page={subPage} />
                 ))
+              ) : getChildren.isPending ? (
+                <span className="pl-8 text-muted-foreground">Loading...</span>
               ) : (
                 <span className="pl-8 text-muted-foreground">
                   No Page Inside

@@ -31,7 +31,7 @@ export default async function Layout({
   return (
     <HydrateClient>
       <SidebarProvider>
-        <AppSidebar session={session} />
+        <AppSidebar />
         <SidebarInset>
           <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-background">
             <div className="flex flex-1 items-center gap-2 px-3">
