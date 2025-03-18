@@ -22,10 +22,12 @@ import {
   SidebarContent,
   SidebarHeader,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { NavPageTree } from "./nav-page-tree";
 import { ThemeSwitch } from "./theme-switch";
 import { useSession } from "./provider/session-provider";
+import { useState } from "react";
 
 // This is sample data.
 const data = {
@@ -268,8 +270,48 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const session = useSession();
+  const { setOpen, open } = useSidebar();
+  const [isMouseOver, setIsMouseOver] = useState(false);
+  const timerRef = React.useRef<NodeJS.Timeout>();
+
+  React.useEffect(() => {
+    return () => {
+      // 清理定时器
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
+
   return (
-    <Sidebar className="border-r-0" {...props}>
+    <Sidebar
+      variant="inset"
+      {...props}
+      onMouseEnter={() => {
+        if (!open) {
+          if (timerRef.current) {
+            return;
+          }
+          setIsMouseOver(true);
+          setOpen(true);
+          timerRef.current = setTimeout(() => {
+            timerRef.current = undefined;
+          }, 200); // 200ms 的延迟
+        }
+      }}
+      onMouseLeave={() => {
+        if (timerRef.current) {
+          return;
+        }
+        if (isMouseOver) {
+          setIsMouseOver(false);
+          setOpen(false);
+          timerRef.current = setTimeout(() => {
+            timerRef.current = undefined;
+          }, 200); // 200ms 的延迟
+        }
+      }}
+    >
       <SidebarHeader>
         <div className="flex justify-between">
           <TeamSwitcher teams={data.teams} />

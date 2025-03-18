@@ -32,8 +32,8 @@ export default async function Layout({
     <HydrateClient>
       <SidebarProvider>
         <AppSidebar />
-        <SidebarInset>
-          <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-background">
+        <SidebarInset className="h-screen md:peer-data-[variant=inset]:h-[calc(100vh-1rem)]">
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
             <div className="flex flex-1 items-center gap-2 px-3">
               <SidebarTrigger />
               <Separator orientation="vertical" className="mr-2 h-4" />
@@ -51,7 +51,7 @@ export default async function Layout({
               <NavActions />
             </div>
           </header>
-          <div className="h-[calc(100vh-3.5rem)] overflow-auto">{children}</div>
+          <div className="grow overflow-auto">{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </HydrateClient>
