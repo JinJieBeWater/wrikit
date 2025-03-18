@@ -28,6 +28,7 @@ export const pages = createTable("page", {
   parentId: integer("parent_id"),
   icon: json("icon").$type<Icon>(),
   isDeleted: boolean("is_deleted").default(false).notNull(),
+  isPrivate: boolean("is_private").default(true).notNull(),
   createdById: varchar("created_by", { length: 255 })
     .notNull()
     .references(() => users.id),
@@ -98,6 +99,7 @@ export const pageObjectTemplates = createTable("page_object_templates", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   name: varchar("name", { length: 256 }),
   template: json("template").$type<PageObjectTemplate>().default([]),
+  isPrivate: boolean("is_private").default(true).notNull(),
   createdById: varchar("created_by", { length: 255 })
     .notNull()
     .references(() => users.id),
