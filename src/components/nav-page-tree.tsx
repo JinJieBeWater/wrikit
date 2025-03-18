@@ -94,13 +94,17 @@ export function PageTree({ page }: { page: Page }) {
   }, [page.parentId, utils]);
 
   const toggleTrash = api.page.toggleTrash.useMutation({
-    onMutate() {
-      toast.loading("Moving page to trash...");
+    onMutate(variables) {
+      if (variables.isDeleted) {
+        toast.loading("Moving page to trash...");
+      } else {
+        toast.loading("Restoring page from trash...");
+      }
     },
     onSuccess: async (_data, variables) => {
       invalidateCache();
+      toast.dismiss();
       if (variables.isDeleted) {
-        toast.dismiss();
         toast.success("Page moved to trash", {
           description: "You can restore it from the trash",
           action: {
@@ -200,7 +204,9 @@ export function PageTree({ page }: { page: Page }) {
           <SidebarMenuSub className="ml-2 mr-0 px-0">
             <Suspense
               fallback={
-                <span className="pl-8 text-muted-foreground">Loading...</span>
+                <span className="flex h-8 items-center pl-8 text-muted-foreground">
+                  Loading...
+                </span>
               }
             >
               {getChildren.data && getChildren.data.length > 0 ? (
@@ -208,9 +214,11 @@ export function PageTree({ page }: { page: Page }) {
                   <PageTree key={index} page={subPage} />
                 ))
               ) : getChildren.isPending ? (
-                <span className="pl-8 text-muted-foreground">Loading...</span>
+                <span className="flex h-8 items-center pl-8 text-muted-foreground">
+                  Loading...
+                </span>
               ) : (
-                <span className="pl-8 text-muted-foreground">
+                <span className="flex h-8 items-center pl-8 text-muted-foreground">
                   No Page Inside
                 </span>
               )}

@@ -1,5 +1,5 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { pages } from "@/server/db/schema/pages";
+import { pages, pagesPinned } from "@/server/db/schema/pages";
 import { PageTypeArray } from "@/types/page";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -70,32 +70,57 @@ export const pageRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      await ctx.db
-        .update(pages)
-        .set({ isDeleted: input.isDeleted })
-        .where(eq(pages.id, input.id));
+      await ctx.db.transaction(async (trx) => {
+        await trx
+          .update(pages)
+          .set({ isDeleted: input.isDeleted })
+          .where(eq(pages.id, input.id));
 
-      // 递归子页面
-      const toggleChildren = async (id: number) => {
-        const childPages = await ctx.db.query.pages.findMany({
-          where(fields, operators) {
-            return operators.and(
-              operators.eq(fields.parentId, id),
-              operators.eq(fields.isDeleted, !input.isDeleted),
-            );
-          },
-        });
+        // 递归子页面
+        const toggleChildren = async (id: number) => {
+          const stack = [id];
 
-        for (const childPage of childPages) {
-          await ctx.db
-            .update(pages)
-            .set({ isDeleted: input.isDeleted })
-            .where(eq(pages.id, childPage.id));
-          await toggleChildren(childPage.id);
-        }
-      };
+          while (stack.length > 0) {
+            const currentId = stack.pop()!;
+            const childPages = await trx.query.pages.findMany({
+              where(fields, operators) {
+                return operators.and(
+                  operators.eq(fields.parentId, currentId),
+                  operators.eq(fields.isDeleted, !input.isDeleted),
+                );
+              },
+            });
 
-      await toggleChildren(input.id);
+            for (const childPage of childPages) {
+              trx
+                .update(pages)
+                .set({ isDeleted: input.isDeleted })
+                .where(eq(pages.id, childPage.id));
+
+              if (input.isDeleted) {
+                await Promise.all([
+                  trx
+                    .update(pages)
+                    .set({ isDeleted: input.isDeleted })
+                    .where(eq(pages.id, childPage.id)),
+                  trx
+                    .delete(pagesPinned)
+                    .where(eq(pagesPinned.pageId, childPage.id)),
+                ]);
+              } else {
+                await trx
+                  .update(pages)
+                  .set({ isDeleted: input.isDeleted })
+                  .where(eq(pages.id, childPage.id));
+              }
+
+              stack.push(childPage.id);
+            }
+          }
+        };
+
+        await toggleChildren(input.id);
+      });
     }),
 
   // getTree: protectedProcedure
@@ -171,7 +196,7 @@ export const pageRouter = createTRPCRouter({
           }
           return operators.and(
             operators.eq(fields.parentId, input.parentId),
-            operators.isNull(fields.parentId),
+            operators.eq(fields.isDeleted, input.isDeleted),
           );
         },
         orderBy: (posts, { asc, desc }) => [
