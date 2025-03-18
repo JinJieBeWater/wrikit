@@ -270,47 +270,47 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const session = useSession();
-  const { setOpen, open } = useSidebar();
-  const [isMouseOver, setIsMouseOver] = useState(false);
-  const timerRef = React.useRef<NodeJS.Timeout>();
+  // const { setOpen, open } = useSidebar();
+  // const [isMouseOver, setIsMouseOver] = useState(false);
+  // const timerRef = React.useRef<NodeJS.Timeout>();
 
-  React.useEffect(() => {
-    return () => {
-      // 清理定时器
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, []);
+  // React.useEffect(() => {
+  //   return () => {
+  //     // 清理定时器
+  //     if (timerRef.current) {
+  //       clearTimeout(timerRef.current);
+  //     }
+  //   };
+  // }, []);
 
   return (
     <Sidebar
       variant="inset"
       {...props}
-      onMouseEnter={() => {
-        if (!open) {
-          if (timerRef.current) {
-            return;
-          }
-          setIsMouseOver(true);
-          setOpen(true);
-          timerRef.current = setTimeout(() => {
-            timerRef.current = undefined;
-          }, 200); // 200ms 的延迟
-        }
-      }}
-      onMouseLeave={() => {
-        if (timerRef.current) {
-          return;
-        }
-        if (isMouseOver) {
-          setIsMouseOver(false);
-          setOpen(false);
-          timerRef.current = setTimeout(() => {
-            timerRef.current = undefined;
-          }, 200); // 200ms 的延迟
-        }
-      }}
+      // onMouseEnter={() => {
+      //   if (!open) {
+      //     if (timerRef.current) {
+      //       return;
+      //     }
+      //     setIsMouseOver(true);
+      //     setOpen(true);
+      //     timerRef.current = setTimeout(() => {
+      //       timerRef.current = undefined;
+      //     }, 200); // 200ms 的延迟
+      //   }
+      // }}
+      // onMouseOut={() => {
+      //   if (timerRef.current) {
+      //     return;
+      //   }
+      //   if (isMouseOver) {
+      //     setIsMouseOver(false);
+      //     setOpen(false);
+      //     timerRef.current = setTimeout(() => {
+      //       timerRef.current = undefined;
+      //     }, 200); // 200ms 的延迟
+      //   }
+      // }}
     >
       <SidebarHeader>
         <div className="flex justify-between">
