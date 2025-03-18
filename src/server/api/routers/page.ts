@@ -1,5 +1,5 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { pages } from "@/server/db/schema/pages";
+import { pages, pagesPinned } from "@/server/db/schema/pages";
 import { PageTypeArray } from "@/types/page";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -58,7 +58,6 @@ export const pageRouter = createTRPCRouter({
           name: input.name,
           content: input.content,
           order: input.order,
-          isPinned: input.isPinned,
         })
         .where(and(eq(pages.id, input.id)));
     }),
@@ -200,5 +199,24 @@ export const pageRouter = createTRPCRouter({
         orderBy: (posts, { desc }) => [desc(posts.updatedAt)],
       });
       return page ?? null;
+    }),
+
+  createPinned: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string().describe("用户id"),
+        pageId: z.number().describe("页面id"),
+        order: z.number().default(0).describe("排序顺序 0为默认"),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .insert(pagesPinned)
+        .values({
+          userId: input.userId,
+          pageId: input.pageId,
+          order: input.order,
+        })
+        .returning();
     }),
 });
