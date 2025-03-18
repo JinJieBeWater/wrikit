@@ -21,7 +21,7 @@ export function TitleEditor({
       await utils.page.get.invalidate({
         id: page.id,
       });
-      await utils.page.getRoots.invalidate();
+      await utils.page.getByParentId.invalidate({});
       if (page.parentId) {
         await utils.page.getByParentId.invalidate({
           parentId: page.parentId,

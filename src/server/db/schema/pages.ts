@@ -6,6 +6,7 @@ import {
   index,
   json,
   boolean,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 import { timestamps } from "../columns.helpers";
 import { users } from "./users";
@@ -20,20 +21,28 @@ import {
 
 export const pageEnum = pgEnum("page_ty", PageTypeArray);
 
-export const pages = createTable("page", {
-  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
-  type: pageEnum("type").default("md").notNull(),
-  name: varchar("name", { length: 256 }),
-  content: json("content"),
-  parentId: integer("parent_id"),
-  icon: json("icon").$type<Icon>(),
-  isDeleted: boolean("is_deleted").default(false).notNull(),
-  isPrivate: boolean("is_private").default(true).notNull(),
-  createdById: varchar("created_by", { length: 255 })
-    .notNull()
-    .references(() => users.id),
-  ...timestamps,
-});
+export const pages = createTable(
+  "page",
+  {
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    type: pageEnum("type").default("md").notNull(),
+    name: varchar("name", { length: 256 }),
+    content: json("content"),
+    parentId: integer("parent_id"),
+    icon: json("icon").$type<Icon>(),
+    isDeleted: boolean("is_deleted").default(false).notNull(),
+    isPrivate: boolean("is_private").default(true).notNull(),
+    order: integer("order").default(0).notNull(),
+    createdById: varchar("created_by", { length: 255 })
+      .notNull()
+      .references(() => users.id),
+    ...timestamps,
+  },
+  (table) => ({
+    parentIdIdx: index("page_parent_id_idx").on(table.parentId),
+    createdByIdIdx: index("page_created_by_idx").on(table.createdById),
+  }),
+);
 
 export const pagesRelations = relations(pages, ({ one }) => ({
   parent: one(pages, {
@@ -43,6 +52,30 @@ export const pagesRelations = relations(pages, ({ one }) => ({
   author: one(users, {
     fields: [pages.createdById],
     references: [users.id],
+  }),
+}));
+
+export const pagesPinned = createTable(
+  "page_pinned",
+  {
+    userId: varchar("user_id", { length: 255 }).notNull(),
+    pageId: integer("page_id").notNull(),
+    order: integer("pinned_order").default(0).notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.userId, table.pageId] }),
+    userIdIdx: index("page_user_id_idx").on(table.userId),
+  }),
+);
+
+export const pagesPinnedRelations = relations(pagesPinned, ({ one }) => ({
+  user: one(users, {
+    fields: [pagesPinned.userId],
+    references: [users.id],
+  }),
+  page: one(pages, {
+    fields: [pagesPinned.pageId],
+    references: [pages.id],
   }),
 }));
 

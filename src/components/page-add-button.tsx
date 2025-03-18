@@ -56,7 +56,7 @@ export function PageAddButton({
         });
         setParentOpen?.(true);
       } else {
-        await utils.page.getRoots.invalidate();
+        await utils.page.getByParentId.invalidate({});
       }
       if (data) {
         router.push(`/dashboard/page/${data.id}`);
