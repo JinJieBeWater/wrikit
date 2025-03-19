@@ -82,7 +82,7 @@ export function PageTree({ page }: { page: Page }) {
           // onClick={() => setOpen((open) => !open)}
           // className="group-has-[[data-sidebar=menu-action]]/menu-item:pr-0"
         >
-          <Link href={`/dashboard/page/${page.id}`}>
+          <Link href={`/dashboard/page/${page.id}?name=${page.name}`}>
             <PageIcon icon={page.icon} />
             <span>{page.name ?? "Untitled"}</span>
           </Link>
