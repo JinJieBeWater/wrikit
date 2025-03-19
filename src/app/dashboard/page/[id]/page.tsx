@@ -7,6 +7,7 @@ import { GridPattern } from "@/components/magicui/grid-pattern";
 import { PageIcon } from "@/components/page-icon";
 import { Button } from "@/components/ui/button";
 import { notFound } from "next/navigation";
+import { PureEditor } from "../_components/pure-editor";
 
 interface Props {
   params: {
@@ -41,6 +42,7 @@ export default async function Page({ params }: Props) {
         <TitleEditor page={page} />
         <div className="grow">
           {page.type === PageType.md && <MdEditor page={page}></MdEditor>}
+          {page.type === PageType.pure && <PureEditor page={page}></PureEditor>}
         </div>
       </div>
     </>
