@@ -59,7 +59,12 @@ export const pageRouter = createTRPCRouter({
           content: input.content,
           order: input.order,
         })
-        .where(and(eq(pages.id, input.id)));
+        .where(
+          and(
+            eq(pages.id, input.id),
+            eq(pages.createdById, ctx.session.user.id),
+          ),
+        );
     }),
 
   toggleTrash: protectedProcedure
@@ -74,7 +79,12 @@ export const pageRouter = createTRPCRouter({
         await trx
           .update(pages)
           .set({ isDeleted: input.isDeleted })
-          .where(eq(pages.id, input.id));
+          .where(
+            and(
+              eq(pages.id, input.id),
+              eq(pages.createdById, ctx.session.user.id),
+            ),
+          );
 
         // 递归子页面
         const toggleChildren = async (id: number) => {
@@ -95,14 +105,14 @@ export const pageRouter = createTRPCRouter({
               trx
                 .update(pages)
                 .set({ isDeleted: input.isDeleted })
-                .where(eq(pages.id, childPage.id));
+                .where(and(eq(pages.id, childPage.id)));
 
               if (input.isDeleted) {
                 await Promise.all([
                   trx
                     .update(pages)
                     .set({ isDeleted: input.isDeleted })
-                    .where(eq(pages.id, childPage.id)),
+                    .where(and(eq(pages.id, childPage.id))),
                   trx
                     .delete(pagesPinned)
                     .where(eq(pagesPinned.pageId, childPage.id)),
@@ -192,11 +202,13 @@ export const pageRouter = createTRPCRouter({
             return operators.and(
               operators.isNull(fields.parentId),
               operators.eq(fields.isDeleted, input.isDeleted),
+              operators.eq(fields.createdById, ctx.session.user.id),
             );
           }
           return operators.and(
             operators.eq(fields.parentId, input.parentId),
             operators.eq(fields.isDeleted, input.isDeleted),
+            operators.eq(fields.createdById, ctx.session.user.id),
           );
         },
         orderBy: (posts, { asc, desc }) => [
@@ -220,7 +232,10 @@ export const pageRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const page = await ctx.db.query.pages.findFirst({
         where(fields, operators) {
-          return operators.and(operators.eq(fields.isDeleted, input.isDeleted));
+          return operators.and(
+            operators.eq(fields.isDeleted, input.isDeleted),
+            operators.eq(fields.createdById, ctx.session.user.id),
+          );
         },
         orderBy: (posts, { desc }) => [desc(posts.updatedAt)],
       });

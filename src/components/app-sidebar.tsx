@@ -22,12 +22,11 @@ import {
   SidebarContent,
   SidebarHeader,
   SidebarRail,
-  useSidebar,
 } from "@/components/ui/sidebar";
-import { NavPageTree } from "./nav-page-tree";
+import { NavPage } from "./nav-page";
 import { ThemeSwitch } from "./theme-switch";
 import { useSession } from "./provider/session-provider";
-import { useState } from "react";
+import { NavPagePinned } from "./nav-page-pinned";
 
 // This is sample data.
 const data = {
@@ -322,7 +321,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         {/* <NavPinned pinnedItems={data.pinnedItems} /> */}
         {/* <NavPages pages={data.pages} /> */}
-        {session?.user?.id && <NavPageTree id={session?.user?.id} />}
+        {session?.user?.id && (
+          <>
+            <NavPagePinned />
+
+            <NavPage />
+          </>
+        )}
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarRail />

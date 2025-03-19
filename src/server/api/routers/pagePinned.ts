@@ -2,14 +2,15 @@ import { Page } from "@/types/page";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { z } from "zod";
 import { pagesPinned } from "@/server/db/schema";
+import { eq } from "drizzle-orm";
 
-export type PageWithPinnedOrder = Page & {
+export type PageWithPinned = Page & {
   pinnedOrder: number;
 };
 
 export const pagePinnedRouter = createTRPCRouter({
-  byUserId: protectedProcedure.query(async ({ ctx }) => {
-    const pinnedPagesResult: PageWithPinnedOrder[] = [];
+  get: protectedProcedure.query(async ({ ctx }) => {
+    const pinnedPagesResult: PageWithPinned[] = [];
     const pagesPinned = await ctx.db.query.pagesPinned.findMany({
       where(fields, operators) {
         return operators.and(operators.eq(fields.userId, ctx.session.user.id));
@@ -37,10 +38,9 @@ export const pagePinnedRouter = createTRPCRouter({
     return pinnedPagesResult;
   }),
 
-  createPinned: protectedProcedure
+  create: protectedProcedure
     .input(
       z.object({
-        userId: z.string().describe("用户id"),
         pageId: z.number().describe("页面id"),
         order: z.number().default(0).describe("排序顺序 0为默认"),
       }),
@@ -49,10 +49,22 @@ export const pagePinnedRouter = createTRPCRouter({
       await ctx.db
         .insert(pagesPinned)
         .values({
-          userId: input.userId,
+          userId: ctx.session.user.id,
           pageId: input.pageId,
           order: input.order,
         })
         .returning();
+    }),
+
+  delete: protectedProcedure
+    .input(
+      z.object({
+        pageId: z.number().describe("页面id"),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .delete(pagesPinned)
+        .where(eq(pagesPinned.pageId, input.pageId));
     }),
 });
