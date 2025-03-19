@@ -24,6 +24,7 @@ export default async function Layout({
 
   if (session?.user) {
     void api.page.getByParentId.prefetch({});
+    void api.pagePinned.get.prefetch();
   }
 
   return (
