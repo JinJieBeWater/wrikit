@@ -21,6 +21,7 @@ import { SlashInputElement } from "@/components/plate-ui/slash-input-element";
 import { aiPlugins } from "./plugins/ai-plugins";
 import { mentionPlugin } from "./plugins/mention-plugin";
 import { MentionElement } from "../plate-ui/mention-element";
+import { FloatingToolbarPlugin } from "./plugins/floating-toolbar-plugin";
 
 export const viewComponents = {
   [MentionPlugin.key]: MentionElement,
@@ -61,7 +62,7 @@ export const useCreatePureEditor = (
         mentionPlugin,
         // ...editorPlugins,
         // FixedToolbarPlugin,
-        // FloatingToolbarPlugin,
+        FloatingToolbarPlugin,
       ],
       value: undefined,
       ...options,
