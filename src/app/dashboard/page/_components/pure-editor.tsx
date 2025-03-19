@@ -1,6 +1,6 @@
 "use client";
 
-import { PlateEditor } from "@/components/editor/plate-editor";
+import { PlatePureEditor } from "@/components/editor/plate-pure-editor";
 import { SettingsProvider } from "@/components/editor/settings";
 import { api } from "@/trpc/react";
 import { type Page } from "@/types/page";
@@ -11,7 +11,7 @@ interface MdEditorProps {
   page: Page;
 }
 
-export function MdEditor({ page }: MdEditorProps) {
+export function PureEditor({ page }: MdEditorProps) {
   const utils = api.useUtils();
 
   const updatePage = api.page.update.useMutation({
@@ -23,6 +23,8 @@ export function MdEditor({ page }: MdEditorProps) {
   });
 
   const updatePageDebounced = useDebounceCallback((value: Value) => {
+    console.log("value", value);
+
     updatePage.mutate({
       id: page.id,
       content: JSON.stringify(value),
@@ -32,7 +34,7 @@ export function MdEditor({ page }: MdEditorProps) {
     <>
       <div className="h-full w-full" data-registry="plate">
         <SettingsProvider>
-          <PlateEditor
+          <PlatePureEditor
             value={(page?.content as Value) ?? ""}
             page={page}
             onChange={({ value }) => {
