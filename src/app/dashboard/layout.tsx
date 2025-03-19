@@ -31,7 +31,7 @@ export default async function Layout({
     <HydrateClient>
       <SidebarProvider>
         <AppSidebar />
-        <SidebarInset className="h-screen md:peer-data-[variant=inset]:h-[calc(100vh-1rem)]">
+        <SidebarInset className="h-screen md:w-[calc(100vw-var(--sidebar-width))] md:peer-data-[variant=inset]:h-[calc(100vh-1rem)] md:peer-data-[state=collapsed]:w-full md:peer-data-[variant=inset]:w-[calc(100vw-var(--sidebar-width)-0.5rem)]">
           <header className="flex h-16 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
             <div className="flex flex-1 items-center gap-2 px-3">
               <SidebarTrigger />
