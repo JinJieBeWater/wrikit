@@ -1,5 +1,11 @@
 import React from "react";
-import { type LucideIcon } from "lucide-react";
+import {
+  Blocks,
+  MessageCircleQuestion,
+  Settings2,
+  Trash2,
+  type LucideIcon,
+} from "lucide-react";
 
 import {
   SidebarGroup,
@@ -9,6 +15,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import Link from "next/link";
 
 export function NavSecondary({
   items,
@@ -25,17 +32,32 @@ export function NavSecondary({
     <SidebarGroup {...props}>
       <SidebarGroupContent>
         <SidebarMenu>
-          {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild>
-                <a href={item.url}>
-                  <item.icon />
-                  <span>{item.title}</span>
-                </a>
-              </SidebarMenuButton>
-              {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
-            </SidebarMenuItem>
-          ))}
+          <SidebarMenuItem>
+            <SidebarMenuButton>
+              <Settings2 />
+              <span>Settings</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton>
+              <Blocks />
+              <span>Templates</span>
+              <SidebarMenuBadge>New</SidebarMenuBadge>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton>
+              <Trash2 />
+              <span>Trash</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton>
+              <MessageCircleQuestion />
+              <span>Help</span>
+              {/* <SidebarMenuBadge>New</SidebarMenuBadge> */}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
