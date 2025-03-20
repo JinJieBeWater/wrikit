@@ -37,7 +37,7 @@ export default async function Page({ params }: Props) {
             )}
           />
           <Button size={"icon"} variant={"ghost"} className="size-20">
-            <PageIcon icon={page.icon} className="!size-14" />
+            <PageIcon page={page} className="!size-14" />
             <span className="sr-only">Edit Page Icon</span>
           </Button>
         </div>

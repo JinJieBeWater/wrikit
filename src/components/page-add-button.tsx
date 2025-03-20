@@ -17,22 +17,29 @@ import { Page, PageType } from "@/types/page";
 import { api } from "@/trpc/react";
 import { useRouter } from "next/navigation";
 
+export const PageTypeIcon = {
+  md: Heading1,
+  pure: ALargeSmall,
+  object: TableProperties,
+  iframe: AppWindow,
+};
+
 const addType: { label: keyof typeof PageType; icon: LucideIcon }[] = [
   {
     label: PageType.md,
-    icon: Heading1,
+    icon: PageTypeIcon.md,
   },
   {
     label: PageType.pure,
-    icon: ALargeSmall,
+    icon: PageTypeIcon.pure,
   },
   {
     label: PageType.object,
-    icon: TableProperties,
+    icon: PageTypeIcon.object,
   },
   {
     label: PageType.iframe,
-    icon: AppWindow,
+    icon: PageTypeIcon.iframe,
   },
 ];
 
