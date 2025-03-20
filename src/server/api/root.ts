@@ -2,6 +2,8 @@ import { postRouter } from "@/server/api/routers/post";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import { pageRouter } from "./routers/page";
 import { pagePinnedRouter } from "./routers/pagePinned";
+import { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
+import { inferReactQueryProcedureOptions } from "@trpc/react-query";
 
 /**
  * This is the primary router for your server.
@@ -25,3 +27,7 @@ export type AppRouter = typeof appRouter;
  *       ^? Post[]
  */
 export const createCaller = createCallerFactory(appRouter);
+
+export type ReactQueryOptions = inferReactQueryProcedureOptions<AppRouter>;
+export type RouterInputs = inferRouterInputs<AppRouter>;
+export type RouterOutputs = inferRouterOutputs<AppRouter>;

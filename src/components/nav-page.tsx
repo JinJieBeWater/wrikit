@@ -13,7 +13,7 @@ import {
   SidebarGroupAction,
 } from "./ui/sidebar";
 import { createContext, Suspense, useEffect, useState } from "react";
-import { api } from "@/trpc/react";
+import { api, RouterOutputs } from "@/trpc/react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -25,59 +25,35 @@ import { useParams } from "next/navigation";
 import { PageIcon } from "./page-icon";
 import { PageAddButton } from "./page-add-button";
 import { PageAction } from "./page-action";
-import { PageWithPinned } from "@/server/api/routers/pagePinned";
-
-export const PinnedContext = createContext<PageWithPinned[]>([]);
 
 export function NavPage() {
   const [roots] = api.page.getByParentId.useSuspenseQuery({});
-  const [pagesPinned] = api.pagePinned.get.useSuspenseQuery();
-  const utils = api.useUtils();
-
-  useEffect(() => {
-    for (const page of roots) {
-      void utils.page.get.setData(
-        {
-          id: page.id,
-        },
-        page,
-      );
-    }
-  }, [roots]);
-  useEffect(() => {
-    for (const page of pagesPinned) {
-      void utils.page.get.setData(
-        {
-          id: page.id,
-        },
-        page,
-      );
-    }
-  }, [pagesPinned]);
 
   return (
-    <PinnedContext.Provider value={pagesPinned}>
-      <SidebarGroup>
-        <SidebarGroupLabel>Private</SidebarGroupLabel>
-        <SidebarGroupContent>
-          <SidebarMenu>
-            {roots.map((page) => (
-              <PageTree key={page.id} page={page} />
-            ))}
-          </SidebarMenu>
-        </SidebarGroupContent>
+    <SidebarGroup>
+      <SidebarGroupLabel>Private</SidebarGroupLabel>
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {roots.map((page) => (
+            <PageTree key={page.id} page={page} />
+          ))}
+        </SidebarMenu>
+      </SidebarGroupContent>
 
-        <PageAddButton>
-          <SidebarGroupAction title="Add Page">
-            <Plus /> <span className="sr-only">Add Page</span>
-          </SidebarGroupAction>
-        </PageAddButton>
-      </SidebarGroup>
-    </PinnedContext.Provider>
+      <PageAddButton>
+        <SidebarGroupAction title="Add Page">
+          <Plus /> <span className="sr-only">Add Page</span>
+        </SidebarGroupAction>
+      </PageAddButton>
+    </SidebarGroup>
   );
 }
 
-export function PageTree({ page }: { page: Page }) {
+export function PageTree({
+  page,
+}: {
+  page: RouterOutputs["page"]["getByParentId"][0];
+}) {
   const { id } = useParams();
   const utils = api.useUtils();
 
@@ -99,17 +75,6 @@ export function PageTree({ page }: { page: Page }) {
       void getChildren.refetch();
     }
   }, [open]);
-
-  useEffect(() => {
-    for (const child of getChildren.data ?? []) {
-      void utils.page.get.setData(
-        {
-          id: child.id,
-        },
-        child,
-      );
-    }
-  }, [getChildren.data]);
 
   return (
     <SidebarMenuItem>
