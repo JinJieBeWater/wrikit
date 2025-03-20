@@ -32,6 +32,28 @@ export const PinnedContext = createContext<PageWithPinned[]>([]);
 export function NavPage() {
   const [roots] = api.page.getByParentId.useSuspenseQuery({});
   const [pagesPinned] = api.pagePinned.get.useSuspenseQuery();
+  const utils = api.useUtils();
+
+  useEffect(() => {
+    for (const page of roots) {
+      void utils.page.get.setData(
+        {
+          id: page.id,
+        },
+        page,
+      );
+    }
+  }, [roots]);
+  useEffect(() => {
+    for (const page of pagesPinned) {
+      void utils.page.get.setData(
+        {
+          id: page.id,
+        },
+        page,
+      );
+    }
+  }, [pagesPinned]);
 
   return (
     <PinnedContext.Provider value={pagesPinned}>
@@ -75,16 +97,19 @@ export function PageTree({ page }: { page: Page }) {
   useEffect(() => {
     if (open === true) {
       void getChildren.refetch();
-      for (const child of getChildren.data ?? []) {
-        void utils.page.get.setData(
-          {
-            id: child.id,
-          },
-          child,
-        );
-      }
     }
   }, [open]);
+
+  useEffect(() => {
+    for (const child of getChildren.data ?? []) {
+      void utils.page.get.setData(
+        {
+          id: child.id,
+        },
+        child,
+      );
+    }
+  }, [getChildren.data]);
 
   return (
     <SidebarMenuItem>
@@ -99,7 +124,7 @@ export function PageTree({ page }: { page: Page }) {
           // onClick={() => setOpen((open) => !open)}
           // className="group-has-[[data-sidebar=menu-action]]/menu-item:pr-0"
         >
-          <Link href={`/dashboard/page/${page.id}`}>
+          <Link href={`/dashboard/page/${page.id}`} prefetch>
             <PageIcon icon={page.icon} />
             <span>{page.name ?? "Untitled"}</span>
           </Link>
