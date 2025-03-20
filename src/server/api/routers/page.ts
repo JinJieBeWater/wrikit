@@ -158,10 +158,7 @@ export const pageRouter = createTRPCRouter({
           type: true,
           icon: true,
         },
-        orderBy: (posts, { asc, desc }) => [
-          asc(posts.order),
-          desc(posts.createdAt),
-        ],
+        orderBy: (posts, { asc }) => [asc(posts.order), asc(posts.createdAt)],
       });
       return rootPages ?? null;
     }),

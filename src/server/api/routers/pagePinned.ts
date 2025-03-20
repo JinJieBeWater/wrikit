@@ -22,6 +22,7 @@ export const pagePinnedRouter = createTRPCRouter({
           type: true,
           icon: true,
         },
+        orderBy: (pages, { asc }) => [asc(pages.order)],
       });
       if (!result) {
         console.error("找不到页面", page.pageId);
