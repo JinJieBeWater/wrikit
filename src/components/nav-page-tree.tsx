@@ -6,8 +6,9 @@ import {
   SidebarMenuItem,
   SidebarMenuAction,
   SidebarMenuSub,
+  useSidebar,
 } from "./ui/sidebar";
-import { Suspense, useState } from "react";
+import { createContext, Suspense, useMemo, useRef, useState } from "react";
 import { api, RouterOutputs } from "@/trpc/react";
 import {
   Collapsible,
@@ -18,17 +19,19 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { PageIcon } from "./page-icon";
 import { PageAction } from "./page-action";
-import { cn } from "@/lib/utils";
 import { PageAddButton } from "./page-add-button";
 
 export function PageTree({
   page,
+  initialStack,
 }: {
   page: RouterOutputs["page"]["getByParentId"][0];
+  initialStack?: RouterOutputs["page"]["getByParentId"];
 }) {
   const { id } = useParams();
 
   const [open, setOpen] = useState(false);
+  const { isMobile, setOpenMobile } = useSidebar();
 
   const { data, isPending } = api.page.getByParentId.useQuery(
     {
@@ -39,13 +42,14 @@ export function PageTree({
     },
   );
 
+  const stack = useRef(initialStack ? [...initialStack, page] : [page]);
+
   return (
     <SidebarMenuItem>
       <Collapsible
         className="group/collapsible [&>a]:hover:pr-11 [&>button]:hover:opacity-100 [&[data-state=open]>button:first-child>svg:first-child]:rotate-90"
         open={open}
         onOpenChange={setOpen}
-        disabled={!data || data.length === 0}
       >
         <SidebarMenuButton
           asChild
@@ -53,21 +57,22 @@ export function PageTree({
           // onClick={() => setOpen((open) => !open)}
           // className="group-has-[[data-sidebar=menu-action]]/menu-item:pr-0"
         >
-          <Link href={`/dashboard/page/${page.id}`} prefetch>
+          <Link
+            href={`/dashboard/page/${page.id}`}
+            onClick={() => {
+              if (isMobile) {
+                setOpenMobile(false);
+              }
+            }}
+          >
             <PageIcon page={page} />
             <span>{page.name ?? "Untitled"}</span>
           </Link>
         </SidebarMenuButton>
-        <CollapsibleTrigger
-          asChild
-          className={cn({
-            hidden: !data || data.length === 0,
-          })}
-        >
+        <CollapsibleTrigger asChild>
           <SidebarMenuAction
             className="left-2 bg-sidebar-accent text-sidebar-accent-foreground data-[state=open]:rotate-90"
             showOnHover
-            disabled={!data || data.length === 0}
           >
             <ChevronRight />
           </SidebarMenuAction>
@@ -92,7 +97,11 @@ export function PageTree({
             >
               {data && data.length > 0 ? (
                 data?.map((subPage, index) => (
-                  <PageTree key={index} page={subPage} />
+                  <PageTree
+                    key={index}
+                    page={subPage}
+                    initialStack={stack.current}
+                  />
                 ))
               ) : isPending ? (
                 <span className="flex h-8 items-center pl-8 text-muted-foreground">
@@ -100,7 +109,7 @@ export function PageTree({
                 </span>
               ) : (
                 <span className="flex h-8 items-center pl-8 text-muted-foreground">
-                  No Page Inside
+                  Nothing Inside
                 </span>
               )}
             </Suspense>
@@ -110,3 +119,5 @@ export function PageTree({
     </SidebarMenuItem>
   );
 }
+
+PageTree.displayName = "PageTree";
