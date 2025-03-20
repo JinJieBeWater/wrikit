@@ -1,6 +1,6 @@
+"use client";
 import { cn } from "@/lib/utils";
-import { Page, PageType } from "@/types/page";
-import { FileText, LucideProps, PiIcon } from "lucide-react";
+import { LucideProps, PiIcon } from "lucide-react";
 import { RefAttributes } from "react";
 import { PageTypeIcon } from "./page-add-button";
 import { RouterOutputs } from "@/trpc/react";
