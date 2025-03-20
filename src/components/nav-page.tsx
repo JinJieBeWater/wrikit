@@ -27,14 +27,14 @@ import { PageAddButton } from "./page-add-button";
 import { PageAction } from "./page-action";
 import { PageWithPinned } from "@/server/api/routers/pagePinned";
 
-export const PageTreeContext = createContext<PageWithPinned[]>([]);
+export const PinnedContext = createContext<PageWithPinned[]>([]);
 
 export function NavPage() {
   const [roots] = api.page.getByParentId.useSuspenseQuery({});
   const [pagesPinned] = api.pagePinned.get.useSuspenseQuery();
 
   return (
-    <PageTreeContext.Provider value={pagesPinned}>
+    <PinnedContext.Provider value={pagesPinned}>
       <SidebarGroup>
         <SidebarGroupLabel>Private</SidebarGroupLabel>
         <SidebarGroupContent>
@@ -51,7 +51,7 @@ export function NavPage() {
           </SidebarGroupAction>
         </PageAddButton>
       </SidebarGroup>
-    </PageTreeContext.Provider>
+    </PinnedContext.Provider>
   );
 }
 
@@ -59,9 +59,16 @@ export function PageTree({ page }: { page: Page }) {
   const { id } = useParams();
   const [open, setOpen] = useState(false);
 
-  const getChildren = api.page.getByParentId.useQuery({
-    parentId: page.id,
-  });
+  const getChildren = api.page.getByParentId.useQuery(
+    {
+      parentId: page.id,
+    },
+    {
+      enabled() {
+        return open === true;
+      },
+    },
+  );
 
   useEffect(() => {
     if (open === true) {

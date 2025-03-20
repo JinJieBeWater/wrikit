@@ -1,4 +1,5 @@
 "use client";
+import { PinnedContext } from "@/components/nav-page";
 import {
   AutosizeTextarea,
   AutosizeTextAreaRef,
@@ -6,7 +7,12 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { api } from "@/trpc/react";
 import { type Page } from "@/types/page";
-import { RefAttributes, TextareaHTMLAttributes } from "react";
+import {
+  RefAttributes,
+  TextareaHTMLAttributes,
+  useContext,
+  useMemo,
+} from "react";
 import { useDebounceCallback } from "usehooks-ts";
 
 export function TitleEditor({
@@ -16,29 +22,41 @@ export function TitleEditor({
   RefAttributes<AutosizeTextAreaRef>) {
   const utils = api.useUtils();
 
+  const pinnedPages = utils.pagePinned.get.getData();
+
+  const isPinned = useMemo(
+    () => pinnedPages?.find((p) => p.id === page.id),
+    [page.id, pinnedPages],
+  );
+
   const updatePage = api.page.update.useMutation({
-    onSuccess: async () => {
-      await utils.page.get.invalidate({
+    onSuccess: () => {
+      void utils.page.get.invalidate({
         id: page.id,
       });
-      await utils.page.getByParentId.invalidate({});
       if (page.parentId) {
-        await utils.page.getByParentId.invalidate({
+        void utils.page.getByParentId.invalidate({
           parentId: page.parentId,
         });
+      } else {
+        void utils.page.getByParentId.invalidate({});
+      }
+
+      if (isPinned) {
+        void utils.pagePinned.get.invalidate();
       }
     },
   });
 
-  const updateTitleDebounced = useDebounceCallback(async (value: string) => {
-    await updatePage.mutateAsync({
+  const updateTitleDebounced = useDebounceCallback((value: string) => {
+    void updatePage.mutateAsync({
       id: page.id,
       name: value,
     });
   }, 1000);
   return (
     <AutosizeTextarea
-      className="h-full w-full resize-none overflow-hidden border-none px-12 text-4xl font-bold focus-visible:rounded-none focus-visible:outline-none focus-visible:ring-0 sm:px-page"
+      className="w-full resize-none overflow-hidden border-none px-12 text-4xl font-bold focus-visible:rounded-none focus-visible:outline-none focus-visible:ring-0 sm:px-page"
       defaultValue={page.name ?? ""}
       placeholder="Untitled"
       onChange={(e) => updateTitleDebounced(e.target.value)}

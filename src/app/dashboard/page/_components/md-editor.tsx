@@ -31,15 +31,17 @@ export function MdEditor({ page }: MdEditorProps) {
   return (
     <>
       <div className="h-full w-full" data-registry="plate">
-        <SettingsProvider>
-          <PlateEditor
-            value={(page?.content as Value) ?? ""}
-            page={page}
-            onChange={({ value }) => {
-              updatePageDebounced(value);
-            }}
-          />
-        </SettingsProvider>
+        {
+          <SettingsProvider>
+            <PlateEditor
+              value={(page?.content as Value) ?? ""}
+              page={page}
+              onChange={({ value }) => {
+                updatePageDebounced(value);
+              }}
+            />
+          </SettingsProvider>
+        }
       </div>
     </>
   );
