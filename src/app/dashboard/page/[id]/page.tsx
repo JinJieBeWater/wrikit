@@ -10,9 +10,9 @@ import { notFound } from "next/navigation";
 import { PureEditor } from "../_components/pure-editor";
 
 interface Props {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function Page({ params }: Props) {
