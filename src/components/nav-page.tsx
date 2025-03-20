@@ -12,19 +12,19 @@ import {
   SidebarMenu,
   SidebarGroupAction,
 } from "./ui/sidebar";
-import { createContext, Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { api, RouterOutputs } from "@/trpc/react";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "./ui/collapsible";
-import { type Page } from "@/types/page";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { PageIcon } from "./page-icon";
 import { PageAddButton } from "./page-add-button";
 import { PageAction } from "./page-action";
+import { cn } from "@/lib/utils";
 
 export function NavPage() {
   const [roots] = api.page.getByParentId.useSuspenseQuery({});
@@ -55,24 +55,21 @@ export function PageTree({
   page: RouterOutputs["page"]["getByParentId"][0];
 }) {
   const { id } = useParams();
-  const utils = api.useUtils();
 
   const [open, setOpen] = useState(false);
 
-  const getChildren = api.page.getByParentId.useQuery(
+  const { data, refetch, isPending } = api.page.getByParentId.useQuery(
     {
       parentId: page.id,
     },
     {
-      enabled() {
-        return open === true;
-      },
+      refetchOnMount: false,
     },
   );
 
   useEffect(() => {
     if (open === true) {
-      void getChildren.refetch();
+      void refetch();
     }
   }, [open]);
 
@@ -82,6 +79,7 @@ export function PageTree({
         className="group/collapsible [&>a]:hover:pr-11 [&>button]:hover:opacity-100 [&[data-state=open]>button:first-child>svg:first-child]:rotate-90"
         open={open}
         onOpenChange={setOpen}
+        disabled={!data || data.length === 0}
       >
         <SidebarMenuButton
           asChild
@@ -94,10 +92,16 @@ export function PageTree({
             <span>{page.name ?? "Untitled"}</span>
           </Link>
         </SidebarMenuButton>
-        <CollapsibleTrigger asChild>
+        <CollapsibleTrigger
+          asChild
+          className={cn({
+            hidden: !data || data.length === 0,
+          })}
+        >
           <SidebarMenuAction
             className="left-2 bg-sidebar-accent text-sidebar-accent-foreground data-[state=open]:rotate-90"
             showOnHover
+            disabled={!data || data.length === 0}
           >
             <ChevronRight />
           </SidebarMenuAction>
@@ -120,11 +124,11 @@ export function PageTree({
                 </span>
               }
             >
-              {getChildren.data && getChildren.data.length > 0 ? (
-                getChildren.data?.map((subPage, index) => (
+              {data && data.length > 0 ? (
+                data?.map((subPage, index) => (
                   <PageTree key={index} page={subPage} />
                 ))
-              ) : getChildren.isPending ? (
+              ) : isPending ? (
                 <span className="flex h-8 items-center pl-8 text-muted-foreground">
                   Loading...
                 </span>
