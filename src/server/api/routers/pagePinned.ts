@@ -1,41 +1,44 @@
-import { Page } from "@/types/page";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { z } from "zod";
 import { pagesPinned } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 
-export type PageWithPinned = Page & {
-  pinnedOrder: number;
-};
-
 export const pagePinnedRouter = createTRPCRouter({
   get: protectedProcedure.query(async ({ ctx }) => {
-    const pinnedPagesResult: PageWithPinned[] = [];
     const pagesPinned = await ctx.db.query.pagesPinned.findMany({
       where(fields, operators) {
         return operators.and(operators.eq(fields.userId, ctx.session.user.id));
       },
     });
 
-    for (const page of pagesPinned) {
-      const pageResult = await ctx.db.query.pages.findFirst({
+    const pagePromises = pagesPinned.map(async (page) => {
+      const result = await ctx.db.query.pages.findFirst({
         where(fields, operators) {
-          return operators.and(
-            operators.eq(fields.id, page.pageId),
-            operators.eq(fields.isDeleted, false),
-          );
+          return operators.and(operators.eq(fields.id, page.pageId));
+        },
+        columns: {
+          parentId: true,
+          name: true,
+          type: true,
+          icon: true,
         },
       });
-
-      if (pageResult) {
-        pinnedPagesResult.push({
-          ...pageResult,
-          pinnedOrder: page.order,
-        });
+      if (!result) {
+        console.error("找不到页面", page.pageId);
+        return;
       }
-    }
+      return {
+        parentId: result.parentId,
+        id: page.pageId,
+        name: result.name,
+        type: result.type,
+        icon: result.icon,
+        pinnedOrder: page.order,
+      };
+    });
 
-    return pinnedPagesResult;
+    const result = await Promise.all(pagePromises);
+    return result.filter((item) => item !== undefined);
   }),
 
   create: protectedProcedure

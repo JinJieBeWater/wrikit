@@ -13,7 +13,7 @@ import {
 import { useCallback, useContext, useMemo } from "react";
 import { toast } from "sonner";
 import { useSidebar, SidebarMenuAction } from "./ui/sidebar";
-import { api } from "@/trpc/react";
+import { api, RouterOutputs } from "@/trpc/react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,9 +21,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { PinnedContext } from "./nav-page";
 
-export function PageAction({ page }: { page: Page }) {
+export function PageAction({
+  page,
+}: {
+  page: RouterOutputs["page"]["getByParentId"][0];
+}) {
   const { isMobile } = useSidebar();
   const utils = api.useUtils();
 
@@ -77,7 +80,7 @@ export function PageAction({ page }: { page: Page }) {
     },
   });
 
-  const pagesPinned = useContext(PinnedContext);
+  const [pagesPinned] = api.pagePinned.get.useSuspenseQuery();
   const isPinned = useMemo(
     () => pagesPinned.find((p) => p.id === page.id),
     [page.id, pagesPinned],

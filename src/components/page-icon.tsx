@@ -3,12 +3,17 @@ import { Page, PageType } from "@/types/page";
 import { FileText, LucideProps, PiIcon } from "lucide-react";
 import { RefAttributes } from "react";
 import { PageTypeIcon } from "./page-add-button";
+import { RouterOutputs } from "@/trpc/react";
 
 export function PageIcon({
   page,
   className,
   ...props
-}: { page: Page } & Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>) {
+}: { page: RouterOutputs["page"]["getByParentId"][0] } & Omit<
+  LucideProps,
+  "ref"
+> &
+  RefAttributes<SVGSVGElement>) {
   if (!page.icon) {
     const Comp = PageTypeIcon[page.type];
     if (!Comp) {

@@ -1,5 +1,4 @@
 "use client";
-import { PinnedContext } from "@/components/nav-page";
 import {
   AutosizeTextarea,
   AutosizeTextAreaRef,

@@ -14,7 +14,7 @@ import {
 } from "./ui/dropdown-menu";
 import { useSidebar } from "./ui/sidebar";
 import { Page, PageType } from "@/types/page";
-import { api } from "@/trpc/react";
+import { api, RouterOutputs } from "@/trpc/react";
 import { useRouter } from "next/navigation";
 
 export const PageTypeIcon = {
@@ -49,7 +49,7 @@ export function PageAddButton({
   children,
 }: React.PropsWithChildren<{
   setParentOpen?: React.Dispatch<React.SetStateAction<boolean>>;
-  parentPage?: Page;
+  parentPage?: RouterOutputs["page"]["getByParentId"][0];
 }>) {
   const { isMobile } = useSidebar();
   const router = useRouter();
