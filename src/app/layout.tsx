@@ -36,8 +36,10 @@ export default async function RootLayout({
         >
           <WrapBalancerProvider>
             <TRPCReactProvider>
-              <SessionProvider session={session}>{children}</SessionProvider>
-              <Toaster />
+              <SessionProvider session={session}>
+                {children}
+                <Toaster />
+              </SessionProvider>
             </TRPCReactProvider>
           </WrapBalancerProvider>
         </ThemeProvider>
