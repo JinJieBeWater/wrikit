@@ -18,16 +18,8 @@ import {
 import Link from "next/link";
 
 export function NavSecondary({
-  items,
   ...props
-}: {
-  items: {
-    title: string;
-    url: string;
-    icon: LucideIcon;
-    badge?: React.ReactNode;
-  }[];
-} & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
+}: React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   return (
     <SidebarGroup {...props}>
       <SidebarGroupContent>
