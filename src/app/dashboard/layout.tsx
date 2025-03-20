@@ -37,7 +37,7 @@ export default async function Layout({
             <div className="flex flex-1 items-center gap-2 px-3">
               <SidebarTrigger />
               <Separator orientation="vertical" className="mr-2 h-4" />
-              <AppBreadcrumb />
+              {/* <AppBreadcrumb /> */}
             </div>
             <div className="ml-auto px-3">
               <NavActions />

@@ -57,6 +57,8 @@ export function NavPage() {
 
 export function PageTree({ page }: { page: Page }) {
   const { id } = useParams();
+  const utils = api.useUtils();
+
   const [open, setOpen] = useState(false);
 
   const getChildren = api.page.getByParentId.useQuery(
@@ -73,6 +75,14 @@ export function PageTree({ page }: { page: Page }) {
   useEffect(() => {
     if (open === true) {
       void getChildren.refetch();
+      for (const child of getChildren.data ?? []) {
+        void utils.page.get.setData(
+          {
+            id: child.id,
+          },
+          child,
+        );
+      }
     }
   }, [open]);
 

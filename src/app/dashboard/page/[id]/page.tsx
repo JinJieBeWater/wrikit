@@ -8,7 +8,7 @@ import { PageIcon } from "@/components/page-icon";
 import { Button } from "@/components/ui/button";
 import { notFound } from "next/navigation";
 import { PureEditor } from "../_components/pure-editor";
-import { ClientSideLoader } from "../_components/client-side-loader";
+import { ClientSideLoader } from "./_components/client-side-loader";
 
 interface Props {
   params: Promise<{

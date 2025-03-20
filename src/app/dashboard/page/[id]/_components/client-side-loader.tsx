@@ -3,7 +3,6 @@
 import { api } from "@/trpc/react";
 import { Page } from "@/types/page";
 import { useEffect } from "react";
-
 export const ClientSideLoader = ({ page }: { page: Page }) => {
   const utils = api.useUtils();
   useEffect(() => {
