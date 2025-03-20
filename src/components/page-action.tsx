@@ -21,7 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { PageTreeContext } from "./nav-page";
+import { PinnedContext } from "./nav-page";
 
 export function PageAction({ page }: { page: Page }) {
   const { isMobile } = useSidebar();
@@ -77,7 +77,7 @@ export function PageAction({ page }: { page: Page }) {
     },
   });
 
-  const pagesPinned = useContext(PageTreeContext);
+  const pagesPinned = useContext(PinnedContext);
   const isPinned = useMemo(
     () => pagesPinned.find((p) => p.id === page.id),
     [page.id, pagesPinned],

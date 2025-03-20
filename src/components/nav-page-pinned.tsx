@@ -7,14 +7,14 @@ import {
   SidebarMenu,
 } from "./ui/sidebar";
 import { api } from "@/trpc/react";
-import { PageTree, PageTreeContext } from "./nav-page";
+import { PageTree, PinnedContext } from "./nav-page";
 
 export function NavPagePinned() {
   const [roots] = api.pagePinned.get.useSuspenseQuery();
 
   return (
     <>
-      <PageTreeContext.Provider value={roots}>
+      <PinnedContext.Provider value={roots}>
         {roots.length > 0 && (
           <SidebarGroup>
             <SidebarGroupLabel>Pinned</SidebarGroupLabel>
@@ -27,7 +27,7 @@ export function NavPagePinned() {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
-      </PageTreeContext.Provider>
+      </PinnedContext.Provider>
     </>
   );
 }
