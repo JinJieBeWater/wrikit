@@ -58,7 +58,7 @@ export function PageTree({
 
   const [open, setOpen] = useState(false);
 
-  const { data, refetch, isPending } = api.page.getByParentId.useQuery(
+  const { data, isPending } = api.page.getByParentId.useQuery(
     {
       parentId: page.id,
     },
@@ -66,12 +66,6 @@ export function PageTree({
       refetchOnMount: false,
     },
   );
-
-  useEffect(() => {
-    if (open === true) {
-      void refetch();
-    }
-  }, [open]);
 
   return (
     <SidebarMenuItem>
