@@ -125,7 +125,7 @@ export function PageTree({ page }: { page: Page }) {
           // className="group-has-[[data-sidebar=menu-action]]/menu-item:pr-0"
         >
           <Link href={`/dashboard/page/${page.id}`} prefetch>
-            <PageIcon icon={page.icon} />
+            <PageIcon page={page} />
             <span>{page.name ?? "Untitled"}</span>
           </Link>
         </SidebarMenuButton>
