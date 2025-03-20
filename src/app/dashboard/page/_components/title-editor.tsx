@@ -9,6 +9,7 @@ import { type Page } from "@/types/page";
 import {
   RefAttributes,
   TextareaHTMLAttributes,
+  useCallback,
   useContext,
   useMemo,
 } from "react";
@@ -53,12 +54,51 @@ export function TitleEditor({
       name: value,
     });
   }, 1000);
+
+  // 乐观地更新页面名称
+  const optimisticUpdatePageName = useCallback(
+    (value: string) => {
+      utils.page.getByParentId.setData(
+        {
+          parentId: page.parentId ?? undefined,
+        },
+        (pages) => {
+          return pages?.map((item) => {
+            if (item.id === page.id) {
+              return {
+                ...item,
+                name: value,
+              };
+            }
+            return item;
+          });
+        },
+      );
+      if (isPinned) {
+        void utils.pagePinned.get.setData(void 0, (pinnedPages) => {
+          return pinnedPages?.map((item) => {
+            if (item.id === page.id) {
+              return {
+                ...item,
+                name: value,
+              };
+            }
+            return item;
+          });
+        });
+      }
+    },
+    [page.parentId, utils],
+  );
   return (
     <AutosizeTextarea
       className="w-full resize-none overflow-hidden border-none px-12 text-4xl font-bold focus-visible:rounded-none focus-visible:outline-none focus-visible:ring-0 sm:px-page"
       defaultValue={page.name ?? ""}
       placeholder="Untitled"
-      onChange={(e) => updateTitleDebounced(e.target.value)}
+      onChange={(e) => {
+        updateTitleDebounced(e.target.value);
+        optimisticUpdatePageName(e.target.value);
+      }}
       maxLength={256}
       {...props}
     />
