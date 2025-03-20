@@ -8,6 +8,7 @@ import { PageIcon } from "@/components/page-icon";
 import { Button } from "@/components/ui/button";
 import { notFound } from "next/navigation";
 import { PureEditor } from "../_components/pure-editor";
+import { ClientSideLoader } from "../_components/client-side-loader";
 
 interface Props {
   params: Promise<{
@@ -23,6 +24,7 @@ export default async function Page({ params }: Props) {
 
   return (
     <>
+      <ClientSideLoader page={page} />
       <div className={cn("flex h-full w-full flex-col")}>
         <div className="relative flex h-52 w-full shrink-0 items-end overflow-hidden bg-background px-12 pb-4 sm:px-page">
           <GridPattern
