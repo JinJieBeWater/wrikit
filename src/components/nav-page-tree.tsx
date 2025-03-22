@@ -33,7 +33,7 @@ export function PageTree({
   const [open, setOpen] = useState(false);
   const { isMobile, setOpenMobile } = useSidebar();
 
-  const { data, isPending } = api.page.getByParentId.useQuery(
+  const { data, isLoading, isError } = api.page.getByParentId.useQuery(
     {
       parentId: page.id,
     },
@@ -51,12 +51,7 @@ export function PageTree({
         open={open}
         onOpenChange={setOpen}
       >
-        <SidebarMenuButton
-          asChild
-          isActive={page.id === Number(id)}
-          // onClick={() => setOpen((open) => !open)}
-          // className="group-has-[[data-sidebar=menu-action]]/menu-item:pr-0"
-        >
+        <SidebarMenuButton asChild isActive={page.id === Number(id)}>
           <Link
             href={`/dashboard/page/${page.id}`}
             onClick={() => {
@@ -88,31 +83,27 @@ export function PageTree({
 
         <CollapsibleContent>
           <SidebarMenuSub className="ml-2 mr-0 px-0">
-            <Suspense
-              fallback={
-                <span className="flex h-8 items-center pl-8 text-muted-foreground">
-                  Loading...
-                </span>
-              }
-            >
-              {data && data.length > 0 ? (
-                data?.map((subPage, index) => (
-                  <PageTree
-                    key={index}
-                    page={subPage}
-                    initialStack={stack.current}
-                  />
-                ))
-              ) : isPending ? (
-                <span className="flex h-8 items-center pl-8 text-muted-foreground">
-                  Loading...
-                </span>
-              ) : (
-                <span className="flex h-8 items-center pl-8 text-muted-foreground">
-                  Nothing Inside
-                </span>
-              )}
-            </Suspense>
+            {isError ? (
+              <span className="flex h-8 items-center pl-8 text-destructive">
+                Failed to load data
+              </span>
+            ) : isLoading ? (
+              <span className="flex h-8 items-center pl-8 text-muted-foreground">
+                Loading...
+              </span>
+            ) : data && data.length > 0 ? (
+              data?.map((subPage, index) => (
+                <PageTree
+                  key={index}
+                  page={subPage}
+                  initialStack={stack.current}
+                />
+              ))
+            ) : (
+              <span className="flex h-8 items-center pl-8 text-muted-foreground">
+                Nothing Inside
+              </span>
+            )}
           </SidebarMenuSub>
         </CollapsibleContent>
       </Collapsible>
