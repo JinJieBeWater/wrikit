@@ -1,17 +1,16 @@
 "use client";
 
-import { Page } from "@/types/page";
 import {
   MoreHorizontal,
   Pin,
   ArrowUpRight,
   LinkIcon,
   CopyPlus,
-  Trash2,
   PinOff,
+  Share2,
+  Trash2,
 } from "lucide-react";
-import { useCallback, useContext, useMemo } from "react";
-import { toast } from "sonner";
+import { useMemo } from "react";
 import { useSidebar, SidebarMenuAction } from "./ui/sidebar";
 import { api, RouterOutputs } from "@/trpc/react";
 import {
@@ -21,6 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { usePageTrash } from "@/hooks/use-page-trash";
 
 export function PageAction({
   page,
@@ -29,45 +29,6 @@ export function PageAction({
 }) {
   const { isMobile } = useSidebar();
   const utils = api.useUtils();
-
-  const invalidateCache = useCallback(() => {
-    if (page.parentId) {
-      void utils.page.getByParentId.invalidate({
-        parentId: page.parentId,
-      });
-    } else {
-      void utils.page.getByParentId.invalidate({});
-    }
-  }, [page.parentId, utils]);
-
-  const toggleTrash = api.page.toggleTrash.useMutation({
-    onMutate(variables) {
-      if (variables.isDeleted) {
-        toast.loading("Moving page to trash...");
-      } else {
-        toast.loading("Restoring page from trash...");
-      }
-    },
-    onSuccess: async (_data, variables) => {
-      invalidateCache();
-      toast.dismiss();
-      if (variables.isDeleted) {
-        toast.success("Page moved to trash", {
-          description: "You can restore it from the trash",
-          action: {
-            label: "restore",
-            onClick: () =>
-              toggleTrash.mutate({
-                id: variables.id,
-                isDeleted: false,
-              }),
-          },
-        });
-      } else {
-        toast.success("Page restored from trash");
-      }
-    },
-  });
 
   const createPinned = api.pagePinned.create.useMutation({
     onSuccess: async () => {
@@ -82,9 +43,11 @@ export function PageAction({
 
   const [pagesPinned] = api.pagePinned.get.useSuspenseQuery();
   const isPinned = useMemo(
-    () => pagesPinned.find((p) => p.id === page.id),
+    () => pagesPinned.some((p) => p.id === page.id),
     [page.id, pagesPinned],
   );
+
+  const { toggleTrash } = usePageTrash({ page });
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -124,10 +87,10 @@ export function PageAction({
           <ArrowUpRight className="text-muted-foreground" />
           <span>Open in New Tab</span>
         </DropdownMenuItem>
-        {/* <DropdownMenuItem>
-              <Share2 className="text-muted-foreground" />
-              <span>Share</span>
-            </DropdownMenuItem> */}
+        <DropdownMenuItem>
+          <Share2 className="text-muted-foreground" />
+          <span>Share</span>
+        </DropdownMenuItem>
         <DropdownMenuItem>
           <LinkIcon className="text-muted-foreground" />
           <span>Copy Link</span>

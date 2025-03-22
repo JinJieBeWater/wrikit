@@ -43,7 +43,7 @@ const addType: { label: keyof typeof PageType; icon: LucideIcon }[] = [
   },
 ];
 
-export function PageAddButton({
+export function PageActionAdd({
   setParentOpen,
   parentPage,
   children,

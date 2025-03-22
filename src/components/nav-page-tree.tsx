@@ -19,7 +19,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { PageIcon } from "./page-icon";
 import { PageAction } from "./page-action";
-import { PageAddButton } from "./page-add-button";
+import { PageActionAdd } from "./page-action-add";
 
 export function PageTree({
   page,
@@ -72,12 +72,12 @@ export function PageTree({
             <ChevronRight />
           </SidebarMenuAction>
         </CollapsibleTrigger>
-        <PageAddButton parentPage={page} setParentOpen={setOpen}>
+        <PageActionAdd parentPage={page} setParentOpen={setOpen}>
           <SidebarMenuAction className="right-6" showOnHover title="Add">
             <Plus />
             <span className="sr-only">Add</span>
           </SidebarMenuAction>
-        </PageAddButton>
+        </PageActionAdd>
 
         <PageAction page={page} />
 
