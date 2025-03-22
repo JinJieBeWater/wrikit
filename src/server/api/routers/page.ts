@@ -90,10 +90,13 @@ export const pageRouter = createTRPCRouter({
                   operators.eq(fields.isDeleted, !input.isDeleted),
                 );
               },
+              columns: {
+                id: true,
+              },
             });
-
-            allPages.push(...childPages);
-            stack.push(...childPages.map((p) => p.id));
+            const childPageIds = childPages.map((p) => p.id);
+            allPages.push(...childPageIds);
+            stack.push(...childPageIds);
           }
 
           return allPages;
@@ -109,21 +112,22 @@ export const pageRouter = createTRPCRouter({
 
         // 批量删除pinned关系
         const deletePinned = async (pageIds: number[]) => {
+          console.log("deletePinned", pageIds);
+
           await trx
             .delete(pagesPinned)
             .where(inArray(pagesPinned.pageId, pageIds));
         };
 
         // 获取所有相关页面ID
-        const relatedPages = await getAllRelatedPages(input.id);
-        const relatedPageIds = relatedPages.map((p) => p.id);
+        const relatedPageIds = await getAllRelatedPages(input.id);
 
         // 更新所有相关页面
         await updatePages([input.id, ...relatedPageIds]);
 
         // 如果是删除操作，还需要删除pinned关系
         if (input.isDeleted) {
-          await deletePinned(relatedPageIds);
+          await deletePinned([input.id, ...relatedPageIds]);
         }
       });
     }),

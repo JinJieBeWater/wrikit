@@ -1,5 +1,5 @@
 import { api, RouterOutputs } from "@/trpc/react";
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { toast } from "sonner";
 
 export const usePageTrash = ({
@@ -10,10 +10,6 @@ export const usePageTrash = ({
   const utils = api.useUtils();
 
   const [pagesPinned] = api.pagePinned.get.useSuspenseQuery();
-  const isPinned = useMemo(
-    () => pagesPinned.some((p) => p.id === page.id),
-    [page.id, pagesPinned],
-  );
 
   const invalidateCache = useCallback(() => {
     if (page.parentId) {
@@ -21,6 +17,9 @@ export const usePageTrash = ({
         parentId: page.parentId,
       });
     } else {
+      const isPinned = utils.pagePinned.get
+        .getData()
+        ?.some((p) => p.id === page.id);
       if (isPinned) {
         void utils.pagePinned.get.invalidate();
       }

@@ -3,18 +3,14 @@ import {
   AutosizeTextarea,
   AutosizeTextAreaRef,
 } from "@/components/ui/autosize-textarea";
-import { Separator } from "@/components/ui/separator";
 import { api } from "@/trpc/react";
 import { type Page } from "@/types/page";
 import {
-  LegacyRef,
   RefAttributes,
   TextareaHTMLAttributes,
   useCallback,
-  useContext,
   useMemo,
   useRef,
-  useState,
 } from "react";
 import { useDebounceCallback } from "usehooks-ts";
 
@@ -24,13 +20,6 @@ export function TitleEditor({
 }: { page: Page } & TextareaHTMLAttributes<HTMLTextAreaElement> &
   RefAttributes<AutosizeTextAreaRef>) {
   const utils = api.useUtils();
-
-  const pinnedPages = utils.pagePinned.get.getData();
-
-  const isPinned = useMemo(
-    () => pinnedPages?.find((p) => p.id === page.id),
-    [page.id, pinnedPages],
-  );
 
   const autosizeTextareaRef = useRef<AutosizeTextAreaRef>(null);
 
@@ -93,6 +82,9 @@ export function TitleEditor({
           });
         },
       );
+      const isPinned = utils.pagePinned.get
+        .getData()
+        ?.some((p) => p.id === page.id);
       if (isPinned) {
         void utils.pagePinned.get.setData(void 0, (pinnedPages) => {
           return pinnedPages?.map((item) => {
@@ -116,8 +108,8 @@ export function TitleEditor({
       defaultValue={page.name ?? ""}
       placeholder="Untitled"
       onChange={(e) => {
-        updateTitleDebounced(e.target.value);
         setRelativeValue(e.target.value);
+        updateTitleDebounced(e.target.value);
       }}
       maxLength={256}
       {...props}

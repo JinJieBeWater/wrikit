@@ -41,11 +41,9 @@ export function PageAction({
     },
   });
 
-  const [pagesPinned] = api.pagePinned.get.useSuspenseQuery();
-  const isPinned = useMemo(
-    () => pagesPinned.some((p) => p.id === page.id),
-    [page.id, pagesPinned],
-  );
+  const isPinned = utils.pagePinned.get
+    .getData()
+    ?.some((p) => p.id === page.id);
 
   const { toggleTrash } = usePageTrash({ page });
   return (
