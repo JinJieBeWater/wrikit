@@ -34,7 +34,7 @@ export const pagePinnedRouter = createTRPCRouter({
         name: result.name,
         type: result.type,
         icon: result.icon,
-        pinnedOrder: page.order,
+        order: page.order,
       };
     });
 

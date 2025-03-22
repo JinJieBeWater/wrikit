@@ -10,7 +10,6 @@ import {
   Share2,
   Trash2,
 } from "lucide-react";
-import { useMemo } from "react";
 import { useSidebar, SidebarMenuAction } from "./ui/sidebar";
 import { api, RouterOutputs } from "@/trpc/react";
 import {
@@ -21,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { usePageTrash } from "@/hooks/use-page-trash";
+import { usePagePin } from "@/hooks/use-page-pin";
 
 export function PageAction({
   page,
@@ -28,23 +28,8 @@ export function PageAction({
   page: RouterOutputs["page"]["getByParentId"][0];
 }) {
   const { isMobile } = useSidebar();
-  const utils = api.useUtils();
 
-  const createPinned = api.pagePinned.create.useMutation({
-    onSuccess: async () => {
-      utils.pagePinned.get.invalidate();
-    },
-  });
-  const deletePinned = api.pagePinned.delete.useMutation({
-    onSuccess: async () => {
-      utils.pagePinned.get.invalidate();
-    },
-  });
-
-  const isPinned = utils.pagePinned.get
-    .getData()
-    ?.some((p) => p.id === page.id);
-
+  const { isPinned, createPinned, deletePinned } = usePagePin(page);
   const { toggleTrash } = usePageTrash({ page });
   return (
     <DropdownMenu>
