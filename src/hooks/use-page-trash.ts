@@ -9,40 +9,57 @@ export const usePageTrash = ({
 }) => {
   const utils = api.useUtils();
 
-  const [pagesPinned] = api.pagePinned.get.useSuspenseQuery();
-
-  const invalidateCache = useCallback(() => {
-    if (page.parentId) {
-      void utils.page.getByParentId.invalidate({
-        parentId: page.parentId,
-      });
-    } else {
+  const optimisticUpdate = useCallback(
+    (variables: { id: number; isDeleted: boolean }) => {
+      void utils.page.getByParentId.setData(
+        {
+          parentId: page.parentId ?? undefined,
+        },
+        (prev) => {
+          if (variables.isDeleted) {
+            return prev?.filter((p) => p.id !== variables.id);
+          } else {
+            return [
+              ...(prev ?? []),
+              {
+                ...page,
+              },
+            ];
+          }
+        },
+      );
       const isPinned = utils.pagePinned.get
         .getData()
         ?.some((p) => p.id === page.id);
       if (isPinned) {
-        void utils.pagePinned.get.invalidate();
+        void utils.pagePinned.get.setData(void 0, (pinnedPages) => {
+          return pinnedPages?.filter((p) => p.id !== variables.id);
+        });
       }
-      void utils.page.getByParentId.invalidate({});
-    }
-  }, [page.parentId, utils]);
+    },
+    [page.parentId, utils],
+  );
 
   const toggleTrash = api.page.toggleTrash.useMutation({
     onMutate(variables) {
-      const prevParentCache = utils.page.getByParentId.getData({
-        parentId: page.parentId ?? undefined,
-      });
-      if (variables.isDeleted) {
-        toast.loading("Moving page to trash...");
-      } else {
-        toast.loading("Restoring page from trash...");
-      }
-      return { prevParentCache };
+      optimisticUpdate(variables);
+
+      return {
+        prev: {
+          id: variables.id,
+          isDeleted: !variables.isDeleted,
+        },
+      };
     },
-    onError(error, variables, ctx) {},
+    onError(_error, variables, ctx) {
+      ctx?.prev && optimisticUpdate(ctx?.prev);
+      if (variables.isDeleted) {
+        toast.error("Failed to move page to trash");
+      } else {
+        toast.error("Failed to restore page from trash");
+      }
+    },
     onSuccess: async (_data, variables) => {
-      invalidateCache();
-      toast.dismiss();
       if (variables.isDeleted) {
         toast.success("Page moved to trash", {
           description: "You can restore it from the trash",
