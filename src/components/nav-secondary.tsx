@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  Blocks,
-  MessageCircleQuestion,
-  Settings2,
-  Trash2,
-  type LucideIcon,
-} from "lucide-react";
+import { Blocks, MessageCircleQuestion, Settings2, Trash2 } from "lucide-react";
 
 import {
   SidebarGroup,
@@ -15,7 +9,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import Link from "next/link";
 
 export function NavSecondary({
   ...props

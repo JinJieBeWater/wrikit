@@ -1,4 +1,4 @@
-import { api, RouterOutputs } from "@/trpc/react";
+import { api, type RouterOutputs } from "@/trpc/react";
 import { useState } from "react";
 
 export const usePagePin = (page: RouterOutputs["page"]["getByParentId"][0]) => {
@@ -22,6 +22,7 @@ export const usePagePin = (page: RouterOutputs["page"]["getByParentId"][0]) => {
             icon: page.icon,
             parentId: page.parentId,
             order: 0,
+            isDeleted: false,
           },
         ];
       });

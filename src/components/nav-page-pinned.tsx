@@ -19,9 +19,11 @@ export function NavPagePinned() {
           <SidebarGroupLabel>Pinned</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {roots.map((page) => (
-                <PageTree key={page.id} page={page} />
-              ))}
+              {roots
+                .filter((page) => !page.isDeleted)
+                .map((page) => (
+                  <PageTree key={page.id} page={page} />
+                ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

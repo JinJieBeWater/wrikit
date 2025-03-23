@@ -21,6 +21,7 @@ export const pagePinnedRouter = createTRPCRouter({
           name: true,
           type: true,
           icon: true,
+          isDeleted: true,
         },
         orderBy: (pages, { asc }) => [asc(pages.order)],
       });
@@ -35,6 +36,7 @@ export const pagePinnedRouter = createTRPCRouter({
         type: result.type,
         icon: result.icon,
         order: page.order,
+        isDeleted: result.isDeleted,
       };
     });
 
@@ -45,7 +47,7 @@ export const pagePinnedRouter = createTRPCRouter({
   create: protectedProcedure
     .input(
       z.object({
-        pageId: z.number().describe("页面id"),
+        pageId: z.string().describe("页面id"),
         order: z.number().default(0).describe("排序顺序 0为默认"),
       }),
     )
@@ -63,7 +65,7 @@ export const pagePinnedRouter = createTRPCRouter({
   delete: protectedProcedure
     .input(
       z.object({
-        pageId: z.number().describe("页面id"),
+        pageId: z.string().describe("页面id"),
       }),
     )
     .mutation(async ({ ctx, input }) => {

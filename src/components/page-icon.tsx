@@ -1,9 +1,9 @@
 "use client";
 import { cn } from "@/lib/utils";
-import { LucideProps, PiIcon } from "lucide-react";
-import { RefAttributes } from "react";
+import { type LucideProps, PiIcon } from "lucide-react";
+import { type RefAttributes } from "react";
 import { PageTypeIcon } from "./page-action-add";
-import { RouterOutputs } from "@/trpc/react";
+import { type RouterOutputs } from "@/trpc/react";
 
 export function PageIcon({
   page,

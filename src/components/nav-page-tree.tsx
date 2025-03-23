@@ -9,7 +9,7 @@ import {
   useSidebar,
 } from "./ui/sidebar";
 import { memo, useRef, useState } from "react";
-import { api, RouterOutputs } from "@/trpc/react";
+import { api, type RouterOutputs } from "@/trpc/react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -51,7 +51,7 @@ export function PurePageTree({
         open={open}
         onOpenChange={setOpen}
       >
-        <SidebarMenuButton asChild isActive={page.id === Number(id)}>
+        <SidebarMenuButton asChild isActive={page.id === id}>
           <Link
             href={`/dashboard/page/${page.id}`}
             onClick={() => {
@@ -92,13 +92,15 @@ export function PurePageTree({
                 Loading...
               </span>
             ) : data && data.length > 0 ? (
-              data?.map((subPage, index) => (
-                <PurePageTree
-                  key={index}
-                  page={subPage}
-                  initialStack={stack.current}
-                />
-              ))
+              data
+                ?.filter((subPage) => !subPage.isDeleted)
+                .map((subPage, index) => (
+                  <PurePageTree
+                    key={index}
+                    page={subPage}
+                    initialStack={stack.current}
+                  />
+                ))
             ) : (
               <span className="flex h-8 items-center pl-8 text-muted-foreground">
                 Nothing Inside

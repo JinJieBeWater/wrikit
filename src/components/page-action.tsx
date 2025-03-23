@@ -11,7 +11,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useSidebar, SidebarMenuAction } from "./ui/sidebar";
-import { RouterOutputs } from "@/trpc/react";
+import { type RouterOutputs } from "@/trpc/react";
 import {
   DropdownMenu,
   DropdownMenuContent,

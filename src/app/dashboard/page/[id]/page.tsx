@@ -8,21 +8,22 @@ import { PageIcon } from "@/components/page-icon";
 import { Button } from "@/components/ui/button";
 import { notFound, useParams } from "next/navigation";
 import { PureEditor } from "../_components/pure-editor";
-import { ClientSideLoader } from "./_components/client-side-loader";
 import { api } from "@/trpc/react";
+import Loading from "./loading";
 
 export default function Page() {
   const { id } = useParams();
 
-  const [page] = api.page.get.useSuspenseQuery({
-    id: Number(id),
+  const { data: page, isLoading } = api.page.get.useQuery({
+    id: String(id),
   });
+
+  if (isLoading) return <Loading />;
 
   if (!page) notFound();
 
   return (
     <>
-      <ClientSideLoader page={page} />
       <div className={cn("flex h-full w-full flex-col")}>
         <div className="relative flex h-52 w-full shrink-0 items-end overflow-hidden bg-background px-12 pb-4 sm:px-page">
           <GridPattern
