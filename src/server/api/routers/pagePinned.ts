@@ -9,39 +9,29 @@ export const pagePinnedRouter = createTRPCRouter({
       where(fields, operators) {
         return operators.and(operators.eq(fields.userId, ctx.session.user.id));
       },
+      with: {
+        page: {
+          columns: {
+            parentId: true,
+            name: true,
+            type: true,
+            icon: true,
+            isDeleted: true,
+            id: true,
+          },
+        },
+      },
     });
 
-    const pagePromises = pagesPinned.map(async (page) => {
-      const result = await ctx.db.query.pages.findFirst({
-        where(fields, operators) {
-          return operators.and(operators.eq(fields.id, page.pageId));
-        },
-        columns: {
-          parentId: true,
-          name: true,
-          type: true,
-          icon: true,
-          isDeleted: true,
-        },
-        orderBy: (pages, { asc }) => [asc(pages.order)],
-      });
-      if (!result) {
-        console.error("找不到页面", page.pageId);
-        return;
-      }
+    const result = pagesPinned.map((page) => {
+      const { page: pageData, pageId, userId, ...rest } = page;
       return {
-        parentId: result.parentId,
-        id: page.pageId,
-        name: result.name,
-        type: result.type,
-        icon: result.icon,
-        order: page.order,
-        isDeleted: result.isDeleted,
+        ...rest,
+        ...pageData,
       };
     });
 
-    const result = await Promise.all(pagePromises);
-    return result.filter((item) => item !== undefined);
+    return result;
   }),
 
   create: protectedProcedure
