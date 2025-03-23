@@ -1,15 +1,14 @@
 "use client";
 import {
   AutosizeTextarea,
-  AutosizeTextAreaRef,
+  type AutosizeTextAreaRef,
 } from "@/components/ui/autosize-textarea";
 import { api } from "@/trpc/react";
 import { type Page } from "@/types/page";
 import {
-  RefAttributes,
-  TextareaHTMLAttributes,
+  type RefAttributes,
+  type TextareaHTMLAttributes,
   useCallback,
-  useMemo,
   useRef,
 } from "react";
 import { useDebounceCallback } from "usehooks-ts";
@@ -24,7 +23,7 @@ export function TitleEditor({
   const autosizeTextareaRef = useRef<AutosizeTextAreaRef>(null);
 
   const { mutate } = api.page.update.useMutation({
-    onMutate(variables) {
+    onMutate() {
       // 从 queryCache 中获取数据
       const prevData = utils.page.get.getData({
         id: page.id,
@@ -99,7 +98,7 @@ export function TitleEditor({
         });
       }
     },
-    [page.parentId, utils],
+    [page.parentId, utils, page.id],
   );
   return (
     <AutosizeTextarea

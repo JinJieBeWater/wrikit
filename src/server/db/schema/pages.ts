@@ -7,6 +7,7 @@ import {
   json,
   boolean,
   primaryKey,
+  uuid,
 } from "drizzle-orm/pg-core";
 import { timestamps } from "../columns.helpers";
 import { users } from "./users";
@@ -24,11 +25,11 @@ export const pageEnum = pgEnum("page_ty", PageTypeArray);
 export const pages = createTable(
   "page",
   {
-    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    id: uuid("id").defaultRandom().primaryKey(),
     type: pageEnum("type").default("md").notNull(),
     name: varchar("name", { length: 256 }),
     content: json("content"),
-    parentId: integer("parent_id"),
+    parentId: uuid("parent_id"),
     icon: json("icon").$type<Icon>(),
     isDeleted: boolean("is_deleted").default(false).notNull(),
     isPrivate: boolean("is_private").default(true).notNull(),
@@ -59,7 +60,7 @@ export const pagesPinned = createTable(
   "page_pinned",
   {
     userId: varchar("user_id", { length: 255 }).notNull(),
-    pageId: integer("page_id").notNull(),
+    pageId: uuid("page_id").notNull(),
     order: integer("pinned_order").default(0).notNull(),
   },
   (table) => ({
@@ -82,8 +83,8 @@ export const pagesPinnedRelations = relations(pagesPinned, ({ one }) => ({
 export const pagesToChildren = createTable(
   "page_to_children",
   {
-    pageId: integer("page_id").notNull(),
-    childId: integer("child_id").notNull(),
+    pageId: uuid("page_id").notNull(),
+    childId: uuid("child_id").notNull(),
   },
   (ptc) => ({
     pageIdIdx: index("page_id_id_idx").on(ptc.pageId),
@@ -111,8 +112,8 @@ export const pageObjectItemEnum = pgEnum(
 );
 
 export const pageObjects = createTable("page_object", {
-  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
-  pageId: integer("page_id").notNull(),
+  id: uuid("id").primaryKey().defaultRandom(),
+  pageId: uuid("page_id").notNull(),
   templateId: integer("template_id").notNull(),
   json: json("json").$type<PageObjectJson>().default([]),
 });
@@ -129,7 +130,7 @@ export const pageObjectRelations = relations(pageObjects, ({ one }) => ({
 }));
 
 export const pageObjectTemplates = createTable("page_object_templates", {
-  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  id: uuid("id").primaryKey().defaultRandom(),
   name: varchar("name", { length: 256 }),
   template: json("template").$type<PageObjectTemplate>().default([]),
   isPrivate: boolean("is_private").default(true).notNull(),

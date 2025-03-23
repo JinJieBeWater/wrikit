@@ -6,8 +6,8 @@ import {
   useCallback,
   useEffect,
   useState,
-  Dispatch,
-  SetStateAction,
+  type Dispatch,
+  type SetStateAction,
 } from "react";
 
 interface BreadcrumbItem {
@@ -39,7 +39,6 @@ export function BreadcrumbProvider({
 export function useBreadcrumb() {
   const context = useContext(BreadcrumbContext);
   const pathname = usePathname();
-  const params = useParams();
 
   if (!context) {
     throw new Error("useBreadcrumb must be used within a BreadcrumbProvider");

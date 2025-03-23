@@ -9,7 +9,7 @@ import {
   useSidebar,
 } from "./ui/sidebar";
 import { memo, useRef, useState } from "react";
-import { api, RouterOutputs } from "@/trpc/react";
+import { api, type RouterOutputs } from "@/trpc/react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -51,7 +51,7 @@ export function PurePageTree({
         open={open}
         onOpenChange={setOpen}
       >
-        <SidebarMenuButton asChild isActive={page.id === Number(id)}>
+        <SidebarMenuButton asChild isActive={page.id === id}>
           <Link
             href={`/dashboard/page/${page.id}`}
             onClick={() => {

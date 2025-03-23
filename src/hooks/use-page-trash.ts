@@ -1,4 +1,4 @@
-import { api, RouterOutputs } from "@/trpc/react";
+import { api, type RouterOutputs } from "@/trpc/react";
 import { toast } from "sonner";
 
 export const usePageTrash = ({
@@ -34,7 +34,7 @@ export const usePageTrash = ({
       const prevPinned = utils.pagePinned.get.getData(void 0);
 
       // 处理子页面的pinned 由于为树形结构, 需要递归处理
-      const getAllRelatedPages = (rootId: number) => {
+      const getAllRelatedPages = (rootId: string) => {
         const allPageIds = [];
         const stack = [rootId];
 

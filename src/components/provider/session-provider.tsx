@@ -1,7 +1,7 @@
 "use client";
 
-import { Session } from "next-auth";
-import React, { createContext, useContext, ReactNode } from "react";
+import { type Session } from "next-auth";
+import React, { createContext, useContext, type ReactNode } from "react";
 
 const SessionContext = createContext<Session | null>(null);
 

@@ -8,14 +8,14 @@ export const createPageZod = z.object({
   type: z.enum(PageTypeArray).describe("页面类型"),
   name: z.string().optional().describe("页面名称"),
   content: z.string().optional().describe("页面内容"),
-  parentId: z.number().optional().describe("父页面id"),
+  parentId: z.string().optional().describe("父页面id"),
 });
 
 export const pageRouter = createTRPCRouter({
   get: protectedProcedure
     .input(
       z.object({
-        id: z.number().describe("页面id"),
+        id: z.string().describe("页面id"),
       }),
     )
     .query(async ({ ctx, input }) => {
@@ -44,7 +44,7 @@ export const pageRouter = createTRPCRouter({
   update: protectedProcedure
     .input(
       z.object({
-        id: z.number().describe("页面id"),
+        id: z.string().describe("页面id"),
         name: z.string().optional().describe("页面名称"),
         content: z.string().optional().describe("页面内容"),
         order: z.number().optional().describe("排序顺序"),
@@ -70,14 +70,14 @@ export const pageRouter = createTRPCRouter({
   toggleTrash: protectedProcedure
     .input(
       z.object({
-        id: z.number().describe("页面id"),
+        id: z.string().describe("页面id"),
         isDeleted: z.boolean().describe("是否删除"),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       await ctx.db.transaction(async (trx) => {
         // 获取所有相关页面
-        const getAllRelatedPages = async (rootId: number) => {
+        const getAllRelatedPages = async (rootId: string) => {
           const allPages = [];
           const stack = [rootId];
 
@@ -103,7 +103,7 @@ export const pageRouter = createTRPCRouter({
         };
 
         // 批量更新页面状态
-        const updatePages = async (pageIds: number[]) => {
+        const updatePages = async (pageIds: string[]) => {
           await trx
             .update(pages)
             .set({ isDeleted: input.isDeleted })
@@ -111,7 +111,7 @@ export const pageRouter = createTRPCRouter({
         };
 
         // 批量删除pinned关系
-        const deletePinned = async (pageIds: number[]) => {
+        const deletePinned = async (pageIds: string[]) => {
           console.log("deletePinned", pageIds);
 
           await trx
@@ -135,7 +135,7 @@ export const pageRouter = createTRPCRouter({
   getByParentId: protectedProcedure
     .input(
       z.object({
-        parentId: z.number().optional().describe("父页面id，不传则获取根页面"),
+        parentId: z.string().optional().describe("父页面id，不传则获取根页面"),
         isDeleted: z.boolean().default(false).describe("是否删除"),
       }),
     )

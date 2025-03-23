@@ -15,7 +15,7 @@ export default function Page() {
   const { id } = useParams();
 
   const { data: page, isLoading } = api.page.get.useQuery({
-    id: Number(id),
+    id: String(id),
   });
 
   if (isLoading) return <Loading />;

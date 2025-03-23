@@ -3,7 +3,7 @@ import {
   ALargeSmall,
   AppWindow,
   Heading1,
-  LucideIcon,
+  type LucideIcon,
   TableProperties,
 } from "lucide-react";
 import {
@@ -13,9 +13,10 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { useSidebar } from "./ui/sidebar";
-import { Page, PageType } from "@/types/page";
-import { api, RouterOutputs } from "@/trpc/react";
+import { PageType } from "@/types/page";
+import { api, type RouterOutputs } from "@/trpc/react";
 import { useRouter } from "next/navigation";
+import { generateUUID } from "@/lib/utils";
 
 export const PageTypeIcon = {
   md: Heading1,
@@ -56,6 +57,28 @@ export function PageActionAdd({
 
   const utils = api.useUtils();
   const createPage = api.page.create.useMutation({
+    onMutate(variables) {
+      const prevParentList = utils.page.getByParentId.getData({
+        parentId: variables.parentId,
+      });
+      const newPage: RouterOutputs["page"]["getByParentId"][0] = {
+        ...variables,
+        id: generateUUID(),
+        icon: null,
+        name: variables.name ?? null,
+        parentId: variables.parentId ?? null,
+        isDeleted: false,
+      };
+      void utils.page.getByParentId.setData(
+        {
+          parentId: variables.parentId,
+        },
+        (prev) => (prev ? [...prev, newPage] : []),
+      );
+      return {
+        prevParentList,
+      };
+    },
     onSuccess: async (data, variables) => {
       if (parentPage) {
         await utils.page.getByParentId.invalidate({
