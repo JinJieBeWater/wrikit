@@ -124,12 +124,14 @@ export const pageRouter = createTRPCRouter({
         const relatedPageIds = await getAllRelatedPages(input.id);
 
         // 更新所有相关页面
-        await updatePages([input.id, ...relatedPageIds]);
+        const promises = [];
+        promises.push(updatePages([input.id, ...relatedPageIds]));
 
         // 如果是删除操作，还需要删除pinned关系
         if (input.isDeleted) {
-          await deletePinned([input.id, ...relatedPageIds]);
+          promises.push(deletePinned([input.id, ...relatedPageIds]));
         }
+        await Promise.all(promises);
       });
     }),
 
