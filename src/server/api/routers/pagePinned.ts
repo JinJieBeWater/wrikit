@@ -21,6 +21,7 @@ export const pagePinnedRouter = createTRPCRouter({
           name: true,
           type: true,
           icon: true,
+          isDeleted: true,
         },
         orderBy: (pages, { asc }) => [asc(pages.order)],
       });
@@ -35,6 +36,7 @@ export const pagePinnedRouter = createTRPCRouter({
         type: result.type,
         icon: result.icon,
         order: page.order,
+        isDeleted: result.isDeleted,
       };
     });
 

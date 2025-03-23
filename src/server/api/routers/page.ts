@@ -164,7 +164,10 @@ export const pageRouter = createTRPCRouter({
         },
         orderBy: (posts, { asc }) => [asc(posts.order), asc(posts.createdAt)],
       });
-      return rootPages ?? null;
+      return rootPages.map((page) => ({
+        ...page,
+        isDeleted: input.isDeleted,
+      }));
     }),
 
   getLatest: protectedProcedure

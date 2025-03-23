@@ -92,13 +92,15 @@ export function PurePageTree({
                 Loading...
               </span>
             ) : data && data.length > 0 ? (
-              data?.map((subPage, index) => (
-                <PurePageTree
-                  key={index}
-                  page={subPage}
-                  initialStack={stack.current}
-                />
-              ))
+              data
+                ?.filter((subPage) => !subPage.isDeleted)
+                .map((subPage, index) => (
+                  <PurePageTree
+                    key={index}
+                    page={subPage}
+                    initialStack={stack.current}
+                  />
+                ))
             ) : (
               <span className="flex h-8 items-center pl-8 text-muted-foreground">
                 Nothing Inside
