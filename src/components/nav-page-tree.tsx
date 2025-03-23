@@ -8,7 +8,7 @@ import {
   SidebarMenuSub,
   useSidebar,
 } from "./ui/sidebar";
-import { createContext, Suspense, useMemo, useRef, useState } from "react";
+import { memo, useRef, useState } from "react";
 import { api, RouterOutputs } from "@/trpc/react";
 import {
   Collapsible,
@@ -19,9 +19,9 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { PageIcon } from "./page-icon";
 import { PageAction } from "./page-action";
-import { PageAddButton } from "./page-add-button";
+import { PageActionAdd } from "./page-action-add";
 
-export function PageTree({
+export function PurePageTree({
   page,
   initialStack,
 }: {
@@ -33,7 +33,7 @@ export function PageTree({
   const [open, setOpen] = useState(false);
   const { isMobile, setOpenMobile } = useSidebar();
 
-  const { data, isPending } = api.page.getByParentId.useQuery(
+  const { data, isLoading, isError } = api.page.getByParentId.useQuery(
     {
       parentId: page.id,
     },
@@ -51,12 +51,7 @@ export function PageTree({
         open={open}
         onOpenChange={setOpen}
       >
-        <SidebarMenuButton
-          asChild
-          isActive={page.id === Number(id)}
-          // onClick={() => setOpen((open) => !open)}
-          // className="group-has-[[data-sidebar=menu-action]]/menu-item:pr-0"
-        >
+        <SidebarMenuButton asChild isActive={page.id === Number(id)}>
           <Link
             href={`/dashboard/page/${page.id}`}
             onClick={() => {
@@ -77,42 +72,38 @@ export function PageTree({
             <ChevronRight />
           </SidebarMenuAction>
         </CollapsibleTrigger>
-        <PageAddButton parentPage={page} setParentOpen={setOpen}>
+        <PageActionAdd parentPage={page} setParentOpen={setOpen}>
           <SidebarMenuAction className="right-6" showOnHover title="Add">
             <Plus />
             <span className="sr-only">Add</span>
           </SidebarMenuAction>
-        </PageAddButton>
+        </PageActionAdd>
 
         <PageAction page={page} />
 
         <CollapsibleContent>
           <SidebarMenuSub className="ml-2 mr-0 px-0">
-            <Suspense
-              fallback={
-                <span className="flex h-8 items-center pl-8 text-muted-foreground">
-                  Loading...
-                </span>
-              }
-            >
-              {data && data.length > 0 ? (
-                data?.map((subPage, index) => (
-                  <PageTree
-                    key={index}
-                    page={subPage}
-                    initialStack={stack.current}
-                  />
-                ))
-              ) : isPending ? (
-                <span className="flex h-8 items-center pl-8 text-muted-foreground">
-                  Loading...
-                </span>
-              ) : (
-                <span className="flex h-8 items-center pl-8 text-muted-foreground">
-                  Nothing Inside
-                </span>
-              )}
-            </Suspense>
+            {isError ? (
+              <span className="flex h-8 items-center pl-8 text-destructive">
+                Failed to load data
+              </span>
+            ) : isLoading ? (
+              <span className="flex h-8 items-center pl-8 text-muted-foreground">
+                Loading...
+              </span>
+            ) : data && data.length > 0 ? (
+              data?.map((subPage, index) => (
+                <PurePageTree
+                  key={index}
+                  page={subPage}
+                  initialStack={stack.current}
+                />
+              ))
+            ) : (
+              <span className="flex h-8 items-center pl-8 text-muted-foreground">
+                Nothing Inside
+              </span>
+            )}
           </SidebarMenuSub>
         </CollapsibleContent>
       </Collapsible>
@@ -120,4 +111,6 @@ export function PageTree({
   );
 }
 
-PageTree.displayName = "PageTree";
+export const PageTree = memo(PurePageTree);
+
+PurePageTree.displayName = "PageTree";

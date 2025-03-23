@@ -3,15 +3,14 @@ import {
   AutosizeTextarea,
   AutosizeTextAreaRef,
 } from "@/components/ui/autosize-textarea";
-import { Separator } from "@/components/ui/separator";
 import { api } from "@/trpc/react";
 import { type Page } from "@/types/page";
 import {
   RefAttributes,
   TextareaHTMLAttributes,
   useCallback,
-  useContext,
   useMemo,
+  useRef,
 } from "react";
 import { useDebounceCallback } from "usehooks-ts";
 
@@ -22,42 +21,51 @@ export function TitleEditor({
   RefAttributes<AutosizeTextAreaRef>) {
   const utils = api.useUtils();
 
-  const pinnedPages = utils.pagePinned.get.getData();
+  const autosizeTextareaRef = useRef<AutosizeTextAreaRef>(null);
 
-  const isPinned = useMemo(
-    () => pinnedPages?.find((p) => p.id === page.id),
-    [page.id, pinnedPages],
-  );
-
-  const updatePage = api.page.update.useMutation({
-    onSuccess: () => {
-      void utils.page.get.invalidate({
+  const { mutate } = api.page.update.useMutation({
+    onMutate(variables) {
+      // 从 queryCache 中获取数据
+      const prevData = utils.page.get.getData({
         id: page.id,
       });
-      if (page.parentId) {
-        void utils.page.getByParentId.invalidate({
-          parentId: page.parentId,
-        });
-      } else {
-        void utils.page.getByParentId.invalidate({});
+      return { prevData };
+    },
+    onError(_err, _newPage, ctx) {
+      // 当修改失败后，使用来自 onMutate 中的值
+      utils.page.get.setData(
+        {
+          id: page.id,
+        },
+        ctx?.prevData,
+      );
+      if (autosizeTextareaRef.current) {
+        autosizeTextareaRef.current.textArea.value = ctx?.prevData?.name ?? "";
       }
-
-      if (isPinned) {
-        void utils.pagePinned.get.invalidate();
-      }
+      setRelativeValue(ctx?.prevData?.name ?? "");
     },
   });
 
   const updateTitleDebounced = useDebounceCallback((value: string) => {
-    void updatePage.mutateAsync({
+    mutate({
       id: page.id,
       name: value,
     });
   }, 1000);
 
-  // 乐观地更新页面名称
-  const optimisticUpdatePageName = useCallback(
+  const setRelativeValue = useCallback(
     (value: string) => {
+      utils.page.get.setData(
+        {
+          id: page.id,
+        },
+        (prev) => {
+          return {
+            ...prev!,
+            name: value,
+          };
+        },
+      );
       utils.page.getByParentId.setData(
         {
           parentId: page.parentId ?? undefined,
@@ -74,6 +82,9 @@ export function TitleEditor({
           });
         },
       );
+      const isPinned = utils.pagePinned.get
+        .getData()
+        ?.some((p) => p.id === page.id);
       if (isPinned) {
         void utils.pagePinned.get.setData(void 0, (pinnedPages) => {
           return pinnedPages?.map((item) => {
@@ -92,12 +103,13 @@ export function TitleEditor({
   );
   return (
     <AutosizeTextarea
+      ref={autosizeTextareaRef}
       className="w-full resize-none overflow-hidden border-none px-12 text-4xl font-bold focus-visible:rounded-none focus-visible:outline-none focus-visible:ring-0 sm:px-page"
       defaultValue={page.name ?? ""}
       placeholder="Untitled"
       onChange={(e) => {
+        setRelativeValue(e.target.value);
         updateTitleDebounced(e.target.value);
-        optimisticUpdatePageName(e.target.value);
       }}
       maxLength={256}
       {...props}

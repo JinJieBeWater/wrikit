@@ -9,7 +9,7 @@ import {
   SidebarGroupAction,
 } from "./ui/sidebar";
 import { api } from "@/trpc/react";
-import { PageAddButton } from "./page-add-button";
+import { PageActionAdd } from "./page-action-add";
 import { PageTree } from "./nav-page-tree";
 
 export function NavPage() {
@@ -26,11 +26,11 @@ export function NavPage() {
         </SidebarMenu>
       </SidebarGroupContent>
 
-      <PageAddButton>
+      <PageActionAdd>
         <SidebarGroupAction title="Add Page">
           <Plus /> <span className="sr-only">Add Page</span>
         </SidebarGroupAction>
-      </PageAddButton>
+      </PageActionAdd>
     </SidebarGroup>
   );
 }

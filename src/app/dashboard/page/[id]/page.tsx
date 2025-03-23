@@ -1,4 +1,4 @@
-import { api } from "@/trpc/server";
+"use client";
 import { MdEditor } from "../_components/md-editor";
 import { PageType } from "@/types/page";
 import { cn } from "@/lib/utils";
@@ -6,19 +6,17 @@ import { TitleEditor } from "../_components/title-editor";
 import { GridPattern } from "@/components/magicui/grid-pattern";
 import { PageIcon } from "@/components/page-icon";
 import { Button } from "@/components/ui/button";
-import { notFound } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import { PureEditor } from "../_components/pure-editor";
 import { ClientSideLoader } from "./_components/client-side-loader";
+import { api } from "@/trpc/react";
 
-interface Props {
-  params: Promise<{
-    id: string;
-  }>;
-}
+export default function Page() {
+  const { id } = useParams();
 
-export default async function Page({ params }: Props) {
-  const { id } = await params;
-  const page = await api.page.get({ id: Number(id) });
+  const [page] = api.page.get.useSuspenseQuery({
+    id: Number(id),
+  });
 
   if (!page) notFound();
 

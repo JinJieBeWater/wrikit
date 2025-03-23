@@ -2,7 +2,7 @@
 import { cn } from "@/lib/utils";
 import { LucideProps, PiIcon } from "lucide-react";
 import { RefAttributes } from "react";
-import { PageTypeIcon } from "./page-add-button";
+import { PageTypeIcon } from "./page-action-add";
 import { RouterOutputs } from "@/trpc/react";
 
 export function PageIcon({
