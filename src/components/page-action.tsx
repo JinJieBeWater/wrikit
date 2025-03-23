@@ -11,7 +11,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useSidebar, SidebarMenuAction } from "./ui/sidebar";
-import { api, RouterOutputs } from "@/trpc/react";
+import { RouterOutputs } from "@/trpc/react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,8 +21,9 @@ import {
 } from "./ui/dropdown-menu";
 import { usePageTrash } from "@/hooks/use-page-trash";
 import { usePagePin } from "@/hooks/use-page-pin";
+import { memo } from "react";
 
-export function PageAction({
+export function PurePageAction({
   page,
 }: {
   page: RouterOutputs["page"]["getByParentId"][0];
@@ -95,3 +96,7 @@ export function PageAction({
     </DropdownMenu>
   );
 }
+
+export const PageAction = memo(PurePageAction);
+
+PurePageAction.displayName = "PageAction";

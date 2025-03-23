@@ -8,7 +8,7 @@ import {
   SidebarMenuSub,
   useSidebar,
 } from "./ui/sidebar";
-import { createContext, Suspense, useMemo, useRef, useState } from "react";
+import { memo, useRef, useState } from "react";
 import { api, RouterOutputs } from "@/trpc/react";
 import {
   Collapsible,
@@ -21,7 +21,7 @@ import { PageIcon } from "./page-icon";
 import { PageAction } from "./page-action";
 import { PageActionAdd } from "./page-action-add";
 
-export function PageTree({
+export function PurePageTree({
   page,
   initialStack,
 }: {
@@ -93,7 +93,7 @@ export function PageTree({
               </span>
             ) : data && data.length > 0 ? (
               data?.map((subPage, index) => (
-                <PageTree
+                <PurePageTree
                   key={index}
                   page={subPage}
                   initialStack={stack.current}
@@ -111,4 +111,6 @@ export function PageTree({
   );
 }
 
-PageTree.displayName = "PageTree";
+export const PageTree = memo(PurePageTree);
+
+PurePageTree.displayName = "PageTree";
