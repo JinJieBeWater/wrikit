@@ -5,6 +5,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 
 export const createPageZod = z.object({
+  id: z.string().optional().describe("页面id"),
   type: z.enum(PageTypeArray).describe("页面类型"),
   name: z.string().optional().describe("页面名称"),
   content: z.string().optional().describe("页面内容"),

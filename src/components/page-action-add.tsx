@@ -17,6 +17,8 @@ import { PageType } from "@/types/page";
 import { api, type RouterOutputs } from "@/trpc/react";
 import { useRouter } from "next/navigation";
 import { generateUUID } from "@/lib/utils";
+import { useSession } from "./provider/session-provider";
+import { toast } from "sonner";
 
 export const PageTypeIcon = {
   md: Heading1,
@@ -54,6 +56,9 @@ export function PageActionAdd({
 }>) {
   const { isMobile } = useSidebar();
   const router = useRouter();
+  const session = useSession();
+
+  if (!session?.user) return null;
 
   const utils = api.useUtils();
   const createPage = api.page.create.useMutation({
@@ -63,35 +68,58 @@ export function PageActionAdd({
       });
       const newPage: RouterOutputs["page"]["getByParentId"][0] = {
         ...variables,
-        id: generateUUID(),
+        id: variables.id!,
         icon: null,
         name: variables.name ?? null,
         parentId: variables.parentId ?? null,
         isDeleted: false,
       };
-      void utils.page.getByParentId.setData(
+      // 目录下乐观地添加新页面
+      utils.page.getByParentId.setData(
         {
           parentId: variables.parentId,
         },
-        (prev) => (prev ? [...prev, newPage] : []),
+        (prev) => (prev ? [...prev, newPage] : [newPage]),
       );
+      setParentOpen?.(true);
+
+      // 乐观更新
+      utils.page.get.setData(
+        {
+          id: newPage.id,
+        },
+        {
+          ...newPage,
+          order: 0,
+          createdById: session.user.id,
+          content: "",
+          isPrivate: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      );
+      router.push(`/dashboard/page/${newPage.id}`);
       return {
         prevParentList,
       };
     },
-    onSuccess: async (data, variables) => {
-      if (parentPage) {
-        await utils.page.getByParentId.invalidate({
+    onError(_error, variables, ctx) {
+      utils.page.getByParentId.setData(
+        {
           parentId: variables.parentId,
-        });
-        setParentOpen?.(true);
-      } else {
-        await utils.page.getByParentId.invalidate({});
-      }
-      if (data) {
-        router.push(`/dashboard/page/${data.id}`);
-      }
+        },
+        (prev) => prev?.filter((p) => p.id !== variables.id),
+      );
+      utils.page.get.setData(
+        {
+          id: variables?.id!,
+        },
+        null,
+      );
+      toast.error("新建页面失败");
+      // router.back();
     },
+    onSuccess: () => {},
   });
   return (
     <DropdownMenu>
@@ -105,7 +133,11 @@ export function PageActionAdd({
           <DropdownMenuItem
             key={index}
             onClick={() => {
-              createPage.mutate({ type: type.label, parentId: parentPage?.id });
+              createPage.mutate({
+                type: type.label,
+                parentId: parentPage?.id,
+                id: generateUUID(),
+              });
             }}
           >
             <type.icon className="text-muted-foreground" />
