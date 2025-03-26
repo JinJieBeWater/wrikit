@@ -20,6 +20,7 @@ import { useParams } from "next/navigation";
 import { PageIcon } from "./page-icon";
 import { PageAction } from "./page-action";
 import { PageActionAdd } from "./page-action-add";
+import { cn } from "@/lib/utils";
 
 export function PurePageTree({
   page,
@@ -47,7 +48,10 @@ export function PurePageTree({
   return (
     <SidebarMenuItem>
       <Collapsible
-        className="group/collapsible [&>a]:hover:pr-11 [&>button]:hover:opacity-100 [&[data-state=open]>button:first-child>svg:first-child]:rotate-90"
+        className={cn(
+          "group/collapsible [&>button]:hover:opacity-100 [&[data-state=open]>button:first-child>svg:first-child]:rotate-90",
+          isMobile ? "[&>a]:pr-11" : "[&>a]:hover:pr-11",
+        )}
         open={open}
         onOpenChange={setOpen}
       >
