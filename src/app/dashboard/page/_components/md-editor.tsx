@@ -16,11 +16,21 @@ export function MdEditor({ page }: MdEditorProps) {
   const utils = api.useUtils();
 
   const updatePage = api.page.update.useMutation({
-    onMutate: () => {
+    onMutate: (variables) => {
       // 从 queryCache 中获取数据
       const prevData = utils.page.get.getData({
         id: page.id,
       });
+      // 乐观更新
+      utils.page.get.setData(
+        {
+          id: page.id,
+        },
+        {
+          ...prevData!,
+          content: variables.content && JSON.parse(variables.content),
+        },
+      );
       return { prevData };
     },
     onError(_err, _newPage, ctx) {
