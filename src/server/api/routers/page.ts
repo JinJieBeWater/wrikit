@@ -195,4 +195,25 @@ export const pageRouter = createTRPCRouter({
       });
       return page ?? null;
     }),
+
+  getAllInTrash: protectedProcedure.query(async ({ ctx }) => {
+    const page = await ctx.db.query.pages.findMany({
+      where(fields, operators) {
+        return operators.and(
+          operators.eq(fields.isDeleted, true),
+          operators.eq(fields.createdById, ctx.session.user.id),
+        );
+      },
+      columns: {
+        id: true,
+        name: true,
+        type: true,
+        icon: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: (posts, { asc }) => [asc(posts.updatedAt)],
+    });
+    return page;
+  }),
 });

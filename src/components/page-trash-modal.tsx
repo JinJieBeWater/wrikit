@@ -1,57 +1,97 @@
+"use client";
 import { Trash2 } from "lucide-react";
 
-import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import {
-  ResponsiveModal,
-  ResponsiveModalTrigger,
-  ResponsiveModalContent,
-  ResponsiveModalHeader,
-  ResponsiveModalTitle,
-  ResponsiveModalDescription,
-} from "./ui/responsive-modal";
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { PageTable } from "./page-table";
 
-export const PageTrashModal = () => {
+import * as React from "react";
+
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import { ScrollArea } from "./ui/scroll-area";
+
+const PageTrashButton = () => {
   return (
-    <ResponsiveModal>
-      <ResponsiveModalTrigger>
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild>
-            <div>
-              <Trash2 />
-              <span>Trash</span>
-            </div>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </ResponsiveModalTrigger>
-      <ResponsiveModalContent side={"bottom"}>
-        <ResponsiveModalHeader>
-          <ResponsiveModalTitle>
-            This dialog will popup from left on mobile.
-          </ResponsiveModalTitle>
-          <ResponsiveModalDescription>
-            Lorem Ipsum is simply dummy text of the printing and typesetting
-            industry. Lorem Ipsum has been the industry's standard dummy text
-            ever since the 1500s, when an unknown printer took a galley of type
-            and scrambled it to make a type specimen book. It has survived not
-            only five centuries, but also the leap into electronic typesetting,
-            remaining essentially unchanged. It was popularised in the 1960s
-            with the release of Letraset sheets containing Lorem Ipsum passages,
-            and more recently with desktop publishing software like Aldus
-            PageMaker including versions of Lorem Ipsum.Lorem Ipsum is simply
-            dummy text of the printing and typesetting industry. Lorem Ipsum has
-            been the industry's standard dummy text ever since the 1500s, when
-            an unknown printer took a galley of type and scrambled it to make a
-            type specimen book. It has survived not only five centuries, but
-            also the leap into electronic typesetting, remaining essentially
-            unchanged. It was popularised in the 1960s with the release of
-            Letraset sheets containing Lorem Ipsum passages, and more recently
-            with desktop publishing software like Aldus PageMaker including
-            versions of Lorem Ipsum.
-          </ResponsiveModalDescription>
-        </ResponsiveModalHeader>
-      </ResponsiveModalContent>
-    </ResponsiveModal>
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild>
+        <div>
+          <Trash2 />
+          <span>Trash</span>
+        </div>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
   );
 };
 
-PageTrashModal.displayName = "TrashModal";
+export function PageTrashModal() {
+  const [open, setOpen] = React.useState(false);
+  const { isMobile } = useSidebar();
+
+  if (!isMobile) {
+    return (
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger>
+          <PageTrashButton />
+        </DialogTrigger>
+        <DialogContent className="max-h-90vh sm:max-w-[60vw]">
+          <DialogHeader>
+            <DialogTitle>Edit profile</DialogTitle>
+            <DialogDescription>
+              Make changes to your profile here. Click save when you're done.
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea>
+            <PageTable />
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerTrigger>
+        <PageTrashButton />
+      </DrawerTrigger>
+      <DrawerContent className="max-h-90vh">
+        <DrawerHeader className="text-left">
+          <DrawerTitle>Edit profile</DrawerTitle>
+          <DrawerDescription>
+            Make changes to your profile here. Click save when you're done.
+          </DrawerDescription>
+        </DrawerHeader>
+        <ScrollArea>
+          <PageTable />
+        </ScrollArea>
+
+        <DrawerFooter className="pt-2">
+          <DrawerClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  );
+}

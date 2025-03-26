@@ -10,7 +10,6 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { PageTrashModal } from "./page-trash-modal";
-import { useCallback } from "react";
 
 export function NavSecondary({
   ...props
