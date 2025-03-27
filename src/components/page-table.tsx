@@ -26,17 +26,13 @@ export const columns: ColumnDef<Page>[] = [
     accessorKey: "name",
     header: "Name",
     cell: ({ row }) => (
-      <span className="grow truncate">
-        {row.getValue("name") ?? "Untitled"}
-      </span>
+      <span className="truncate">{row.getValue("name") ?? "Untitled"}</span>
     ),
   },
   {
     accessorKey: "icon",
     header: "Icon",
-    cell: ({ row }) => {
-      return <PageIcon page={row.original} />;
-    },
+    cell: ({ row }) => <PageIcon page={row.original} />,
   },
   {
     accessorKey: "type",
