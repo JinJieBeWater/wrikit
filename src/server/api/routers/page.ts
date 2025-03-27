@@ -196,24 +196,52 @@ export const pageRouter = createTRPCRouter({
       return page ?? null;
     }),
 
-  getAllInTrash: protectedProcedure.query(async ({ ctx }) => {
-    const page = await ctx.db.query.pages.findMany({
-      where(fields, operators) {
-        return operators.and(
-          operators.eq(fields.isDeleted, true),
-          operators.eq(fields.createdById, ctx.session.user.id),
-        );
-      },
-      columns: {
-        id: true,
-        name: true,
-        type: true,
-        icon: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-      orderBy: (posts, { asc }) => [asc(posts.updatedAt)],
-    });
-    return page;
-  }),
+  infinitePage: protectedProcedure
+    .input(
+      z.object({
+        cursor: z.string().optional(),
+        limit: z.number().default(10),
+        isDeleted: z.boolean().default(false).describe("是否删除"),
+        search: z.string().optional().describe("模糊查询条件"),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const page = await ctx.db.query.pages.findMany({
+        where(fields, operators) {
+          return operators.and(
+            operators.eq(fields.isDeleted, true),
+            operators.eq(fields.createdById, ctx.session.user.id),
+            operators.eq(fields.isDeleted, input.isDeleted),
+            input.cursor
+              ? operators.gt(fields.updatedAt, new Date(input.cursor))
+              : undefined,
+            input.search
+              ? operators.like(fields.name, `%${input.search}%`)
+              : undefined,
+          );
+        },
+        limit: input.limit,
+        columns: {
+          id: true,
+          name: true,
+          type: true,
+          icon: true,
+          createdAt: true,
+          updatedAt: true,
+          parentId: true,
+        },
+        orderBy: (page, { asc }) => [asc(page.updatedAt)],
+      });
+
+      return {
+        items: page.map((item) => ({
+          ...item,
+          isDeleted: input.isDeleted,
+        })),
+        nextCursor:
+          page.length > 0
+            ? page[page.length - 1]!.updatedAt!.toISOString()
+            : null,
+      };
+    }),
 });

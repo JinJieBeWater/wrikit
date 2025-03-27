@@ -1,16 +1,14 @@
 "use client";
-import { Trash2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 
 import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { PageTable } from "./page-table";
 
 import * as React from "react";
 
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -31,8 +29,12 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { ScrollArea } from "./ui/scroll-area";
+import { api } from "@/trpc/react";
+import InfiniteScroll from "./ui/infinite-scroll";
+import { memo } from "react";
+import { PageTreeItem } from "./nav-page-tree";
 
-const PageTrashButton = () => {
+const PurePageTrashButton = () => {
   return (
     <SidebarMenuItem>
       <SidebarMenuButton asChild>
@@ -45,7 +47,50 @@ const PageTrashButton = () => {
   );
 };
 
-export function PageTrashModal() {
+const PageTrashButton = memo(PurePageTrashButton);
+
+const PureInfinitePageTrash = () => {
+  const { data, isLoading, isError, hasNextPage, fetchNextPage } =
+    api.page.infinitePage.useInfiniteQuery(
+      {
+        isDeleted: true,
+      },
+      {
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+      },
+    );
+
+  return (
+    <ScrollArea className="max-h-[300px] w-full overflow-y-auto">
+      <div className="flex w-full flex-col items-center gap-1 pr-3">
+        {data?.pages.map((group, i) => (
+          <React.Fragment key={i}>
+            {group.items.map((page) => (
+              <div
+                key={page.id}
+                className="relative flex w-full [&>button]:hover:opacity-100"
+              >
+                <PageTreeItem page={page} key={page.id} />
+              </div>
+            ))}
+          </React.Fragment>
+        ))}
+        <InfiniteScroll
+          hasMore={hasNextPage}
+          isLoading={isLoading}
+          next={fetchNextPage}
+          threshold={1}
+        >
+          {hasNextPage && <Loader2 className="my-4 h-8 w-8 animate-spin" />}
+        </InfiniteScroll>
+      </div>
+    </ScrollArea>
+  );
+};
+
+const InfinitePageTrash = memo(PureInfinitePageTrash);
+
+const PurePageTrashModal = () => {
   const [open, setOpen] = React.useState(false);
   const { isMobile } = useSidebar();
 
@@ -57,14 +102,15 @@ export function PageTrashModal() {
         </DialogTrigger>
         <DialogContent className="max-h-90vh sm:max-w-[60vw]">
           <DialogHeader>
-            <DialogTitle>Edit profile</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Trash2 />
+              <span>Trash</span>
+            </DialogTitle>
             <DialogDescription>
-              Make changes to your profile here. Click save when you're done.
+              The page was deleted after 30 days in the trash
             </DialogDescription>
           </DialogHeader>
-          <ScrollArea>
-            <PageTable />
-          </ScrollArea>
+          <InfinitePageTrash />
         </DialogContent>
       </Dialog>
     );
@@ -77,14 +123,12 @@ export function PageTrashModal() {
       </DrawerTrigger>
       <DrawerContent className="max-h-90vh">
         <DrawerHeader className="text-left">
-          <DrawerTitle>Edit profile</DrawerTitle>
+          <DrawerTitle>Page trash</DrawerTitle>
           <DrawerDescription>
-            Make changes to your profile here. Click save when you're done.
+            The page was deleted after 30 days in the trash
           </DrawerDescription>
         </DrawerHeader>
-        <ScrollArea>
-          <PageTable />
-        </ScrollArea>
+        <ScrollArea></ScrollArea>
 
         <DrawerFooter className="pt-2">
           <DrawerClose asChild>
@@ -94,4 +138,6 @@ export function PageTrashModal() {
       </DrawerContent>
     </Drawer>
   );
-}
+};
+
+export const PageTrashModal = memo(PurePageTrashModal);

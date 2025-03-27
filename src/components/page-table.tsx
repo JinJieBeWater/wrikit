@@ -5,7 +5,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "./ui/data-table";
 import { memo } from "react";
 
-export type page = RouterOutputs["page"]["getAllInTrash"][0];
+export type page = RouterOutputs["page"]["infinitePage"];
 
 export const columns: ColumnDef<page>[] = [
   {
@@ -39,11 +39,11 @@ export const columns: ColumnDef<page>[] = [
 ];
 
 const PurePageTable = () => {
-  const { data, isLoading, isError } = api.page.getAllInTrash.useQuery();
+  // const { data, isLoading, isError } = api.page.getAllInTrash.useQuery();
 
   return (
     <div className="container mx-auto py-10">
-      <DataTable columns={columns} data={data ?? []} />
+      {/* <DataTable columns={columns} data={data ?? []} /> */}
     </div>
   );
 };

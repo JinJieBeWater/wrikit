@@ -9,10 +9,9 @@ export function PageIcon({
   page,
   className,
   ...props
-}: { page: RouterOutputs["page"]["getByParentId"][0] } & Omit<
-  LucideProps,
-  "ref"
-> &
+}: {
+  page: Pick<RouterOutputs["page"]["getByParentId"][0], "icon" | "type">;
+} & Omit<LucideProps, "ref"> &
   RefAttributes<SVGSVGElement>) {
   if (!page.icon) {
     const Comp = PageTypeIcon[page.type];

@@ -25,7 +25,10 @@ import { cn } from "@/lib/utils";
 const PurePageTreeItem = ({
   page,
 }: {
-  page: RouterOutputs["page"]["getByParentId"][0];
+  page: Pick<
+    RouterOutputs["page"]["getByParentId"][0],
+    "id" | "name" | "icon" | "type"
+  >;
 }) => {
   const { isMobile, setOpenMobile } = useSidebar();
   const { id } = useParams();
