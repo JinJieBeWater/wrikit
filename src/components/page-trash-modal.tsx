@@ -1,5 +1,5 @@
 "use client";
-import { Loader2, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 import {
   SidebarMenuButton,
@@ -29,10 +29,8 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { ScrollArea } from "./ui/scroll-area";
-import { api } from "@/trpc/react";
-import InfiniteScroll from "./ui/infinite-scroll";
 import { memo } from "react";
-import { PageTreeItem } from "./nav-page-tree";
+import { PageTable } from "./page-table";
 
 const PurePageTrashButton = () => {
   return (
@@ -50,41 +48,32 @@ const PurePageTrashButton = () => {
 const PageTrashButton = memo(PurePageTrashButton);
 
 const PureInfinitePageTrash = () => {
-  const { data, isLoading, isError, hasNextPage, fetchNextPage } =
-    api.page.infinitePage.useInfiniteQuery(
-      {
-        isDeleted: true,
-      },
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-      },
-    );
-
   return (
-    <ScrollArea className="max-h-[300px] w-full overflow-y-auto">
-      <div className="flex w-full flex-col items-center gap-1 pr-3">
-        {data?.pages.map((group, i) => (
-          <React.Fragment key={i}>
-            {group.items.map((page) => (
-              <div
-                key={page.id}
-                className="relative flex w-full [&>button]:hover:opacity-100"
-              >
-                <PageTreeItem page={page} key={page.id} />
-              </div>
-            ))}
-          </React.Fragment>
-        ))}
-        <InfiniteScroll
-          hasMore={hasNextPage}
-          isLoading={isLoading}
-          next={fetchNextPage}
-          threshold={1}
-        >
-          {hasNextPage && <Loader2 className="my-4 h-8 w-8 animate-spin" />}
-        </InfiniteScroll>
-      </div>
-    </ScrollArea>
+    // <ScrollArea className="max-h-[300px] w-full overflow-y-auto">
+    //   <div className="flex w-full flex-col items-center gap-1 pr-3">
+    //     {data?.pages.map((group, i) => (
+    //       <React.Fragment key={i}>
+    //         {group.items.map((page) => (
+    //           <div
+    //             key={page.id}
+    //             className="relative flex w-full [&>button]:hover:opacity-100"
+    //           >
+    //             <PageTreeItem page={page} key={page.id} />
+    //           </div>
+    //         ))}
+    //       </React.Fragment>
+    //     ))}
+    //     <InfiniteScroll
+    //       hasMore={hasNextPage}
+    //       isLoading={isLoading}
+    //       next={fetchNextPage}
+    //       threshold={1}
+    //     >
+    //       {hasNextPage && <Loader2 className="my-4 h-8 w-8 animate-spin" />}
+    //     </InfiniteScroll>
+    //   </div>
+    // </ScrollArea>
+    <PageTable />
   );
 };
 

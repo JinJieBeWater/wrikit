@@ -1,16 +1,32 @@
 "use client";
 
 import { api, RouterOutputs } from "@/trpc/react";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, SortingState } from "@tanstack/react-table";
+import { memo, useCallback, useMemo, useState } from "react";
+import dayjs from "dayjs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { Button } from "./ui/button";
+import { MoreHorizontal, Trash2, Undo2 } from "lucide-react";
+import { keepPreviousData } from "@tanstack/react-query";
 import { DataTable } from "./ui/data-table";
-import { memo } from "react";
+import { usePageTrash } from "@/hooks/use-page-trash";
 
-export type page = RouterOutputs["page"]["infinitePage"];
+export type Page = RouterOutputs["page"]["infinitePage"]["items"][0];
 
-export const columns: ColumnDef<page>[] = [
+export const columns: ColumnDef<Page>[] = [
   {
     accessorKey: "name",
     header: "Name",
+    cell: ({ row }) => (
+      <span className="grow truncate">{row.getValue("name")}</span>
+    ),
   },
   {
     accessorKey: "email",
@@ -21,30 +37,83 @@ export const columns: ColumnDef<page>[] = [
     header: "Icon",
   },
   {
-    accessorKey: "createdAt",
-    header: "Created At",
-    cell: ({ row }) => {
-      const date = row.getValue("createdAt") as Date;
-      return date ? date.toLocaleString() : "-";
-    },
-  },
-  {
     accessorKey: "updatedAt",
     header: "Updated At",
     cell: ({ row }) => {
       const date = row.getValue("updatedAt") as Date;
-      return date ? date.toLocaleString() : "-";
+      return date ? dayjs(date).format("DD/MM/YYYY") : "-";
+    },
+  },
+  {
+    accessorKey: "restore",
+    id: "restore",
+    header: "Restore",
+    size: 20,
+    cell: ({ row }) => {
+      const { toggleTrash } = usePageTrash({
+        page: row.original,
+      });
+      const handleClick = useCallback(() => {
+        toggleTrash.mutate({
+          id: row.original.id,
+          isDeleted: false,
+        });
+      }, [toggleTrash, row.original.id]);
+      return (
+        <Button variant="ghost" className="h-8 w-8 p-0" onClick={handleClick}>
+          <span className="sr-only">Restore</span>
+          <Undo2 className="h-4 w-4 text-muted-foreground" />
+        </Button>
+      );
+    },
+  },
+  {
+    accessorKey: "delete",
+    id: "delete",
+    header: "Delete",
+    size: 20,
+    cell: ({ row }) => {
+      return (
+        <Button variant="ghost" className="h-8 w-8 p-0">
+          <span className="sr-only">Delete</span>
+          <Trash2 className="h-4 w-4 text-muted-foreground" />
+        </Button>
+      );
     },
   },
 ];
 
 const PurePageTable = () => {
-  // const { data, isLoading, isError } = api.page.getAllInTrash.useQuery();
+  const [sorting, setSorting] = useState<SortingState>([]);
+
+  const { data, isLoading, isError, fetchNextPage, isFetching } =
+    api.page.infinitePage.useInfiniteQuery(
+      {
+        isDeleted: true,
+        limit: 20,
+      },
+      {
+        getNextPageParam: (lastPage) => lastPage.meta.nextCursor,
+        refetchOnWindowFocus: false,
+        placeholderData: keepPreviousData,
+      },
+    );
+
+  const flatData = useMemo(
+    () => data?.pages.flatMap((page) => page.items) ?? [],
+    [data],
+  );
 
   return (
-    <div className="container mx-auto py-10">
-      {/* <DataTable columns={columns} data={data ?? []} /> */}
-    </div>
+    <>
+      <DataTable
+        columns={columns as ColumnDef<unknown>[]}
+        data={flatData}
+        rowData={data?.pages}
+        fetchNextPage={fetchNextPage}
+        isFetching={isFetching}
+      />
+    </>
   );
 };
 

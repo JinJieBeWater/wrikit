@@ -1,7 +1,7 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { pages, pagesPinned } from "@/server/db/schema/pages";
 import { PageTypeArray } from "@/types/page";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, count, eq, inArray, like } from "drizzle-orm";
 import { z } from "zod";
 
 export const createPageZod = z.object({
@@ -206,42 +206,59 @@ export const pageRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const page = await ctx.db.query.pages.findMany({
-        where(fields, operators) {
-          return operators.and(
-            operators.eq(fields.isDeleted, true),
-            operators.eq(fields.createdById, ctx.session.user.id),
-            operators.eq(fields.isDeleted, input.isDeleted),
-            input.cursor
-              ? operators.gt(fields.updatedAt, new Date(input.cursor))
-              : undefined,
-            input.search
-              ? operators.like(fields.name, `%${input.search}%`)
-              : undefined,
-          );
-        },
-        limit: input.limit,
-        columns: {
-          id: true,
-          name: true,
-          type: true,
-          icon: true,
-          createdAt: true,
-          updatedAt: true,
-          parentId: true,
-        },
-        orderBy: (page, { asc }) => [asc(page.updatedAt)],
-      });
+      const infiniteData = await Promise.all([
+        // 分页查询数据
+        ctx.db.query.pages.findMany({
+          where(fields, operators) {
+            return operators.and(
+              operators.eq(fields.createdById, ctx.session.user.id),
+              operators.eq(fields.isDeleted, input.isDeleted),
+              input.search
+                ? operators.like(fields.name, `%${input.search}%`)
+                : undefined,
+              input.cursor
+                ? operators.gt(fields.updatedAt, new Date(input.cursor))
+                : undefined,
+            );
+          },
+          limit: input.limit,
+          columns: {
+            id: true,
+            name: true,
+            type: true,
+            icon: true,
+            createdAt: true,
+            updatedAt: true,
+            parentId: true,
+          },
+          orderBy: (page, { desc }) => [desc(page.updatedAt)],
+        }),
+        // 查询长度
+        ctx.db
+          .select({ count: count() })
+          .from(pages)
+          .where(
+            and(
+              eq(pages.createdById, ctx.session.user.id),
+              eq(pages.isDeleted, input.isDeleted),
+              input.search ? like(pages.name, `%${input.search}%`) : undefined,
+            ),
+          ),
+      ]);
+      const [page, totalCount] = infiniteData;
 
       return {
         items: page.map((item) => ({
           ...item,
           isDeleted: input.isDeleted,
         })),
-        nextCursor:
-          page.length > 0
-            ? page[page.length - 1]!.updatedAt!.toISOString()
-            : null,
+        meta: {
+          totalRowCount: totalCount[0]?.count ?? 0,
+          nextCursor:
+            page.length > 0
+              ? page[page.length - 1]!.updatedAt!.toISOString()
+              : null,
+        },
       };
     }),
 });

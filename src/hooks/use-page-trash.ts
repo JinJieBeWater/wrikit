@@ -14,8 +14,8 @@ export const usePageTrash = ({
       const prevParentList = utils.page.getByParentId.getData({
         parentId: page.parentId ?? undefined,
       });
-      // optimistic update
 
+      // optimistic update
       void utils.page.getByParentId.setData(
         {
           parentId: page.parentId ?? undefined,
