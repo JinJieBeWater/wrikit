@@ -17,6 +17,7 @@ import { MoreHorizontal, Trash2, Undo2 } from "lucide-react";
 import { keepPreviousData } from "@tanstack/react-query";
 import { DataTable } from "./ui/data-table";
 import { usePageTrash } from "@/hooks/use-page-trash";
+import { PageIcon } from "./page-icon";
 
 export type Page = RouterOutputs["page"]["infinitePage"]["items"][0];
 
@@ -25,23 +26,28 @@ export const columns: ColumnDef<Page>[] = [
     accessorKey: "name",
     header: "Name",
     cell: ({ row }) => (
-      <span className="grow truncate">{row.getValue("name")}</span>
+      <span className="grow truncate">
+        {row.getValue("name") ?? "Untitled"}
+      </span>
     ),
-  },
-  {
-    accessorKey: "email",
-    header: "Type",
   },
   {
     accessorKey: "icon",
     header: "Icon",
+    cell: ({ row }) => {
+      return <PageIcon page={row.original} />;
+    },
+  },
+  {
+    accessorKey: "type",
+    header: "Type",
   },
   {
     accessorKey: "updatedAt",
-    header: "Updated At",
+    header: "Delete At",
     cell: ({ row }) => {
       const date = row.getValue("updatedAt") as Date;
-      return date ? dayjs(date).format("DD/MM/YYYY") : "-";
+      return date ? dayjs(date).format("YYYY/MM/DD") : "-";
     },
   },
   {
