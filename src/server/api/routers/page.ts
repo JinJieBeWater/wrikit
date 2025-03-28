@@ -28,6 +28,128 @@ export const pageRouter = createTRPCRouter({
       return page ?? null;
     }),
 
+  getLatest: protectedProcedure
+    .input(
+      z
+        .object({
+          isDeleted: z.boolean().default(false).describe("是否删除"),
+        })
+        .default({
+          isDeleted: false,
+        }),
+    )
+    .query(async ({ ctx, input }) => {
+      const page = await ctx.db.query.pages.findFirst({
+        where(fields, operators) {
+          return operators.and(
+            operators.eq(fields.isDeleted, input.isDeleted),
+            operators.eq(fields.createdById, ctx.session.user.id),
+          );
+        },
+        orderBy: (posts, { desc }) => [desc(posts.updatedAt)],
+      });
+      return page ?? null;
+    }),
+
+  infinitePage: protectedProcedure
+    .input(
+      z.object({
+        cursor: z.string().optional(),
+        limit: z.number().default(10),
+        isDeleted: z.boolean().default(false).describe("是否删除"),
+        search: z.string().optional().describe("模糊查询条件"),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const infiniteData = await Promise.all([
+        // 分页查询数据
+        ctx.db.query.pages.findMany({
+          where(fields, operators) {
+            return operators.and(
+              operators.eq(fields.createdById, ctx.session.user.id),
+              operators.eq(fields.isDeleted, input.isDeleted),
+              input.search
+                ? operators.like(fields.name, `%${input.search}%`)
+                : undefined,
+              input.cursor
+                ? operators.gt(fields.updatedAt, new Date(input.cursor))
+                : undefined,
+            );
+          },
+          limit: input.limit,
+          columns: {
+            id: true,
+            name: true,
+            type: true,
+            icon: true,
+            createdAt: true,
+            updatedAt: true,
+            parentId: true,
+          },
+          orderBy: (page, { desc }) => [desc(page.updatedAt)],
+        }),
+        // 查询长度
+        ctx.db
+          .select({ count: count() })
+          .from(pages)
+          .where(
+            and(
+              eq(pages.createdById, ctx.session.user.id),
+              eq(pages.isDeleted, input.isDeleted),
+              input.search ? like(pages.name, `%${input.search}%`) : undefined,
+            ),
+          ),
+      ]);
+      const [page, totalCount] = infiniteData;
+
+      return {
+        items: page.map((item) => ({
+          ...item,
+          isDeleted: input.isDeleted,
+        })),
+        meta: {
+          totalRowCount: totalCount[0]?.count ?? 0,
+          nextCursor:
+            page.length > 0
+              ? page[page.length - 1]!.updatedAt!.toISOString()
+              : null,
+        },
+      };
+    }),
+
+  getByParentId: protectedProcedure
+    .input(
+      z.object({
+        parentId: z.string().optional().describe("父页面id，不传则获取根页面"),
+        isDeleted: z.boolean().default(false).describe("是否删除"),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const rootPages = await ctx.db.query.pages.findMany({
+        where(fields, operators) {
+          return operators.and(
+            input.parentId === undefined
+              ? operators.isNull(fields.parentId)
+              : operators.eq(fields.parentId, input.parentId),
+            operators.eq(fields.isDeleted, input.isDeleted),
+            operators.eq(fields.createdById, ctx.session.user.id),
+          );
+        },
+        columns: {
+          parentId: true,
+          id: true,
+          name: true,
+          type: true,
+          icon: true,
+        },
+        orderBy: (posts, { asc }) => [asc(posts.order), asc(posts.createdAt)],
+      });
+      return rootPages.map((page) => ({
+        ...page,
+        isDeleted: input.isDeleted,
+      }));
+    }),
+
   create: protectedProcedure
     .meta({ description: "创建新页面" })
     .input(createPageZod)
@@ -133,132 +255,5 @@ export const pageRouter = createTRPCRouter({
         }
         await Promise.all(promises);
       });
-    }),
-
-  getByParentId: protectedProcedure
-    .input(
-      z.object({
-        parentId: z.string().optional().describe("父页面id，不传则获取根页面"),
-        isDeleted: z.boolean().default(false).describe("是否删除"),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      const rootPages = await ctx.db.query.pages.findMany({
-        where(fields, operators) {
-          if (input.parentId === undefined) {
-            return operators.and(
-              operators.isNull(fields.parentId),
-              operators.eq(fields.isDeleted, input.isDeleted),
-              operators.eq(fields.createdById, ctx.session.user.id),
-            );
-          }
-          return operators.and(
-            operators.eq(fields.parentId, input.parentId),
-            operators.eq(fields.isDeleted, input.isDeleted),
-            operators.eq(fields.createdById, ctx.session.user.id),
-          );
-        },
-        columns: {
-          parentId: true,
-          id: true,
-          name: true,
-          type: true,
-          icon: true,
-        },
-        orderBy: (posts, { asc }) => [asc(posts.order), asc(posts.createdAt)],
-      });
-      return rootPages.map((page) => ({
-        ...page,
-        isDeleted: input.isDeleted,
-      }));
-    }),
-
-  getLatest: protectedProcedure
-    .input(
-      z
-        .object({
-          isDeleted: z.boolean().default(false).describe("是否删除"),
-        })
-        .default({
-          isDeleted: false,
-        }),
-    )
-    .query(async ({ ctx, input }) => {
-      const page = await ctx.db.query.pages.findFirst({
-        where(fields, operators) {
-          return operators.and(
-            operators.eq(fields.isDeleted, input.isDeleted),
-            operators.eq(fields.createdById, ctx.session.user.id),
-          );
-        },
-        orderBy: (posts, { desc }) => [desc(posts.updatedAt)],
-      });
-      return page ?? null;
-    }),
-
-  infinitePage: protectedProcedure
-    .input(
-      z.object({
-        cursor: z.string().optional(),
-        limit: z.number().default(10),
-        isDeleted: z.boolean().default(false).describe("是否删除"),
-        search: z.string().optional().describe("模糊查询条件"),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      const infiniteData = await Promise.all([
-        // 分页查询数据
-        ctx.db.query.pages.findMany({
-          where(fields, operators) {
-            return operators.and(
-              operators.eq(fields.createdById, ctx.session.user.id),
-              operators.eq(fields.isDeleted, input.isDeleted),
-              input.search
-                ? operators.like(fields.name, `%${input.search}%`)
-                : undefined,
-              input.cursor
-                ? operators.gt(fields.updatedAt, new Date(input.cursor))
-                : undefined,
-            );
-          },
-          limit: input.limit,
-          columns: {
-            id: true,
-            name: true,
-            type: true,
-            icon: true,
-            createdAt: true,
-            updatedAt: true,
-            parentId: true,
-          },
-          orderBy: (page, { desc }) => [desc(page.updatedAt)],
-        }),
-        // 查询长度
-        ctx.db
-          .select({ count: count() })
-          .from(pages)
-          .where(
-            and(
-              eq(pages.createdById, ctx.session.user.id),
-              eq(pages.isDeleted, input.isDeleted),
-              input.search ? like(pages.name, `%${input.search}%`) : undefined,
-            ),
-          ),
-      ]);
-      const [page, totalCount] = infiniteData;
-
-      return {
-        items: page.map((item) => ({
-          ...item,
-          isDeleted: input.isDeleted,
-        })),
-        meta: {
-          totalRowCount: totalCount[0]?.count ?? 0,
-          nextCursor:
-            page.length > 0
-              ? page[page.length - 1]!.updatedAt!.toISOString()
-              : null,
-        },
-      };
     }),
 });
