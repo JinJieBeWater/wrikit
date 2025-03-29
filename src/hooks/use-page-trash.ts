@@ -98,6 +98,12 @@ export const usePageTrash = ({
         toast.error("Failed to restore page from trash");
       }
     },
+    onSuccess(_data, variables, ctx) {
+      // trash
+      if (variables.isDeleted) {
+        utils.page.infinitePage.invalidate();
+      }
+    },
   });
   return { toggleTrash };
 };

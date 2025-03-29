@@ -160,35 +160,6 @@ const PurePageTable = () => {
     ...prev,
   }));
 
-  //scroll to top of table when sorting changes
-  // const handleSortingChange: OnChangeFn<SortingState> = (updater) => {
-  //   setSorting(updater);
-  //   if (!!table.getRowModel().rows.length) {
-  //     rowVirtualizer.scrollToIndex?.(0);
-  //   }
-  // };
-
-  //since this table option is derived from table row model state, we're using the table.setOptions utility
-  // table.setOptions((prev) => ({
-  //   ...prev,
-  //   onSortingChange: handleSortingChange,
-  // }));
-
-  // const { rows } = table.getRowModel();
-
-  // const rowVirtualizer = useVirtualizer({
-  //   count: rows.length,
-  //   estimateSize: () => 33, //estimate row height for accurate scrollbar dragging
-  //   getScrollElement: () => tableContainerRef.current,
-  //   //measure dynamic row height, except in firefox because it measures table border height incorrectly
-  //   measureElement:
-  //     typeof window !== "undefined" &&
-  //     navigator.userAgent.indexOf("Firefox") === -1
-  //       ? (element) => element?.getBoundingClientRect().height
-  //       : undefined,
-  //   overscan: 5,
-  // });
-
   return (
     <>
       <div className="flex items-center">
