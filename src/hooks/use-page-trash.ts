@@ -1,10 +1,15 @@
+import { searchParams } from "@/components/page-table";
 import { api, type RouterOutputs } from "@/trpc/react";
 import { toast } from "sonner";
 
 export const usePageTrash = ({
   page,
+  options,
 }: {
   page: RouterOutputs["page"]["getByParentId"][0];
+  options?: {
+    searchParams?: searchParams;
+  };
 }) => {
   const utils = api.useUtils();
 
@@ -77,6 +82,40 @@ export const usePageTrash = ({
         });
       }
 
+      // 缓存无限查询 乐观更新
+      const searchParams = options?.searchParams;
+      if (searchParams) {
+        console.log("searchParams", searchParams);
+
+        const prevInfinitePage =
+          utils.page.infinitePage.getInfiniteData(searchParams);
+        console.log("prevInfinitePage", prevInfinitePage);
+
+        // 乐观更新
+        if (!variables.isDeleted) {
+          utils.page.infinitePage.setInfiniteData(
+            searchParams,
+            (prevInfinitePage) => {
+              return {
+                pageParams: prevInfinitePage!.pageParams,
+                pages: prevInfinitePage!.pages.map((item) => {
+                  return {
+                    meta: item.meta,
+                    items: item.items.filter((p) => p.id !== variables.id),
+                  };
+                }),
+              };
+            },
+          );
+        }
+
+        return {
+          prevParentList,
+          prevPinned,
+          prevInfinitePage,
+        };
+      }
+
       return {
         prevParentList,
         prevPinned,
@@ -92,6 +131,16 @@ export const usePageTrash = ({
       if (ctx?.prevPinned) {
         utils.pagePinned.get.setData(void 0, ctx.prevPinned);
       }
+
+      const searchParams = options?.searchParams;
+      if (ctx?.prevInfinitePage && searchParams) {
+        utils.page.infinitePage.setInfiniteData(
+          searchParams,
+          ctx.prevInfinitePage,
+        );
+      }
+
+      // toast error
       if (variables.isDeleted) {
         toast.error("Failed to move page to trash");
       } else {

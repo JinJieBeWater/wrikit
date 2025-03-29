@@ -57,7 +57,7 @@ export const pageRouter = createTRPCRouter({
         cursor: z.string().optional(),
         limit: z.number().default(10),
         isDeleted: z.boolean().default(false).describe("是否删除"),
-        search: z.string().optional().describe("模糊查询条件"),
+        name: z.string().optional().describe("模糊查询条件"),
       }),
     )
     .query(async ({ ctx, input }) => {
@@ -68,8 +68,8 @@ export const pageRouter = createTRPCRouter({
             return operators.and(
               operators.eq(fields.createdById, ctx.session.user.id),
               operators.eq(fields.isDeleted, input.isDeleted),
-              input.search
-                ? operators.like(fields.name, `%${input.search}%`)
+              input.name
+                ? operators.like(fields.name, `%${input.name}%`)
                 : undefined,
               input.cursor
                 ? operators.gt(fields.updatedAt, new Date(input.cursor))
@@ -96,7 +96,7 @@ export const pageRouter = createTRPCRouter({
             and(
               eq(pages.createdById, ctx.session.user.id),
               eq(pages.isDeleted, input.isDeleted),
-              input.search ? like(pages.name, `%${input.search}%`) : undefined,
+              input.name ? like(pages.name, `%${input.name}%`) : undefined,
             ),
           ),
       ]);

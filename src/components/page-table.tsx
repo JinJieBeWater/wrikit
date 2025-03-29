@@ -13,6 +13,8 @@ import {
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
+  RowData,
+  TableMeta,
   useReactTable,
 } from "@tanstack/react-table";
 
@@ -30,6 +32,18 @@ import { ScrollAreaRoot } from "./ui/scroll-area";
 import { useDebounceCallback } from "usehooks-ts";
 
 export type Page = RouterOutputs["page"]["infinitePage"]["items"][0];
+
+export type searchParams = {
+  limit: number;
+  name: string;
+  isDeleted: boolean;
+};
+
+declare module "@tanstack/react-table" {
+  interface TableMeta<TData extends RowData> {
+    searchParams: searchParams;
+  }
+}
 
 export const columns: ColumnDef<Page>[] = [
   {
@@ -60,9 +74,13 @@ export const columns: ColumnDef<Page>[] = [
     accessorKey: "restore",
     id: "restore",
     header: "Restore",
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
+      const meta = table.options.meta;
       const { toggleTrash } = usePageTrash({
         page: row.original,
+        options: {
+          searchParams: meta?.searchParams,
+        },
       });
       const handleClick = useCallback(() => {
         toggleTrash.mutate({
@@ -94,14 +112,14 @@ export const columns: ColumnDef<Page>[] = [
 ];
 
 const PurePageTable = () => {
-  const [search, setSearch] = useState("");
+  const [name, setSearch] = useState("");
   const debouncedSetSearch = useDebounceCallback(setSearch, 500);
   const { data, isLoading, isError, fetchNextPage, isFetching } =
     api.page.infinitePage.useInfiniteQuery(
       {
         isDeleted: true,
         limit: 20,
-        search: search,
+        name: name,
       },
       {
         getNextPageParam: (lastPage) => lastPage.meta.nextCursor,
@@ -149,7 +167,13 @@ const PurePageTable = () => {
     // Filter configuration
     manualFiltering: true,
 
-    manualSorting: true,
+    meta: {
+      searchParams: {
+        limit: 20,
+        name: name,
+        isDeleted: true,
+      },
+    },
   });
 
   useEffect(() => {
@@ -165,7 +189,7 @@ const PurePageTable = () => {
       <div className="flex items-center">
         <Input
           placeholder="Filter name..."
-          defaultValue={search}
+          defaultValue={name}
           onChange={(e) => {
             debouncedSetSearch(e.target.value);
           }}
