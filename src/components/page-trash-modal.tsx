@@ -48,33 +48,7 @@ const PurePageTrashButton = () => {
 const PageTrashButton = memo(PurePageTrashButton);
 
 const PureInfinitePageTrash = () => {
-  return (
-    // <ScrollArea className="max-h-[300px] w-full overflow-y-auto">
-    //   <div className="flex w-full flex-col items-center gap-1 pr-3">
-    //     {data?.pages.map((group, i) => (
-    //       <React.Fragment key={i}>
-    //         {group.items.map((page) => (
-    //           <div
-    //             key={page.id}
-    //             className="relative flex w-full [&>button]:hover:opacity-100"
-    //           >
-    //             <PageTreeItem page={page} key={page.id} />
-    //           </div>
-    //         ))}
-    //       </React.Fragment>
-    //     ))}
-    //     <InfiniteScroll
-    //       hasMore={hasNextPage}
-    //       isLoading={isLoading}
-    //       next={fetchNextPage}
-    //       threshold={1}
-    //     >
-    //       {hasNextPage && <Loader2 className="my-4 h-8 w-8 animate-spin" />}
-    //     </InfiniteScroll>
-    //   </div>
-    // </ScrollArea>
-    <PageTable />
-  );
+  return <PageTable />;
 };
 
 const InfinitePageTrash = memo(PureInfinitePageTrash);
@@ -89,17 +63,17 @@ const PurePageTrashModal = () => {
         <DialogTrigger>
           <PageTrashButton />
         </DialogTrigger>
-        <DialogContent className="max-h-90vh sm:max-w-[60vw]">
+        <DialogContent className="max-h-90vh sm:max-w-[70vw]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Trash2 />
               <span>Trash</span>
             </DialogTitle>
-            <DialogDescription>
-              The page was deleted after 30 days in the trash
-            </DialogDescription>
           </DialogHeader>
           <InfinitePageTrash />
+          <DialogDescription>
+            The page was deleted after 30 days in the trash
+          </DialogDescription>
         </DialogContent>
       </Dialog>
     );
@@ -110,14 +84,14 @@ const PurePageTrashModal = () => {
       <DrawerTrigger>
         <PageTrashButton />
       </DrawerTrigger>
-      <DrawerContent className="max-h-90vh">
+      <DrawerContent className="max-h-90vh px-4">
         <DrawerHeader className="text-left">
           <DrawerTitle>Page trash</DrawerTitle>
           <DrawerDescription>
             The page was deleted after 30 days in the trash
           </DrawerDescription>
         </DrawerHeader>
-        <ScrollArea></ScrollArea>
+        <InfinitePageTrash />
 
         <DrawerFooter className="pt-2">
           <DrawerClose asChild>
