@@ -85,14 +85,29 @@ export const usePageTrash = ({
       // 缓存无限查询 乐观更新
       const searchParams = options?.searchParams;
       if (searchParams) {
-        console.log("searchParams", searchParams);
-
         const prevInfinitePage =
           utils.page.infinitePage.getInfiniteData(searchParams);
-        console.log("prevInfinitePage", prevInfinitePage);
 
         // 乐观更新
         if (!variables.isDeleted) {
+          // 在缓存中获取所有相关页面
+          const getAllRelatedPagesInInfinitePage = (rootId: string) => {
+            const allPageIds = [rootId];
+            const stack = [rootId];
+
+            while (stack.length > 0) {
+              const currentId = stack.pop()!;
+              const childPages = prevInfinitePage?.pages
+                .flatMap((page) => page.items)
+                .filter((p) => p.parentId === currentId);
+              const childPageIds = childPages?.map((p) => p.id) ?? [];
+              allPageIds.push(...childPageIds);
+              stack.push(...childPageIds);
+            }
+            return allPageIds;
+          };
+
+          const relatedPageIds = getAllRelatedPagesInInfinitePage(variables.id);
           utils.page.infinitePage.setInfiniteData(
             searchParams,
             (prevInfinitePage) => {
@@ -101,7 +116,9 @@ export const usePageTrash = ({
                 pages: prevInfinitePage!.pages.map((item) => {
                   return {
                     meta: item.meta,
-                    items: item.items.filter((p) => p.id !== variables.id),
+                    items: item.items.filter(
+                      (p) => !relatedPageIds.includes(p.id),
+                    ),
                   };
                 }),
               };
@@ -151,6 +168,9 @@ export const usePageTrash = ({
       // trash
       if (variables.isDeleted) {
         utils.page.infinitePage.invalidate();
+      } else {
+        // 更新目录树
+        utils.page.getByParentId.invalidate();
       }
     },
   });
