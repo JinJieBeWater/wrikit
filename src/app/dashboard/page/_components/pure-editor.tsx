@@ -23,8 +23,6 @@ export function PureEditor({ page }: MdEditorProps) {
   });
 
   const updatePageDebounced = useDebounceCallback((value: Value) => {
-    console.log("value", value);
-
     updatePage.mutate({
       id: page.id,
       content: JSON.stringify(value),

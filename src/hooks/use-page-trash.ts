@@ -1,10 +1,14 @@
-import { api, type RouterOutputs } from "@/trpc/react";
+import { api, RouterInputs, type RouterOutputs } from "@/trpc/react";
 import { toast } from "sonner";
 
 export const usePageTrash = ({
   page,
+  options,
 }: {
   page: RouterOutputs["page"]["getByParentId"][0];
+  options?: {
+    infinitePageInput?: RouterInputs["page"]["infinitePage"];
+  };
 }) => {
   const utils = api.useUtils();
 
@@ -14,8 +18,8 @@ export const usePageTrash = ({
       const prevParentList = utils.page.getByParentId.getData({
         parentId: page.parentId ?? undefined,
       });
-      // optimistic update
 
+      // optimistic update
       void utils.page.getByParentId.setData(
         {
           parentId: page.parentId ?? undefined,
@@ -77,6 +81,57 @@ export const usePageTrash = ({
         });
       }
 
+      // 缓存无限查询 乐观更新
+      const infinitePageInput = options?.infinitePageInput;
+      if (infinitePageInput) {
+        const prevInfinitePage =
+          utils.page.infinitePage.getInfiniteData(infinitePageInput);
+
+        // 乐观更新
+        if (!variables.isDeleted) {
+          // 在缓存中获取所有相关页面
+          const getAllRelatedPagesInInfinitePage = (rootId: string) => {
+            const allPageIds = [rootId];
+            const stack = [rootId];
+
+            while (stack.length > 0) {
+              const currentId = stack.pop()!;
+              const childPages = prevInfinitePage?.pages
+                .flatMap((page) => page.items)
+                .filter((p) => p.parentId === currentId);
+              const childPageIds = childPages?.map((p) => p.id) ?? [];
+              allPageIds.push(...childPageIds);
+              stack.push(...childPageIds);
+            }
+            return allPageIds;
+          };
+
+          const relatedPageIds = getAllRelatedPagesInInfinitePage(variables.id);
+          utils.page.infinitePage.setInfiniteData(
+            infinitePageInput,
+            (prevInfinitePage) => {
+              return {
+                pageParams: prevInfinitePage!.pageParams,
+                pages: prevInfinitePage!.pages.map((item) => {
+                  return {
+                    meta: item.meta,
+                    items: item.items.filter(
+                      (p) => !relatedPageIds.includes(p.id),
+                    ),
+                  };
+                }),
+              };
+            },
+          );
+        }
+
+        return {
+          prevParentList,
+          prevPinned,
+          prevInfinitePage,
+        };
+      }
+
       return {
         prevParentList,
         prevPinned,
@@ -92,10 +147,29 @@ export const usePageTrash = ({
       if (ctx?.prevPinned) {
         utils.pagePinned.get.setData(void 0, ctx.prevPinned);
       }
+
+      const infinitePageInput = options?.infinitePageInput;
+      if (ctx?.prevInfinitePage && infinitePageInput) {
+        utils.page.infinitePage.setInfiniteData(
+          infinitePageInput,
+          ctx.prevInfinitePage,
+        );
+      }
+
+      // toast error
       if (variables.isDeleted) {
         toast.error("Failed to move page to trash");
       } else {
         toast.error("Failed to restore page from trash");
+      }
+    },
+    onSuccess(_data, variables, ctx) {
+      // trash
+      if (variables.isDeleted) {
+        utils.page.infinitePage.invalidate();
+      } else {
+        // 更新目录树
+        utils.page.getByParentId.invalidate();
       }
     },
   });

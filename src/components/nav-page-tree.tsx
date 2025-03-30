@@ -8,7 +8,7 @@ import {
   SidebarMenuSub,
   useSidebar,
 } from "./ui/sidebar";
-import { memo, useRef, useState } from "react";
+import { memo, useCallback, useRef, useState } from "react";
 import { api, type RouterOutputs } from "@/trpc/react";
 import {
   Collapsible,
@@ -20,18 +20,45 @@ import { useParams } from "next/navigation";
 import { PageIcon } from "./page-icon";
 import { PageAction } from "./page-action";
 import { PageActionAdd } from "./page-action-add";
+import { cn } from "@/lib/utils";
 
-export function PurePageTree({
+const PurePageTreeItem = ({
+  page,
+}: {
+  page: Pick<
+    RouterOutputs["page"]["getByParentId"][0],
+    "id" | "name" | "icon" | "type"
+  >;
+}) => {
+  const { isMobile, setOpenMobile } = useSidebar();
+  const { id } = useParams();
+
+  const handleClick = useCallback(() => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  }, [isMobile, setOpenMobile]);
+  return (
+    <SidebarMenuButton asChild isActive={page.id === id}>
+      <Link href={`/dashboard/page/${page.id}`} onClick={handleClick}>
+        <PageIcon page={page} />
+        <span>{page.name ?? "Untitled"}</span>
+      </Link>
+    </SidebarMenuButton>
+  );
+};
+
+export const PageTreeItem = memo(PurePageTreeItem);
+
+const PurePageTree = ({
   page,
   initialStack,
 }: {
   page: RouterOutputs["page"]["getByParentId"][0];
   initialStack?: RouterOutputs["page"]["getByParentId"];
-}) {
-  const { id } = useParams();
-
+}) => {
   const [open, setOpen] = useState(false);
-  const { isMobile, setOpenMobile } = useSidebar();
+  const { isMobile } = useSidebar();
 
   const { data, isLoading, isError } = api.page.getByParentId.useQuery(
     {
@@ -47,23 +74,14 @@ export function PurePageTree({
   return (
     <SidebarMenuItem>
       <Collapsible
-        className="group/collapsible [&>a]:hover:pr-11 [&>button]:hover:opacity-100 [&[data-state=open]>button:first-child>svg:first-child]:rotate-90"
+        className={cn(
+          "group/collapsible [&>button]:hover:opacity-100 [&[data-state=open]>button:first-child>svg:first-child]:rotate-90",
+          isMobile ? "[&>a]:pr-11" : "[&>a]:hover:pr-11",
+        )}
         open={open}
         onOpenChange={setOpen}
       >
-        <SidebarMenuButton asChild isActive={page.id === id}>
-          <Link
-            href={`/dashboard/page/${page.id}`}
-            onClick={() => {
-              if (isMobile) {
-                setOpenMobile(false);
-              }
-            }}
-          >
-            <PageIcon page={page} />
-            <span>{page.name ?? "Untitled"}</span>
-          </Link>
-        </SidebarMenuButton>
+        <PageTreeItem page={page} />
         <CollapsibleTrigger asChild>
           <SidebarMenuAction
             className="left-2 bg-sidebar-accent text-sidebar-accent-foreground data-[state=open]:rotate-90"
@@ -111,7 +129,7 @@ export function PurePageTree({
       </Collapsible>
     </SidebarMenuItem>
   );
-}
+};
 
 export const PageTree = memo(PurePageTree);
 

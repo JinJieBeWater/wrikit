@@ -141,8 +141,6 @@
   }
 }
 
-
-
 @layer base {
   [data-registry="plate"] * {
     @apply border-border outline-ring/50;
@@ -152,12 +150,6 @@
   }
 }
 
-
-
-
-
-
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -166,3 +158,39 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-family: arial, sans-serif;
+  table-layout: fixed;
+}
+
+thead {
+  background: lightgray;
+}
+
+tr {
+  border-bottom: 1px solid lightgray;
+}
+
+th {
+  border-bottom: 1px solid lightgray;
+  border-right: 1px solid lightgray;
+  padding: 2px 4px;
+  text-align: left;
+}
+
+td {
+  padding: 6px;
+}
+
+.container {
+  border: 1px solid lightgray;
+  margin: 1rem auto;
+}
+
+.app {
+  margin: 1rem auto;
+  text-align: center;
+} */

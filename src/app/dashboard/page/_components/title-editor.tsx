@@ -102,6 +102,7 @@ export function TitleEditor({
   );
   return (
     <AutosizeTextarea
+      name="title"
       ref={autosizeTextareaRef}
       className="w-full resize-none overflow-hidden border-none px-12 text-4xl font-bold focus-visible:rounded-none focus-visible:outline-none focus-visible:ring-0 sm:px-page"
       defaultValue={page.name ?? ""}
