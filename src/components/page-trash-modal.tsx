@@ -28,9 +28,8 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { ScrollArea } from "./ui/scroll-area";
 import { memo } from "react";
-import { PageTable } from "./page-table";
+import { PageList } from "./page-list";
 
 const PurePageTrashButton = () => {
   return (
@@ -48,7 +47,7 @@ const PurePageTrashButton = () => {
 const PageTrashButton = memo(PurePageTrashButton);
 
 const PureInfinitePageTrash = () => {
-  return <PageTable />;
+  return <PageList />;
 };
 
 const InfinitePageTrash = memo(PureInfinitePageTrash);

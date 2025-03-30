@@ -54,7 +54,12 @@ export const pageRouter = createTRPCRouter({
   infinitePage: protectedProcedure
     .input(
       z.object({
-        cursor: z.string().optional(),
+        cursor: z
+          .object({
+            updatedAt: z.date(),
+            id: z.string(),
+          })
+          .optional(),
         limit: z.number().default(10),
         isDeleted: z.boolean().default(false).describe("是否删除"),
         name: z.string().optional().describe("模糊查询条件"),
@@ -72,7 +77,13 @@ export const pageRouter = createTRPCRouter({
                 ? operators.like(fields.name, `%${input.name}%`)
                 : undefined,
               input.cursor
-                ? operators.gt(fields.updatedAt, new Date(input.cursor))
+                ? operators.or(
+                    operators.lt(fields.updatedAt, input.cursor.updatedAt),
+                    operators.and(
+                      operators.eq(fields.updatedAt, input.cursor.updatedAt),
+                      operators.lt(fields.id, input.cursor.id),
+                    ),
+                  )
                 : undefined,
             );
           },
@@ -86,7 +97,7 @@ export const pageRouter = createTRPCRouter({
             updatedAt: true,
             parentId: true,
           },
-          orderBy: (page, { desc }) => [desc(page.updatedAt)],
+          orderBy: (page, { desc }) => [desc(page.updatedAt), desc(page.id)],
         }),
         // 查询长度
         ctx.db
@@ -102,6 +113,14 @@ export const pageRouter = createTRPCRouter({
       ]);
       const [page, totalCount] = infiniteData;
 
+      const nextCursor =
+        page.length > 0
+          ? {
+              updatedAt: page[page.length - 1]!.updatedAt!,
+              id: page[page.length - 1]!.id,
+            }
+          : null;
+
       return {
         items: page.map((item) => ({
           ...item,
@@ -109,10 +128,7 @@ export const pageRouter = createTRPCRouter({
         })),
         meta: {
           totalRowCount: totalCount[0]?.count ?? 0,
-          nextCursor:
-            page.length > 0
-              ? page[page.length - 1]!.updatedAt!.toISOString()
-              : null,
+          nextCursor: nextCursor,
         },
       };
     }),
