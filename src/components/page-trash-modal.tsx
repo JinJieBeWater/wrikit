@@ -63,7 +63,7 @@ const PurePageTrashModal = () => {
         <DialogTrigger>
           <PageTrashButton />
         </DialogTrigger>
-        <DialogContent className="max-h-90vh sm:max-w-[70vw]">
+        <DialogContent className="max-h-[90vh] w-[95vw] max-w-[95vw] sm:max-w-[80vw] md:max-w-[70vw] lg:max-w-[60vw] xl:max-w-[800px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Trash2 />
