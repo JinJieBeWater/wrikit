@@ -320,4 +320,45 @@ export const pageRouter = createTRPCRouter({
 
     return { count: pageIds.length };
   }),
+
+  delete: protectedProcedure
+    .input(z.array(z.string()).describe("页面id数组"))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db.transaction(async (trx) => {
+        const getAllRelatedPages = async (rootIds: string[]) => {
+          const allPages = [...rootIds];
+          const stack = [...rootIds];
+
+          while (stack.length > 0) {
+            const childPages = await trx.query.pages.findMany({
+              where(fields, operators) {
+                return operators.and(operators.inArray(fields.parentId, stack));
+              },
+              columns: {
+                id: true,
+              },
+            });
+            // 清空stack
+            stack.length = 0;
+            const childPageIds = childPages.map((p) => p.id);
+            allPages.push(...childPageIds);
+            stack.push(...childPageIds);
+          }
+
+          return allPages;
+        };
+
+        const relatedPageIds = await getAllRelatedPages(input);
+
+        // 删除所有相关页面
+        const result = await trx
+          .delete(pages)
+          .where(inArray(pages.id, relatedPageIds))
+          .returning({
+            id: pages.id,
+          });
+
+        return { count: result.length };
+      });
+    }),
 });

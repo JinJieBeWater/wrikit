@@ -1,6 +1,6 @@
 "use client";
 
-import { api, RouterOutputs } from "@/trpc/react";
+import { api, RouterInputs, RouterOutputs } from "@/trpc/react";
 import {
   memo,
   UIEvent,
@@ -38,6 +38,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
+import { usePageTrash } from "@/hooks/use-page-trash";
 
 export type Page = RouterOutputs["page"]["infinitePage"]["items"][0];
 
@@ -46,102 +47,6 @@ export type searchParams = {
   name: string;
   isDeleted: boolean;
 };
-
-declare module "@tanstack/react-table" {
-  interface TableMeta<TData extends RowData> {
-    searchParams: searchParams;
-  }
-}
-
-// export const columns: ColumnDef<Page>[] = [
-//   {
-//     accessorKey: "name",
-//     header: "Name",
-//     cell: ({ row }) => (
-//       <span className="truncate">{row.getValue("name") ?? "Untitled"}</span>
-//     ),
-//   },
-//   {
-//     accessorKey: "icon",
-//     header: "Icon",
-//     cell: ({ row }) => <PageIcon page={row.original} />,
-//   },
-//   {
-//     accessorKey: "type",
-//     header: "Type",
-//   },
-//   {
-//     accessorKey: "updatedAt",
-//     header: "Delete At",
-//     cell: ({ row }) => {
-//       const date = row.getValue("updatedAt") as Date;
-//       return date ? dayjs(date).format("MM/DD HH:mm") : "-";
-//     },
-//   },
-//   {
-//     accessorKey: "restore",
-//     id: "restore",
-//     header: "Restore",
-//     cell: ({ row, table }) => {
-//       const meta = table.options.meta;
-//       const { toggleTrash } = usePageTrash({
-//         page: row.original,
-//         options: {
-//           searchParams: meta?.searchParams,
-//         },
-//       });
-//       const handleClick = useCallback(() => {
-//         const page = row.original;
-//         toggleTrash.mutate({
-//           id: row.original.id,
-//           isDeleted: false,
-//         });
-//       }, [toggleTrash, row]);
-//       return (
-//         <TooltipProvider delayDuration={0}>
-//           <Tooltip>
-//             <TooltipTrigger asChild>
-//               <Button
-//                 variant="ghost"
-//                 className="h-8 w-8 p-0"
-//                 onClick={handleClick}
-//               >
-//                 <span className="sr-only">Restore</span>
-//                 <Undo2 className="h-4 w-4 text-muted-foreground" />
-//               </Button>
-//             </TooltipTrigger>
-//             <TooltipContent>
-//               {row.original.parentId ? (
-//                 <p>
-//                   This is a child page. Direct restore will lose the
-//                   relationship to the parent page
-//                 </p>
-//               ) : (
-//                 <p>
-//                   This is a root page. Restoring this page will also restore all
-//                   its child pages
-//                 </p>
-//               )}
-//             </TooltipContent>
-//           </Tooltip>
-//         </TooltipProvider>
-//       );
-//     },
-//   },
-//   {
-//     accessorKey: "delete",
-//     id: "delete",
-//     header: "Delete",
-//     cell: ({ row }) => {
-//       return (
-//         <Button variant="ghost" className="h-8 w-8 p-0">
-//           <span className="sr-only">Delete</span>
-//           <Trash2 className="h-4 w-4 text-muted-foreground" />
-//         </Button>
-//       );
-//     },
-//   },
-// ];
 
 const PurePageListToolBar = ({
   name,
@@ -226,13 +131,72 @@ const PurePageListToolBar = ({
 };
 
 const PageListToolBar = memo(PurePageListToolBar);
-PageListToolBar.displayName = "PageTableToolBar";
+PageListToolBar.displayName = "PageListToolBar";
 
 const PurePageListItem = ({
   item,
+  input,
 }: {
   item: RouterOutputs["page"]["infinitePage"]["items"][0];
+  input: RouterInputs["page"]["infinitePage"];
 }) => {
+  const utils = api.useUtils();
+  const { toggleTrash } = usePageTrash({
+    page: item,
+    options: {
+      infinitePageInput: input,
+    },
+  });
+  const deletePage = api.page.delete.useMutation({
+    onMutate() {
+      // 取出缓存 用于更新失败后还原
+      const prePageList = utils.page.infinitePage.getInfiniteData(input);
+
+      // 乐观更新
+      // 获取所有相关页面
+      const getAllRelatedPages = (rootId: string) => {
+        const allPages = [rootId];
+        const stack = [rootId];
+
+        while (stack.length > 0) {
+          // 获取当前栈中的所有相关页面
+          const childPages = prePageList?.pages
+            .flatMap((page) => page.items)
+            .filter((p) => p.parentId && stack.includes(p.parentId));
+          // 清空stack
+          stack.length = 0;
+
+          const childPageIds = childPages?.map((p) => p.id) ?? [];
+          allPages.push(...childPageIds);
+          stack.push(...childPageIds);
+        }
+
+        return allPages;
+      };
+
+      const relatedPageIds = getAllRelatedPages(item.id);
+      utils.page.infinitePage.setInfiniteData(input, (prevInfinitePage) => {
+        return {
+          pageParams: prevInfinitePage!.pageParams,
+          pages: prevInfinitePage!.pages.map((item) => {
+            return {
+              meta: item.meta,
+              items: item.items.filter((p) => !relatedPageIds.includes(p.id)),
+            };
+          }),
+        };
+      });
+
+      return {
+        prePageList,
+      };
+    },
+
+    onError(error, _variables, ctx) {
+      utils.page.infinitePage.setInfiniteData(input, ctx?.prePageList);
+      toast.error("Delete failed, please try again");
+    },
+  });
   return (
     <div className="flex items-center justify-between gap-2 rounded-md p-1 px-2 hover:bg-muted">
       <div className="flex items-center gap-2">
@@ -241,38 +205,81 @@ const PurePageListItem = ({
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="default" className="h-8 w-8 p-0">
-          <span className="sr-only">Restore</span>
-          <Undo2 className="h-4 w-4" />
-        </Button>
-        <Button variant="destructive" className="h-8 w-8 p-0">
-          <span className="sr-only">Delete</span>
-          <Delete className="h-4 w-4" />
-        </Button>
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="default"
+                className="h-8 w-8"
+                onClick={() => {
+                  toggleTrash.mutate({
+                    id: item.id,
+                    isDeleted: false,
+                  });
+                }}
+              >
+                <span className="sr-only">Restore</span>
+                <Undo2 className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">
+              {item.parentId ? (
+                <p>Child page restoring will lose parent relationship</p>
+              ) : (
+                <p>Root page restoring will also restore child pages</p>
+              )}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="destructive"
+                className="h-8 w-8"
+                onClick={() => {
+                  deletePage.mutate([item.id]);
+                }}
+              >
+                <span className="sr-only">Delete</span>
+                <Delete className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent
+              side="top"
+              align="end"
+              className="bg-destructive text-destructive-foreground"
+            >
+              <p>Delete page will permanently delete all related pages</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </div>
   );
 };
 
 const PageListItem = memo(PurePageListItem);
-PageListItem.displayName = "PageTableRow";
+PageListItem.displayName = "PageListItem";
 
 const PurePageList = () => {
   const [name, setName] = useState("");
   const debouncedSetSearchParams = useDebounceCallback(setName, 500);
+  const input = useMemo(
+    () => ({
+      isDeleted: true,
+      limit: 10,
+      name: name,
+    }),
+    [name],
+  );
   const { data, fetchNextPage, isFetching } =
-    api.page.infinitePage.useInfiniteQuery(
-      {
-        isDeleted: true,
-        limit: 10,
-        name: name,
-      },
-      {
-        getNextPageParam: (lastPage) => lastPage.meta.nextCursor,
-        refetchOnWindowFocus: false,
-        placeholderData: keepPreviousData,
-      },
-    );
+    api.page.infinitePage.useInfiniteQuery(input, {
+      getNextPageParam: (lastPage) => lastPage.meta.nextCursor,
+      refetchOnWindowFocus: false,
+      placeholderData: keepPreviousData,
+    });
 
   const flatData = useMemo(
     () => data?.pages.flatMap((page) => page.items) ?? [],
@@ -318,15 +325,21 @@ const PurePageList = () => {
       />
       <ScrollAreaRoot ref={containerRef} className="relative h-[40vh]">
         <ScrollAreaViewport onScroll={handleScroll}>
-          <div className="mr-2">
+          <div className="mr-1">
             {isFetching && (
               <div className="flex items-center justify-center">
                 <LoaderCircle className="h-4 w-4 animate-spin" />
               </div>
             )}
-            {flatData.map((item) => (
-              <PageListItem item={item} key={item.id} />
-            ))}
+            {flatData.length === 0 && !isFetching ? (
+              <p className="text-center text-muted-foreground">
+                No trashed pages
+              </p>
+            ) : (
+              flatData.map((item) => (
+                <PageListItem item={item} key={item.id} input={input} />
+              ))
+            )}
           </div>
         </ScrollAreaViewport>
       </ScrollAreaRoot>
@@ -335,4 +348,4 @@ const PurePageList = () => {
 };
 
 export const PageList = memo(PurePageList);
-PageList.displayName = "PageTable";
+PageList.displayName = "PageList";

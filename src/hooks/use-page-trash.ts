@@ -1,5 +1,4 @@
-import { searchParams } from "@/components/page-table";
-import { api, type RouterOutputs } from "@/trpc/react";
+import { api, RouterInputs, type RouterOutputs } from "@/trpc/react";
 import { toast } from "sonner";
 
 export const usePageTrash = ({
@@ -8,7 +7,7 @@ export const usePageTrash = ({
 }: {
   page: RouterOutputs["page"]["getByParentId"][0];
   options?: {
-    searchParams?: searchParams;
+    infinitePageInput?: RouterInputs["page"]["infinitePage"];
   };
 }) => {
   const utils = api.useUtils();
@@ -83,10 +82,10 @@ export const usePageTrash = ({
       }
 
       // 缓存无限查询 乐观更新
-      const searchParams = options?.searchParams;
-      if (searchParams) {
+      const infinitePageInput = options?.infinitePageInput;
+      if (infinitePageInput) {
         const prevInfinitePage =
-          utils.page.infinitePage.getInfiniteData(searchParams);
+          utils.page.infinitePage.getInfiniteData(infinitePageInput);
 
         // 乐观更新
         if (!variables.isDeleted) {
@@ -109,7 +108,7 @@ export const usePageTrash = ({
 
           const relatedPageIds = getAllRelatedPagesInInfinitePage(variables.id);
           utils.page.infinitePage.setInfiniteData(
-            searchParams,
+            infinitePageInput,
             (prevInfinitePage) => {
               return {
                 pageParams: prevInfinitePage!.pageParams,
@@ -149,10 +148,10 @@ export const usePageTrash = ({
         utils.pagePinned.get.setData(void 0, ctx.prevPinned);
       }
 
-      const searchParams = options?.searchParams;
-      if (ctx?.prevInfinitePage && searchParams) {
+      const infinitePageInput = options?.infinitePageInput;
+      if (ctx?.prevInfinitePage && infinitePageInput) {
         utils.page.infinitePage.setInfiniteData(
-          searchParams,
+          infinitePageInput,
           ctx.prevInfinitePage,
         );
       }
