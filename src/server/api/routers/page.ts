@@ -205,8 +205,6 @@ export const pageRouter = createTRPCRouter({
           const stack = [rootId];
 
           while (stack.length > 0) {
-            console.log("stack", stack);
-
             const childPages = await trx.query.pages.findMany({
               where(fields, operators) {
                 return operators.and(
@@ -238,8 +236,6 @@ export const pageRouter = createTRPCRouter({
 
         // 批量删除pinned关系
         const deletePinned = async (pageIds: string[]) => {
-          console.log("deletePinned", pageIds);
-
           await trx
             .delete(pagesPinned)
             .where(inArray(pagesPinned.pageId, pageIds));

@@ -22,6 +22,7 @@ import {
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
+  Row,
   RowData,
   useReactTable,
 } from "@tanstack/react-table";
@@ -161,9 +162,109 @@ export const columns: ColumnDef<Page>[] = [
   },
 ];
 
+const PurePageTableToolBar = ({
+  name,
+  debouncedSetSearch,
+}: {
+  name: string;
+  debouncedSetSearch: (search: string) => void;
+}) => {
+  const utils = api.useUtils();
+  const clearTrash = api.page.clearTrash.useMutation({
+    onMutate() {
+      toast.info("正在清空回收站...");
+    },
+    onSuccess(_data, variables, ctx) {
+      toast.success("清空回收站成功");
+      utils.page.infinitePage.invalidate({
+        isDeleted: true,
+        name: name,
+        limit: 10,
+      });
+    },
+    onError(_error, variables, ctx) {
+      toast.error("清空回收站失败");
+    },
+  });
+
+  const handleClearTrash = useCallback(() => {
+    clearTrash.mutate();
+  }, [clearTrash]);
+  return (
+    <div className="flex items-center justify-between gap-8">
+      <Input
+        placeholder="Filter name..."
+        defaultValue={name}
+        onChange={(e) => {
+          debouncedSetSearch(e.target.value);
+        }}
+      />
+      <AlertDialog>
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <AlertDialogTrigger asChild>
+              <TooltipTrigger asChild>
+                <Button variant="destructive" size="sm">
+                  <TrashIcon />
+                </Button>
+              </TooltipTrigger>
+            </AlertDialogTrigger>
+            <TooltipContent
+              className="bg-destructive text-destructive-foreground"
+              align="end"
+            >
+              <p> Clear Trash </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your
+              trashed pages and never be recoverable.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className={cn(
+                buttonVariants({
+                  variant: "destructive",
+                }),
+              )}
+              onClick={handleClearTrash}
+            >
+              Clear Trash
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
+
+const PageTableToolBar = memo(PurePageTableToolBar);
+PageTableToolBar.displayName = "PageTableToolBar";
+
+const PurePageTableRow = ({ row }: { row: Row<Page> }) => {
+  return (
+    <TableRow data-state={row.getIsSelected() && "selected"}>
+      {row.getVisibleCells().map((cell) => (
+        <TableCell key={cell.id}>
+          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+        </TableCell>
+      ))}
+    </TableRow>
+  );
+};
+
+const PageTableRow = memo(PurePageTableRow);
+PageTableRow.displayName = "PageTableRow";
+
 const PurePageTable = () => {
-  const [name, setSearch] = useState("");
-  const debouncedSetSearch = useDebounceCallback(setSearch, 500);
+  const [name, setName] = useState("");
+  const debouncedSetSearchParams = useDebounceCallback(setName, 500);
   const { data, fetchNextPage, isFetching } =
     api.page.infinitePage.useInfiniteQuery(
       {
@@ -210,7 +311,6 @@ const PurePageTable = () => {
   const handleScroll = useCallback(
     (e: UIEvent<HTMLDivElement, globalThis.UIEvent>) => {
       fetchMoreOnBottomReached(e.currentTarget);
-      console.log("handleScroll");
     },
     [fetchMoreOnBottomReached],
   );
@@ -242,80 +342,12 @@ const PurePageTable = () => {
     ...prev,
   }));
 
-  const utils = api.useUtils();
-  const clearTrash = api.page.clearTrash.useMutation({
-    onMutate() {
-      toast.info("正在清空回收站...");
-    },
-    onSuccess(_data, variables, ctx) {
-      toast.success("清空回收站成功");
-      utils.page.infinitePage.invalidate({
-        isDeleted: true,
-        name: name,
-        limit: 10,
-      });
-    },
-    onError(_error, variables, ctx) {
-      toast.error("清空回收站失败");
-    },
-  });
-
-  const handleClearTrash = useCallback(() => {
-    clearTrash.mutate();
-  }, [clearTrash]);
-
   return (
     <>
-      <div className="flex items-center justify-between gap-8">
-        <Input
-          placeholder="Filter name..."
-          defaultValue={name}
-          onChange={(e) => {
-            debouncedSetSearch(e.target.value);
-          }}
-        />
-        <AlertDialog>
-          <TooltipProvider delayDuration={0}>
-            <Tooltip>
-              <AlertDialogTrigger asChild>
-                <TooltipTrigger asChild>
-                  <Button variant="destructive" size="sm">
-                    <TrashIcon />
-                  </Button>
-                </TooltipTrigger>
-              </AlertDialogTrigger>
-              <TooltipContent
-                className="bg-destructive text-destructive-foreground"
-                align="end"
-              >
-                <p> Clear Trash </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete your
-                trashed pages and never be recoverable.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                className={cn(
-                  buttonVariants({
-                    variant: "destructive",
-                  }),
-                )}
-                onClick={handleClearTrash}
-              >
-                Clear Trash
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
+      <PageTableToolBar
+        name={name}
+        debouncedSetSearch={debouncedSetSearchParams}
+      />
       <ScrollAreaRoot
         ref={tableContainerRef}
         className="relative h-[50vh] overflow-auto"
@@ -342,21 +374,9 @@ const PurePageTable = () => {
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
+                table
+                  .getRowModel()
+                  .rows.map((row) => <PageTableRow row={row} key={row.id} />)
               ) : isFetching ? (
                 <TableRow>
                   <TableCell
