@@ -23,7 +23,6 @@ import {
   getCoreRowModel,
   getSortedRowModel,
   RowData,
-  TableMeta,
   useReactTable,
 } from "@tanstack/react-table";
 
@@ -109,16 +108,40 @@ export const columns: ColumnDef<Page>[] = [
         },
       });
       const handleClick = useCallback(() => {
+        const page = row.original;
         toggleTrash.mutate({
           id: row.original.id,
           isDeleted: false,
         });
-      }, [toggleTrash, row.original.id]);
+      }, [toggleTrash, row]);
       return (
-        <Button variant="ghost" className="h-8 w-8 p-0" onClick={handleClick}>
-          <span className="sr-only">Restore</span>
-          <Undo2 className="h-4 w-4 text-muted-foreground" />
-        </Button>
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                onClick={handleClick}
+              >
+                <span className="sr-only">Restore</span>
+                <Undo2 className="h-4 w-4 text-muted-foreground" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="bg-background text-foreground">
+              {row.original.parentId ? (
+                <p>
+                  This is a child page. Direct restore will lose the
+                  relationship to the parent page
+                </p>
+              ) : (
+                <p>
+                  This is a root page. Restoring this page will also restore all
+                  its child pages
+                </p>
+              )}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       );
     },
   },

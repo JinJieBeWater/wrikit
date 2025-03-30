@@ -252,9 +252,20 @@ export const pageRouter = createTRPCRouter({
         const promises = [];
         promises.push(updatePages([input.id, ...relatedPageIds]));
 
-        // 如果是删除操作，还需要删除pinned关系
+        // 如果是删除操作
         if (input.isDeleted) {
+          // 需要删除pinned关系
           promises.push(deletePinned([input.id, ...relatedPageIds]));
+        }
+        // 如果是还原操作
+        if (!input.isDeleted) {
+          // 删除与父页面的关系
+          promises.push(
+            trx
+              .update(pages)
+              .set({ parentId: null })
+              .where(eq(pages.id, input.id)),
+          );
         }
         await Promise.all(promises);
       });
