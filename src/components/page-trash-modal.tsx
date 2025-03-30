@@ -63,7 +63,7 @@ const PurePageTrashModal = () => {
         <DialogTrigger>
           <PageTrashButton />
         </DialogTrigger>
-        <DialogContent className="max-h-[90vh] w-[95vw] max-w-[95vw] sm:max-w-[80vw] md:max-w-[70vw] lg:max-w-[60vw] xl:max-w-[800px]">
+        <DialogContent className="max-h-90vh sm:max-w-[70vw]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Trash2 />
@@ -86,14 +86,17 @@ const PurePageTrashModal = () => {
       </DrawerTrigger>
       <DrawerContent className="max-h-90vh px-4">
         <DrawerHeader className="text-left">
-          <DrawerTitle>Page trash</DrawerTitle>
-          <DrawerDescription>
-            The page was deleted after 30 days in the trash
-          </DrawerDescription>
+          <DrawerTitle className="flex items-center gap-2">
+            <Trash2 />
+            <span>Trash</span>
+          </DrawerTitle>
         </DrawerHeader>
         <InfinitePageTrash />
 
         <DrawerFooter className="pt-2">
+          <DrawerDescription>
+            The page was deleted after 30 days in the trash
+          </DrawerDescription>
           <DrawerClose asChild>
             <Button variant="outline">Cancel</Button>
           </DrawerClose>

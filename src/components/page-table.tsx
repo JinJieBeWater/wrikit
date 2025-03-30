@@ -55,6 +55,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
+import { Spinner } from "./plate-ui/spinner";
 
 export type Page = RouterOutputs["page"]["infinitePage"]["items"][0];
 
@@ -92,7 +93,7 @@ export const columns: ColumnDef<Page>[] = [
     header: "Delete At",
     cell: ({ row }) => {
       const date = row.getValue("updatedAt") as Date;
-      return date ? dayjs(date).format("YYYY/MM/DD") : "-";
+      return date ? dayjs(date).format("MM/DD HH:mm") : "-";
     },
   },
   {
@@ -127,7 +128,7 @@ export const columns: ColumnDef<Page>[] = [
                 <Undo2 className="h-4 w-4 text-muted-foreground" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="bg-background text-foreground">
+            <TooltipContent>
               {row.original.parentId ? (
                 <p>
                   This is a child page. Direct restore will lose the
@@ -163,7 +164,7 @@ export const columns: ColumnDef<Page>[] = [
 const PurePageTable = () => {
   const [name, setSearch] = useState("");
   const debouncedSetSearch = useDebounceCallback(setSearch, 500);
-  const { data, isLoading, isError, fetchNextPage, isFetching } =
+  const { data, fetchNextPage, isFetching } =
     api.page.infinitePage.useInfiniteQuery(
       {
         isDeleted: true,
@@ -265,14 +266,13 @@ const PurePageTable = () => {
 
   return (
     <>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="flex items-center justify-between gap-8">
         <Input
           placeholder="Filter name..."
           defaultValue={name}
           onChange={(e) => {
             debouncedSetSearch(e.target.value);
           }}
-          className="max-w-sm"
         />
         <AlertDialog>
           <TooltipProvider delayDuration={0}>
@@ -318,7 +318,7 @@ const PurePageTable = () => {
       </div>
       <ScrollAreaRoot
         ref={tableContainerRef}
-        className="relative max-h-[50vh] overflow-auto"
+        className="relative h-[50vh] overflow-auto"
       >
         <ScrollAreaViewport onScroll={handleScroll}>
           <Table>
@@ -357,11 +357,22 @@ const PurePageTable = () => {
                     ))}
                   </TableRow>
                 ))
+              ) : isFetching ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    <div className="flex items-center justify-center">
+                      <Spinner className="h-4 w-4 animate-spin" />
+                    </div>
+                  </TableCell>
+                </TableRow>
               ) : (
                 <TableRow>
                   <TableCell
                     colSpan={columns.length}
-                    className="h-12 text-center"
+                    className="h-24 text-center"
                   >
                     No results.
                   </TableCell>
