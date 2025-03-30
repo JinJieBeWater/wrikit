@@ -205,11 +205,12 @@ export const pageRouter = createTRPCRouter({
           const stack = [rootId];
 
           while (stack.length > 0) {
-            const currentId = stack.pop()!;
+            console.log("stack", stack);
+
             const childPages = await trx.query.pages.findMany({
               where(fields, operators) {
                 return operators.and(
-                  operators.eq(fields.parentId, currentId),
+                  operators.inArray(fields.parentId, stack),
                   operators.eq(fields.isDeleted, !input.isDeleted),
                 );
               },
@@ -217,6 +218,8 @@ export const pageRouter = createTRPCRouter({
                 id: true,
               },
             });
+            // 清空stack
+            stack.length = 0;
             const childPageIds = childPages.map((p) => p.id);
             allPages.push(...childPageIds);
             stack.push(...childPageIds);
