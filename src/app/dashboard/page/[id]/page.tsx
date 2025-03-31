@@ -43,7 +43,7 @@ export default function Page() {
       <TitleEditor page={page} className="px-12 sm:px-page" />
       <div className="grow px-12 pb-12 sm:px-page">
         {page.type === PageType.md && <MdEditor page={page}></MdEditor>}
-        {page.type === PageType.pure && <PureEditor page={page}></PureEditor>}
+        {page.type === PageType.pure && <MdEditor page={page}></MdEditor>}
       </div>
     </ScrollArea>
   );
