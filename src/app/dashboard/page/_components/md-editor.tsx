@@ -1,10 +1,10 @@
 "use client";
 
-import { PlateEditor } from "@/components/editor/plate-editor";
-import { SettingsProvider } from "@/components/editor/settings";
+import { MinimalTiptapEditor } from "@/components/minimal-tiptap";
 import { api } from "@/trpc/react";
 import { type Page } from "@/types/page";
-import { type Value } from "@udecode/plate";
+import { Content } from "@tiptap/react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { useDebounceCallback } from "usehooks-ts";
 
@@ -45,25 +45,37 @@ export function MdEditor({ page }: MdEditorProps) {
     },
   });
 
-  const updatePageDebounced = useDebounceCallback((value: Value) => {
+  const updatePageDebounced = useDebounceCallback((value: Content) => {
     updatePage.mutate({
       id: page.id,
       content: JSON.stringify(value),
     });
   }, 1000);
+
+  const [value, setValue] = useState<Content>((page?.content as Content) ?? "");
+
+  const handleChange = useCallback(
+    (value: Content) => {
+      setValue(value);
+      updatePageDebounced(value);
+    },
+    [updatePageDebounced],
+  );
+
   return (
     <>
       <div className="h-full w-full" data-registry="plate">
         {
-          <SettingsProvider>
-            <PlateEditor
-              value={(page?.content as Value) ?? ""}
-              page={page}
-              onChange={({ value }) => {
-                updatePageDebounced(value);
-              }}
-            />
-          </SettingsProvider>
+          <MinimalTiptapEditor
+            value={value}
+            onChange={handleChange}
+            className="w-full pb-48"
+            editorContentClassName=""
+            output="html"
+            placeholder="Enter your description..."
+            editable={true}
+            editorClassName="focus:outline-none"
+          />
         }
       </div>
     </>

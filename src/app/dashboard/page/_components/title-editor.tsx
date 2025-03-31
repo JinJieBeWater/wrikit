@@ -3,6 +3,7 @@ import {
   AutosizeTextarea,
   type AutosizeTextAreaRef,
 } from "@/components/ui/autosize-textarea";
+import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { type Page } from "@/types/page";
 import {
@@ -15,6 +16,7 @@ import { useDebounceCallback } from "usehooks-ts";
 
 export function TitleEditor({
   page,
+  className,
   ...props
 }: { page: Page } & TextareaHTMLAttributes<HTMLTextAreaElement> &
   RefAttributes<AutosizeTextAreaRef>) {
@@ -104,7 +106,10 @@ export function TitleEditor({
     <AutosizeTextarea
       name="title"
       ref={autosizeTextareaRef}
-      className="w-full resize-none overflow-hidden border-none px-12 text-4xl font-bold focus-visible:rounded-none focus-visible:outline-none focus-visible:ring-0 sm:px-page"
+      className={cn(
+        "w-full resize-none overflow-hidden border-none px-12 text-4xl font-bold focus-visible:rounded-none focus-visible:outline-none focus-visible:ring-0 sm:px-page",
+        className,
+      )}
       defaultValue={page.name ?? ""}
       placeholder="Untitled"
       onChange={(e) => {
