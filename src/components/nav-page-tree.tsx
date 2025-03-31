@@ -2,53 +2,24 @@
 
 import { ChevronRight, Plus } from "lucide-react";
 import {
-  SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuAction,
   SidebarMenuSub,
   useSidebar,
 } from "./ui/sidebar";
-import { memo, useCallback, useRef, useState } from "react";
+import { memo, useRef, useState } from "react";
 import { api, type RouterOutputs } from "@/trpc/react";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "./ui/collapsible";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { PageIcon } from "./page-icon";
 import { PageAction } from "./page-action";
 import { PageActionAdd } from "./page-action-add";
 import { cn } from "@/lib/utils";
-
-const PurePageTreeItem = ({
-  page,
-}: {
-  page: Pick<
-    RouterOutputs["page"]["getByParentId"][0],
-    "id" | "name" | "icon" | "type"
-  >;
-}) => {
-  const { isMobile, setOpenMobile } = useSidebar();
-  const { id } = useParams();
-
-  const handleClick = useCallback(() => {
-    if (isMobile) {
-      setOpenMobile(false);
-    }
-  }, [isMobile, setOpenMobile]);
-  return (
-    <SidebarMenuButton asChild isActive={page.id === id}>
-      <Link href={`/dashboard/page/${page.id}`} onClick={handleClick}>
-        <PageIcon page={page} />
-        <span>{page.name ?? "Untitled"}</span>
-      </Link>
-    </SidebarMenuButton>
-  );
-};
-
-export const PageTreeItem = memo(PurePageTreeItem);
+import { PageTreeItem } from "./nav-page-tree-item";
+import { CSS } from "@dnd-kit/utilities";
+import { useDraggable } from "@dnd-kit/core";
 
 const PurePageTree = ({
   page,
