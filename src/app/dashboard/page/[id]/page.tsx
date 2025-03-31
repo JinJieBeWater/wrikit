@@ -40,8 +40,8 @@ export default function Page() {
           <span className="sr-only">Edit Page Icon</span>
         </Button>
       </div>
-      <TitleEditor page={page} />
-      <div className="grow">
+      <TitleEditor page={page} className="px-12 sm:px-page" />
+      <div className="grow px-12 pb-12 sm:px-page">
         {page.type === PageType.md && <MdEditor page={page}></MdEditor>}
         {page.type === PageType.pure && <PureEditor page={page}></PureEditor>}
       </div>

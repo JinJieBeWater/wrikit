@@ -9,6 +9,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { Provider as WrapBalancerProvider } from "react-wrap-balancer";
 import { auth } from "@/server/auth";
 import { SessionProvider } from "@/components/provider/session-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export const metadata: Metadata = {
   title: "Wrikit",
@@ -37,7 +38,7 @@ export default async function RootLayout({
           <WrapBalancerProvider>
             <TRPCReactProvider>
               <SessionProvider session={session}>
-                {children}
+                <TooltipProvider>{children}</TooltipProvider>
                 <Toaster />
               </SessionProvider>
             </TRPCReactProvider>
