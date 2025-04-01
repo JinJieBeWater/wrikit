@@ -29,11 +29,9 @@ const PurePageTreeItem = ({
   );
 
   return (
-    <SidebarMenuButton asChild isActive={page.id === id}>
-      <Link href={`/dashboard/page/${page.id}`} onClick={handleClick}>
-        <PageIcon page={page} />
-        <span>{page.name ?? "Untitled"}</span>
-      </Link>
+    <SidebarMenuButton isActive={page.id === id} onClick={handleClick}>
+      <PageIcon page={page} />
+      <span>{page.name ?? "Untitled"}</span>
     </SidebarMenuButton>
   );
 };

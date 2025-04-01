@@ -42,8 +42,19 @@ const PurePageTree = ({
 
   const stack = useRef(initialStack ? [...initialStack, page] : [page]);
 
+  const { attributes, listeners, setNodeRef, transform } = useDraggable({
+    id: "page-" + page.id,
+  });
+  const style = {
+    transform: CSS.Translate.toString(transform),
+  };
   return (
-    <SidebarMenuItem>
+    <SidebarMenuItem
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+    >
       <Collapsible
         className={cn(
           "group/collapsible [&>button]:hover:opacity-100 [&[data-state=open]>button:first-child>svg:first-child]:rotate-90",
