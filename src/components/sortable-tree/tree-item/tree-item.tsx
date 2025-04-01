@@ -1,9 +1,9 @@
 import React, { forwardRef, HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 import { UniqueIdentifier } from "@dnd-kit/core";
-import { Handle } from "./Handle";
-import { Action } from "./Action";
-import { Remove } from "./Remove";
+import { Handle } from "./handle";
+import { Action } from "./action";
+import { Remove } from "./remove";
 import { ChevronDown } from "lucide-react";
 
 export interface Props extends Omit<HTMLAttributes<HTMLLIElement>, "id"> {

@@ -38,7 +38,7 @@ import {
 } from "./utilities";
 import type { FlattenedItem, SensorContext, TreeItems } from "./types";
 import { sortableTreeKeyboardCoordinates } from "./keyboardCoordinates";
-import { SortableTreeItem } from "./components";
+import { SortableTreeItem } from "./tree-item/sortable-tree-item";
 import { CSS } from "@dnd-kit/utilities";
 import { useIsClient } from "usehooks-ts";
 import { produce } from "immer";
