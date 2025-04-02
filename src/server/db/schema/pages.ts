@@ -7,6 +7,7 @@ import {
   json,
   boolean,
   uuid,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 import { timestamps } from "../columns.helpers";
 import { users } from "./users";
@@ -37,6 +38,31 @@ export const pages = createTable(
     createdByIdIdx: index("page_created_by_idx").on(table.createdById),
   }),
 );
+
+export const pagesPath = createTable(
+  "page_path",
+  {
+    parentId: uuid("parent_id").notNull(),
+    pageId: uuid("page_id").notNull(),
+    depth: integer("depth").default(0).notNull(),
+    order: integer("order").default(0).notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.parentId, table.pageId] }),
+    parentIdIdx: index("page_path_parent_id_idx").on(table.parentId),
+  }),
+);
+
+export const pagesPathRelations = relations(pagesPath, ({ one }) => ({
+  page: one(pages, {
+    fields: [pagesPath.pageId],
+    references: [pages.id],
+  }),
+  parent: one(pages, {
+    fields: [pagesPath.parentId],
+    references: [pages.id],
+  }),
+}));
 
 export const pagesRelations = relations(pages, ({ one }) => ({
   parent: one(pages, {
