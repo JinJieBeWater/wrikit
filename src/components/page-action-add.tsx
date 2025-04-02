@@ -90,10 +90,8 @@ export function PageActionAdd({
         },
         {
           ...newPage,
-          order: 0,
           createdById: session.user.id,
           content: "",
-          isPrivate: true,
           createdAt: new Date(),
           updatedAt: new Date(),
         },

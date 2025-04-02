@@ -158,7 +158,7 @@ export const pageRouter = createTRPCRouter({
           type: true,
           icon: true,
         },
-        orderBy: (posts, { asc }) => [asc(posts.order), asc(posts.createdAt)],
+        orderBy: (posts, { asc }) => [asc(posts.createdAt)],
       });
       return rootPages.map((page) => ({
         ...page,
@@ -186,7 +186,6 @@ export const pageRouter = createTRPCRouter({
         id: z.string().describe("页面id"),
         name: z.string().optional().describe("页面名称"),
         content: z.string().optional().describe("页面内容"),
-        order: z.number().optional().describe("排序顺序"),
         isPinned: z.boolean().optional().describe("是否置顶"),
       }),
     )
@@ -196,7 +195,6 @@ export const pageRouter = createTRPCRouter({
         .set({
           name: input.name,
           content: input.content,
-          order: input.order,
         })
         .where(
           and(
