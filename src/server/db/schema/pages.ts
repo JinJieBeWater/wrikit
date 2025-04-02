@@ -80,32 +80,6 @@ export const pagesPinnedRelations = relations(pagesPinned, ({ one }) => ({
   }),
 }));
 
-export const pagesToChildren = createTable(
-  "page_to_children",
-  {
-    pageId: uuid("page_id").notNull(),
-    childId: uuid("child_id").notNull(),
-  },
-  (ptc) => ({
-    pageIdIdx: index("page_id_id_idx").on(ptc.pageId),
-    childIdIdx: index("child_id_idx").on(ptc.childId),
-  }),
-);
-
-export const pagesToChildrenRelations = relations(
-  pagesToChildren,
-  ({ one }) => ({
-    page: one(pages, {
-      fields: [pagesToChildren.pageId],
-      references: [pages.id],
-    }),
-    child: one(pages, {
-      fields: [pagesToChildren.childId],
-      references: [pages.id],
-    }),
-  }),
-);
-
 export const pageObjectItemEnum = pgEnum(
   "page_object_item_ty",
   PageObjectItemTypeArray,
