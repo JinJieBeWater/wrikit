@@ -10,7 +10,8 @@ import {
 import { type AdapterAccount } from "next-auth/adapters";
 import { timestamps } from "../columns.helpers";
 import { createTable } from "../tables.heplers";
-import { pageObjectTemplates, pages } from "./pages";
+import { pages } from "./pages";
+import { pageObjectTemplates } from "./pagesObject";
 
 export const posts = createTable(
   "post",

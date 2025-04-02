@@ -1,5 +1,5 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { pages, pagesPinned } from "@/server/db/schema/pages";
+import { pagesPinned, pages } from "@/server/db/schema";
 import { PageTypeArray } from "@/types/page";
 import { and, count, eq, inArray, like } from "drizzle-orm";
 import { z } from "zod";
