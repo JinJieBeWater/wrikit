@@ -11,15 +11,23 @@ import {
 import { api } from "@/trpc/react";
 import { PageActionAdd } from "./page-action-add";
 import { PageTree } from "./nav-page-tree";
+import { useDroppable } from "@dnd-kit/core";
 
 export function NavPage() {
   const [roots] = api.page.getByParentId.useSuspenseQuery({});
+
+  const { isOver, setNodeRef } = useDroppable({
+    id: "NavPage",
+  });
+  const style = {
+    color: isOver ? "green" : undefined,
+  };
 
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Private</SidebarGroupLabel>
       <SidebarGroupContent>
-        <SidebarMenu>
+        <SidebarMenu ref={setNodeRef} style={style}>
           {roots
             .filter((page) => !page.isDeleted)
             .map((page) => (
