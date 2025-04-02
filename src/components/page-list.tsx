@@ -201,7 +201,7 @@ const PurePageListItem = ({
     <div className="flex items-center justify-between gap-2 rounded-md p-1 px-2 hover:bg-muted">
       <div className="flex items-center gap-2">
         <PageIcon page={item} />
-        <span>{item.name}</span>
+        <span>{item.name ?? "Untitled"}</span>
       </div>
 
       <div className="flex items-center gap-2">
