@@ -100,7 +100,21 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
   const result = await next();
 
   const end = Date.now();
-  console.log(`[TRPC] ${path} took ${end - start}ms to execute`);
+  console.log(`[TRPC TIMI] ${path} took 🐌 ${end - start}ms to execute`);
+
+  return result;
+});
+
+const performanceMonitor = t.middleware(async ({ next, path }) => {
+  const start = Date.now();
+
+  const result = await next();
+
+  if (t._config.isDev) {
+    const end = Date.now();
+
+    console.log(`[TRPC PERF] ${path} took ⚡️ ${end - start}ms to execute`);
+  }
 
   return result;
 });
@@ -112,7 +126,9 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
  * guarantee that a user querying is authorized, but you can still access user session data if they
  * are logged in.
  */
-export const publicProcedure = t.procedure.use(timingMiddleware);
+export const publicProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(performanceMonitor);
 
 /**
  * Protected (authenticated) procedure
@@ -124,6 +140,7 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
  */
 export const protectedProcedure = t.procedure
   .use(timingMiddleware)
+  .use(performanceMonitor)
   .use(({ ctx, next }) => {
     if (!ctx.session || !ctx.session.user) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
