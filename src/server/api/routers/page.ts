@@ -327,39 +327,16 @@ export const pageRouter = createTRPCRouter({
     }),
 
   clearTrash: protectedProcedure.mutation(async ({ ctx }) => {
-    // 查找当前用户所有已删除的页面
-    const trashedPages = await ctx.db.query.pages.findMany({
-      where(fields, operators) {
-        return operators.and(
-          operators.eq(fields.isDeleted, true),
-          operators.eq(fields.createdById, ctx.session.user.id),
-        );
-      },
-      columns: {
-        id: true,
-      },
-    });
-
-    const pageIds = trashedPages.map((page) => page.id);
-
-    if (pageIds.length === 0) {
-      return { count: 0 };
-    }
-
-    // 删除相关的收藏记录
-    await ctx.db
-      .delete(pagesPinned)
-      .where(inArray(pagesPinned.pageId, pageIds));
-
     // 删除所有已标记为删除的页面
-    const result = await ctx.db
+    const pageIds = await ctx.db
       .delete(pages)
       .where(
         and(
           eq(pages.isDeleted, true),
           eq(pages.createdById, ctx.session.user.id),
         ),
-      );
+      )
+      .returning({ id: pages.id });
 
     return { count: pageIds.length };
   }),
