@@ -2,7 +2,7 @@ import {
   PageObjectItemTypeArray,
   PageObjectJson,
   PageObjectTemplate,
-} from "@/types/page";
+} from "@/types/pageObject";
 import { relations } from "drizzle-orm";
 import {
   pgEnum,
