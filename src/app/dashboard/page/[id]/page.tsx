@@ -8,7 +8,6 @@ import { api } from "@/trpc/react";
 import { PageType } from "@/types/page";
 import { notFound, useParams } from "next/navigation";
 import { MdEditor } from "../_components/md-editor";
-import { PureEditor } from "../_components/pure-editor";
 import { TitleEditor } from "../_components/title-editor";
 import Loading from "./loading";
 
