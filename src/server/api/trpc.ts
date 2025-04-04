@@ -14,6 +14,7 @@ import { ZodError } from "zod";
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 import type { TRPCPanelMeta } from "trpc-ui";
+import { Session } from "next-auth";
 
 /**
  * 1. CONTEXT
@@ -36,6 +37,24 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
 		...opts,
 	};
 };
+
+/**
+ * Inner context. Will always be available in your procedures, in contrast to the outer context.
+ *
+ * Also useful for:
+ * - testing, so you don't have to mock Next.js' `req`/`res`
+ * - tRPC's `createServerSideHelpers` where we don't have `req`/`res`
+ *
+ * @see https://trpc.io/docs/v11/context#inner-and-outer-context
+ */
+export function createContextInner(opts: { session: Session | null }) {
+	const headers = new Headers();
+	return {
+		db,
+		session: opts.session,
+		headers,
+	};
+}
 
 /**
  * 2. INITIALIZATION

@@ -417,6 +417,9 @@ importers:
       '@biomejs/biome':
         specifier: 1.9.4
         version: 1.9.4
+      '@next/env':
+        specifier: ^15.2.4
+        version: 15.2.4
       '@testing-library/dom':
         specifier: ^10.4.0
         version: 10.4.0
@@ -1526,6 +1529,9 @@ packages:
 
   '@next/env@15.2.2':
     resolution: {integrity: sha512-yWgopCfA9XDR8ZH3taB5nRKtKJ1Q5fYsTOuYkzIIoS8TJ0UAUKAGF73JnGszbjk2ufAQDj6mDdgsJAFx5CLtYQ==}
+
+  '@next/env@15.2.4':
+    resolution: {integrity: sha512-+SFtMgoiYP3WoSswuNmxJOCwi06TdWE733D+WPjpXIe4LXGULwEaofiiAy6kbS0+XjM5xF5n3lKuBwN2SnqD9g==}
 
   '@next/swc-darwin-arm64@15.2.2':
     resolution: {integrity: sha512-HNBRnz+bkZ+KfyOExpUxTMR0Ow8nkkcE6IlsdEa9W/rI7gefud19+Sn1xYKwB9pdCdxIP1lPru/ZfjfA+iT8pw==}
@@ -6331,6 +6337,8 @@ snapshots:
       '@types/react': 18.3.18
 
   '@next/env@15.2.2': {}
+
+  '@next/env@15.2.4': {}
 
   '@next/swc-darwin-arm64@15.2.2':
     optional: true
