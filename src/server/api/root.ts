@@ -9,9 +9,9 @@ import { pagePinnedRouter } from "./routers/pagePinned";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  post: postRouter,
-  page: pageRouter,
-  pagePinned: pagePinnedRouter,
+	post: postRouter,
+	page: pageRouter,
+	pagePinned: pagePinnedRouter,
 });
 
 // export type definition of API
