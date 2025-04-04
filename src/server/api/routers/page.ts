@@ -251,6 +251,7 @@ export const pageRouter = createTRPCRouter({
 			z.object({
 				id: z.string().describe("页面id"),
 				isDeleted: z.boolean().describe("是否删除"),
+				parentId: z.string().optional().describe("父页面id"),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -311,13 +312,30 @@ export const pageRouter = createTRPCRouter({
 				}
 				// 如果是还原操作
 				if (!input.isDeleted) {
-					// 删除与父页面的关系
-					promises.push(
-						trx
-							.update(pages)
-							.set({ parentId: null })
-							.where(eq(pages.id, input.id)),
-					);
+					// 如果父节点也在删除状态下 需要删除与父页面的关系
+					const parentId = input.parentId;
+					if (parentId) {
+						const disconnectParent = async () => {
+							const isParentDeleted = await trx.query.pages.findFirst({
+								where(fields, operators) {
+									return operators.and(
+										operators.eq(fields.id, parentId),
+										operators.eq(fields.isDeleted, true),
+									);
+								},
+								columns: {
+									id: true,
+								},
+							});
+							if (isParentDeleted) {
+								await trx
+									.update(pages)
+									.set({ parentId: null })
+									.where(eq(pages.id, input.id));
+							}
+						};
+						promises.push(disconnectParent());
+					}
 				}
 				await Promise.all(promises);
 			});

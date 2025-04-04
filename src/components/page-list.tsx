@@ -214,6 +214,7 @@ const PurePageListItem = ({
 									toggleTrash.mutate({
 										id: item.id,
 										isDeleted: false,
+										parentId: item.parentId ?? undefined,
 									});
 								}}
 							>

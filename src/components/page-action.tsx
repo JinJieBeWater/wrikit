@@ -86,7 +86,11 @@ export function PurePageAction({
 				<DropdownMenuSeparator />
 				<DropdownMenuItem
 					onClick={() =>
-						toggleTrash.mutateAsync({ id: page.id, isDeleted: true })
+						toggleTrash.mutateAsync({
+							id: page.id,
+							isDeleted: true,
+							parentId: page.parentId ?? undefined,
+						})
 					}
 				>
 					<Trash2 className="text-muted-foreground" />
