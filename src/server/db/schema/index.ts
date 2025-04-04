@@ -7,3 +7,5 @@
 
 export * from "./pages";
 export * from "./users";
+export * from "./pagesObject";
+export * from "./pagesPinned";
