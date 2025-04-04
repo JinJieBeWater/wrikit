@@ -1,14 +1,14 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import { type DefaultSession, type NextAuthConfig } from "next-auth";
-import DiscordProvider from "next-auth/providers/discord";
+import type { DefaultSession, NextAuthConfig } from "next-auth";
 import type { Provider } from "next-auth/providers";
+import DiscordProvider from "next-auth/providers/discord";
 
 import { db } from "@/server/db";
 import {
-  accounts,
-  sessions,
-  users,
-  verificationTokens,
+	accounts,
+	sessions,
+	users,
+	verificationTokens,
 } from "@/server/db/schema";
 import GitHub from "next-auth/providers/github";
 
@@ -19,31 +19,31 @@ import GitHub from "next-auth/providers/github";
  * @see https://next-auth.js.org/getting-started/typescript#module-augmentation
  */
 declare module "next-auth" {
-  interface Session extends DefaultSession {
-    user: {
-      id: string;
-      // ...other properties
-      // role: UserRole;
-    } & DefaultSession["user"];
-  }
+	interface Session extends DefaultSession {
+		user: {
+			id: string;
+			// ...other properties
+			// role: UserRole;
+		} & DefaultSession["user"];
+	}
 
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
+	// interface User {
+	//   // ...other properties
+	//   // role: UserRole;
+	// }
 }
 
 const providers: Provider[] = [GitHub, DiscordProvider];
 export const providerMap = providers
-  .map((provider) => {
-    if (typeof provider === "function") {
-      const providerData = provider();
-      return { id: providerData.id, name: providerData.name };
-    } else {
-      return { id: provider.id, name: provider.name };
-    }
-  })
-  .filter((provider) => provider.id !== "credentials");
+	.map((provider) => {
+		if (typeof provider === "function") {
+			const providerData = provider();
+			return { id: providerData.id, name: providerData.name };
+		} else {
+			return { id: provider.id, name: provider.name };
+		}
+	})
+	.filter((provider) => provider.id !== "credentials");
 
 /**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
@@ -51,20 +51,20 @@ export const providerMap = providers
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig = {
-  providers,
-  adapter: DrizzleAdapter(db, {
-    usersTable: users,
-    accountsTable: accounts,
-    sessionsTable: sessions,
-    verificationTokensTable: verificationTokens,
-  }),
-  callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-      },
-    }),
-  },
+	providers,
+	adapter: DrizzleAdapter(db, {
+		usersTable: users,
+		accountsTable: accounts,
+		sessionsTable: sessions,
+		verificationTokensTable: verificationTokens,
+	}),
+	callbacks: {
+		session: ({ session, user }) => ({
+			...session,
+			user: {
+				...session.user,
+				id: user.id,
+			},
+		}),
+	},
 } satisfies NextAuthConfig;

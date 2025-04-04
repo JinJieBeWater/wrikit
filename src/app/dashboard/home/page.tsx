@@ -1,8 +1,8 @@
 "use client";
 export default function Page() {
-  return (
-    <>
-      <p>Page content</p>
-    </>
-  );
+	return (
+		<>
+			<p>Page content</p>
+		</>
+	);
 }
