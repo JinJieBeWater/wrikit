@@ -1,12 +1,10 @@
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
-import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import path from "node:path";
 import postgres from "postgres";
 import { afterAll } from "vitest";
 import * as schema from "@/server/db/schema";
-
 
 export async function setupDockerTestDb() {
 	const POSTGRES_USER = "test";

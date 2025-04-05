@@ -15,6 +15,7 @@ import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 import type { TRPCPanelMeta } from "trpc-ui";
 import type { Session } from "next-auth";
+import { env } from "@/env";
 
 /**
  * 1. CONTEXT
@@ -115,7 +116,7 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
 
 	const result = await next();
 
-	if (t._config.isDev && process.env.NODE_ENV !== "test") {
+	if (t._config.isDev && env.NODE_ENV !== "test") {
 		// artificial delay in dev
 		const waitMs = Math.floor(Math.random() * 400) + 100;
 		await new Promise((resolve) => setTimeout(resolve, waitMs));
