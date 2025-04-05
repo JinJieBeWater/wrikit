@@ -8,7 +8,7 @@ nextEnv.loadEnvConfig(process.cwd());
 export default defineConfig({
 	plugins: [tsconfigPaths(), react()],
 	test: {
-		setupFiles: ["./test/setup.ts"],
+		setupFiles: ["./src/test/setup.ts"],
 		server: {
 			deps: {
 				inline: ["next"],
