@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { setupTrpc } from "../utils/setupTrpc";
+import { setupAuthorizedTrpc, setupTrpc } from "../utils/setupTrpc";
 
 describe("post router", async () => {
-	const { caller, callerWithLogin } = await setupTrpc({
+	const { caller } = await setupTrpc();
+	const { callerAuthorized } = await setupAuthorizedTrpc({
 		session: {
-			user: { id: "123", name: "test", email: "test" },
+			user: { id: "1", name: "test" },
 			expires: new Date(Date.now() + 1000 * 60 * 60 * 24).toString(),
 		},
 	});
@@ -24,7 +25,7 @@ describe("post router", async () => {
 	});
 
 	it("returns the secret message if logged in", async () => {
-		const example = await callerWithLogin.post.getSecretMessage();
+		const example = await callerAuthorized.post.getSecretMessage();
 		expect(example).toMatchInlineSnapshot(
 			`"you can now see this secret message!"`,
 		);

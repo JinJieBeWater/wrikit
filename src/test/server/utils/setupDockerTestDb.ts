@@ -7,6 +7,7 @@ import postgres from "postgres";
 import { afterAll } from "vitest";
 import * as schema from "@/server/db/schema";
 
+
 export async function setupDockerTestDb() {
 	const POSTGRES_USER = "test";
 	const POSTGRES_PASSWORD = "test";

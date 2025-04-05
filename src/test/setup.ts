@@ -1,4 +1,8 @@
-import { vi } from "vitest";
+import { beforeAll, vi } from "vitest";
+import type * as schema from "@/server/db/schema";
+import type { StartedPostgreSqlContainer } from "@testcontainers/postgresql";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { setupDockerTestDb } from "./server/utils/setupDockerTestDb";
 
 vi.mock("react", async (importOriginal) => {
 	const testCache = <T extends (...args: Array<unknown>) => unknown>(func: T) =>
@@ -9,3 +13,12 @@ vi.mock("react", async (importOriginal) => {
 		cache: testCache,
 	};
 });
+
+let db: PostgresJsDatabase<typeof schema>;
+
+beforeAll(async () => {
+	const { db: testDb } = await setupDockerTestDb();
+	db = testDb;
+});
+
+export { db };

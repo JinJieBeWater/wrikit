@@ -1,26 +1,28 @@
-import { setupDockerTestDb } from "./setupDockerTestDb";
 import { createContextInner } from "@/server/api/trpc";
 import { appRouter } from "@/server/api/root";
 import type { Session } from "next-auth";
+import { db } from "@/test/setup";
 
-export async function setupTrpc({
-	session = null,
-}: {
-	session: Session | null;
-}) {
-	const { db, client } = await setupDockerTestDb();
-
+export async function setupTrpc() {
 	const ctx = createContextInner({
 		session: null,
 		db: db,
 	});
 	const caller = appRouter.createCaller(ctx);
 
-	const ctxWithSession = createContextInner({
+	return { caller, db };
+}
+
+export async function setupAuthorizedTrpc({
+	session,
+}: {
+	session: Session | null;
+}) {
+	const ctx = createContextInner({
 		session,
 		db: db,
 	});
-	const callerWithLogin = appRouter.createCaller(ctxWithSession);
+	const caller = appRouter.createCaller(ctx);
 
-	return { caller, db, client, callerWithLogin };
+	return { callerAuthorized: caller, db };
 }
