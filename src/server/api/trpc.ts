@@ -14,7 +14,7 @@ import { ZodError } from "zod";
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 import type { TRPCPanelMeta } from "trpc-ui";
-import { Session } from "next-auth";
+import type { Session } from "next-auth";
 
 /**
  * 1. CONTEXT
@@ -51,8 +51,8 @@ export function createContextInner(opts: { session: Session | null }) {
 	const headers = new Headers();
 	return {
 		db,
-		session: opts.session,
 		headers,
+		...opts,
 	};
 }
 
@@ -110,16 +110,18 @@ export const createTRPCRouter = t.router;
 const timingMiddleware = t.middleware(async ({ next, path }) => {
 	const start = Date.now();
 
+	const result = await next();
+
 	if (t._config.isDev) {
 		// artificial delay in dev
 		const waitMs = Math.floor(Math.random() * 400) + 100;
 		await new Promise((resolve) => setTimeout(resolve, waitMs));
+
+		const end = Date.now();
+		console.log(
+			`[TRPC TIMI] artificial delay for ${path} took ⚡️ ${end - start}ms`,
+		);
 	}
-
-	const result = await next();
-
-	const end = Date.now();
-	console.log(`[TRPC TIMI] ${path} took 🐌 ${end - start}ms to execute`);
 
 	return result;
 });
