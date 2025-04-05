@@ -14,7 +14,8 @@ import { ZodError } from "zod";
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 import type { TRPCPanelMeta } from "trpc-ui";
-import { Session } from "next-auth";
+import type { Session } from "next-auth";
+import { env } from "@/env";
 
 /**
  * 1. CONTEXT
@@ -47,12 +48,15 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
  *
  * @see https://trpc.io/docs/v11/context#inner-and-outer-context
  */
-export function createContextInner(opts: { session: Session | null }) {
+export function createContextInner(opts: {
+	session: Session | null;
+	db?: typeof db;
+}) {
 	const headers = new Headers();
 	return {
-		db,
-		session: opts.session,
+		db: opts.db ?? db,
 		headers,
+		...opts,
 	};
 }
 
@@ -110,16 +114,18 @@ export const createTRPCRouter = t.router;
 const timingMiddleware = t.middleware(async ({ next, path }) => {
 	const start = Date.now();
 
-	if (t._config.isDev) {
+	const result = await next();
+
+	if (t._config.isDev && env.NODE_ENV !== "test") {
 		// artificial delay in dev
 		const waitMs = Math.floor(Math.random() * 400) + 100;
 		await new Promise((resolve) => setTimeout(resolve, waitMs));
+
+		const end = Date.now();
+		console.log(
+			`[TRPC TIMI] artificial delay for ${path} took ⚡️ ${end - start}ms`,
+		);
 	}
-
-	const result = await next();
-
-	const end = Date.now();
-	console.log(`[TRPC TIMI] ${path} took 🐌 ${end - start}ms to execute`);
 
 	return result;
 });
