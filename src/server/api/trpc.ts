@@ -47,10 +47,13 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
  *
  * @see https://trpc.io/docs/v11/context#inner-and-outer-context
  */
-export function createContextInner(opts: { session: Session | null }) {
+export function createContextInner(opts: {
+	session: Session | null;
+	db?: typeof db;
+}) {
 	const headers = new Headers();
 	return {
-		db,
+		db: opts.db ?? db,
 		headers,
 		...opts,
 	};
@@ -112,7 +115,7 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
 
 	const result = await next();
 
-	if (t._config.isDev) {
+	if (t._config.isDev && process.env.NODE_ENV !== "test") {
 		// artificial delay in dev
 		const waitMs = Math.floor(Math.random() * 400) + 100;
 		await new Promise((resolve) => setTimeout(resolve, waitMs));
