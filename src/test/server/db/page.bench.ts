@@ -5,6 +5,8 @@ import { eq } from "drizzle-orm";
 import { beforeAll, bench, describe } from "vitest";
 import { createPageWithPagePath } from "@/server/api/utils/page";
 import { setupAuthorizedTrpc } from "../utils/setupTrpc";
+import { createContextInner } from "@/server/api/trpc";
+import { createContext } from "../utils/createContext";
 
 const user = {
 	id: crypto.randomUUID(),
@@ -69,12 +71,11 @@ beforeAll(async () => {
 
 // 邻接表方案
 const adjacencyListTest = async (props: GenerateTreeDataProps) => {
-	const { ctx } = setupAuthorizedTrpc({
-		session: {
-			user: user,
-			expires: new Date(Date.now() + 1000 * 60 * 60 * 24).toString(),
-		},
+	const ctx = createContext({
+		user: user,
+		expires: new Date(Date.now() + 1000 * 60 * 60 * 24).toString(),
 	});
+
 	const root = generateTreeData(props);
 
 	const create = async (node: TestNode) => {
@@ -92,12 +93,11 @@ const adjacencyListTest = async (props: GenerateTreeDataProps) => {
 
 // 闭包表方案
 const closureTableTest = async (props: GenerateTreeDataProps) => {
-	const { ctx } = setupAuthorizedTrpc({
-		session: {
-			user: user,
-			expires: new Date(Date.now() + 1000 * 60 * 60 * 24).toString(),
-		},
+	const ctx = createContext({
+		user: user,
+		expires: new Date(Date.now() + 1000 * 60 * 60 * 24).toString(),
 	});
+
 	const root = generateTreeData(props);
 
 	const create = async (node: TestNode) => {

@@ -2,6 +2,7 @@ import { createContextInner } from "@/server/api/trpc";
 import { createCaller } from "@/server/api/root";
 import type { Session } from "next-auth";
 import { testDB } from "@/test/setup";
+import { createContext } from "./createContext";
 
 export function setupTrpc() {
 	const ctx = createContextInner({
@@ -18,10 +19,7 @@ export function setupAuthorizedTrpc({
 }: {
 	session: Session;
 }) {
-	const ctx = createContextInner({
-		session,
-		db: testDB,
-	});
+	const ctx = createContext(session);
 	const caller = createCaller(ctx);
 
 	return {
