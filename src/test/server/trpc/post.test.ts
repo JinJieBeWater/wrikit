@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { setupAuthorizedTrpc, setupTrpc } from "../utils/setupTrpc";
 import { users } from "@/server/db/schema";
@@ -35,6 +35,7 @@ describe("post router", async () => {
 			name: "test",
 			id: crypto.randomUUID(),
 		};
+
 		const { callerAuthorized, db } = await setupAuthorizedTrpc({
 			session: {
 				user,
