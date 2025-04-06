@@ -1,16 +1,16 @@
 import { createContextInner } from "@/server/api/trpc";
 import { createCaller } from "@/server/api/root";
 import type { Session } from "next-auth";
-import { db } from "@/test/setup";
+import { testDB } from "@/test/setup";
 
 export async function setupTrpc() {
 	const ctx = createContextInner({
 		session: null,
-		db: db,
+		db: testDB,
 	});
 	const caller = createCaller(ctx);
 
-	return { caller, db };
+	return { caller };
 }
 
 interface SetupAuthorizedTrpcProps {
@@ -25,9 +25,9 @@ export async function setupAuthorizedTrpc({
 }: SetupAuthorizedTrpcProps = {}) {
 	const ctx = createContextInner({
 		session,
-		db: db,
+		db: testDB,
 	});
 	const caller = createCaller(ctx);
 
-	return { callerAuthorized: caller, db };
+	return { callerAuthorized: caller };
 }
