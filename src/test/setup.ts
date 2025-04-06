@@ -20,4 +20,4 @@ beforeAll(async () => {
 	db = testDb;
 });
 
-export { db };
+export { db as testDB };
