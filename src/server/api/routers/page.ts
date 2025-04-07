@@ -171,7 +171,7 @@ export const pageRouter = createTRPCRouter({
 		.meta({ description: "创建新页面" })
 		.input(createPageZod)
 		.mutation(async ({ ctx, input }) => {
-			await createPageWithPagePath(ctx, input);
+			return await createPageWithPagePath(ctx, input);
 		}),
 
 	update: protectedProcedure

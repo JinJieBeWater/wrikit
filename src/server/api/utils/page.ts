@@ -12,7 +12,7 @@ export const createPageWithPagePath = async (
 	ctx: Context,
 	input: z.infer<typeof createPageZod>,
 ) => {
-	await ctx.db.transaction(async (trx) => {
+	return await ctx.db.transaction(async (trx) => {
 		const id = input.id ?? crypto.randomUUID();
 		const promises = [];
 
@@ -62,5 +62,7 @@ export const createPageWithPagePath = async (
 			promises.push(addPath({ parentId, id }));
 		}
 		await Promise.all(promises);
+
+		return newPage;
 	});
 };
