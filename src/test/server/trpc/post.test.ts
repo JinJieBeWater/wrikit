@@ -23,7 +23,16 @@ describe("post router", async () => {
 	});
 
 	it("returns the secret message if logged in", async () => {
-		const { callerAuthorized } = setupAuthorizedTrpc();
+		const { callerAuthorized } = setupAuthorizedTrpc({
+			session: {
+				user: {
+					email: "test@test.com",
+					name: "test",
+					id: crypto.randomUUID(),
+				},
+				expires: new Date(Date.now() + 1000 * 60 * 60 * 24).toString(),
+			},
+		});
 
 		const result = await callerAuthorized.post.getSecretMessage();
 		expect(result).toMatchInlineSnapshot(
