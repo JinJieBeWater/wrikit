@@ -7,7 +7,7 @@ import { eq } from "drizzle-orm";
 
 describe("post router", async () => {
 	it("returns the correct greeting", async () => {
-		const { caller } = await setupTrpc();
+		const { caller } = setupTrpc();
 		const result = await caller.post.hello({
 			text: "vitest",
 		});
@@ -15,7 +15,7 @@ describe("post router", async () => {
 	});
 
 	it("throws an error if not logged in", async () => {
-		const { caller } = await setupTrpc();
+		const { caller } = setupTrpc();
 
 		await expect(() =>
 			caller.post.getSecretMessage(),
@@ -23,7 +23,16 @@ describe("post router", async () => {
 	});
 
 	it("returns the secret message if logged in", async () => {
-		const { callerAuthorized } = await setupAuthorizedTrpc();
+		const { callerAuthorized } = setupAuthorizedTrpc({
+			session: {
+				user: {
+					email: "test@test.com",
+					name: "test",
+					id: crypto.randomUUID(),
+				},
+				expires: new Date(Date.now() + 1000 * 60 * 60 * 24).toString(),
+			},
+		});
 
 		const result = await callerAuthorized.post.getSecretMessage();
 		expect(result).toMatchInlineSnapshot(
@@ -42,7 +51,7 @@ describe("post router", async () => {
 	});
 
 	it("should return the latest post", async () => {
-		const { callerAuthorized } = await setupAuthorizedTrpc({
+		const { callerAuthorized } = setupAuthorizedTrpc({
 			session: {
 				user,
 				expires: new Date(Date.now() + 1000 * 60 * 60 * 24).toString(),

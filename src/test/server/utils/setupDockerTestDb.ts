@@ -15,7 +15,7 @@ export async function setupDockerTestDb() {
 	// Ensure you have the pg_uuidv7 docker image locally
 	// You may need to modify pg_uuid's dockerfile to install the extension or build a new image from its base
 	// https://github.com/fboulnois/pg_uuidv7
-	const container = await new PostgreSqlContainer("postgres:latest")
+	const container = await new PostgreSqlContainer("postgres")
 		.withEnvironment({
 			POSTGRES_USER: POSTGRES_USER,
 			POSTGRES_PASSWORD: POSTGRES_PASSWORD,
