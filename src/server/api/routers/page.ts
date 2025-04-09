@@ -1,7 +1,6 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { pages, pagesPath, pagesPinned } from "@/server/db/schema";
-import { PageTypeArray } from "@/types/page";
-import { and, count, eq, inArray, like, or } from "drizzle-orm";
+import { and, count, eq, gt, inArray, like, or } from "drizzle-orm";
 import { z } from "zod";
 import {
 	createPageWithPagePath,
@@ -291,12 +290,22 @@ export const pageRouter = createTRPCRouter({
 									id: true,
 								},
 							});
+							// 断开联系
 							if (isParentDeleted) {
 								await trx
 									.update(pages)
 									.set({ parentId: null })
 									.where(eq(pages.id, input.id));
 							}
+							// 删除所有与当前页面作为子节点的深度大于0的路径
+							await trx
+								.delete(pagesPath)
+								.where(
+									and(
+										eq(pagesPath.descendant, input.id),
+										gt(pagesPath.depth, 0),
+									),
+								);
 						};
 						promises.push(disconnectParent());
 					}
