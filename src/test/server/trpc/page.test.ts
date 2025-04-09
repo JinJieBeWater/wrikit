@@ -421,5 +421,28 @@ describe("Page 路由", async () => {
 
 			await cleanFakeData(callerAuthorized);
 		});
+
+		it("回收页面 应该删除关联的pinned关系", async () => {
+			const { callerAuthorized } = setupAuthorizedTrpc({ session });
+			await createFakeData(callerAuthorized);
+
+			// 添加pinned关系
+			await callerAuthorized.pagePinned.create({
+				pageId: rootPage.id,
+				order: 0,
+			});
+
+			// 回收根节点
+			await callerAuthorized.page.toggleTrash({
+				id: rootPage.id,
+				isDeleted: true,
+			});
+
+			// 验证pinned关系已被删除
+			const pinneds = await callerAuthorized.pagePinned.get();
+			expect(pinneds.length).toBe(0);
+
+			await cleanFakeData(callerAuthorized);
+		});
 	});
 });
