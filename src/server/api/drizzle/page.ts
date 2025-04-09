@@ -1,13 +1,22 @@
 import { pages, pagesPath, users } from "@/server/db/schema";
-import type { z } from "zod";
-import type { createPageZod } from "../routers/page";
+import { z } from "zod";
 import type { createTRPCContext } from "../trpc";
 import type { Session } from "next-auth";
 import { eq } from "drizzle-orm";
+import { PageTypeArray } from "@/types/page";
 
 type Context = Awaited<ReturnType<typeof createTRPCContext>> & {
 	session: Session;
 };
+
+export const createPageZod = z.object({
+	id: z.string().optional().describe("页面id"),
+	type: z.enum(PageTypeArray).describe("页面类型"),
+	name: z.string().optional().describe("页面名称"),
+	content: z.string().optional().describe("页面内容"),
+	parentId: z.string().optional().describe("父页面id"),
+});
+
 export const createPageWithPagePath = async (
 	ctx: Context,
 	input: z.infer<typeof createPageZod>,
@@ -37,6 +46,7 @@ export const createPageWithPagePath = async (
 
 		// 存在父页面时 添加所有父页面到当前页面的路径
 		const parentId = input.parentId;
+
 		if (parentId) {
 			// 获取父页面在当前闭包表中作为子节点的所有路径记录 将depth+1后为当前节点插入路径
 			const addPath = async ({
@@ -51,6 +61,7 @@ export const createPageWithPagePath = async (
 						);
 					},
 				});
+
 				await trx.insert(pagesPath).values(
 					parentPaths.map((path) => ({
 						ancestor: path.ancestor,
@@ -64,5 +75,41 @@ export const createPageWithPagePath = async (
 		await Promise.all(promises);
 
 		return newPage;
+	});
+};
+
+export const getPagePathByAncestorZod = z.object({
+	ancestor: z.string().describe("页面id"),
+});
+
+export const getPagePathByAncestor = async (
+	ctx: Context,
+	input: z.infer<typeof getPagePathByAncestorZod>,
+) => {
+	return await ctx.db.query.pagesPath.findMany({
+		where: (fields, operators) => {
+			return operators.and(operators.eq(fields.ancestor, input.ancestor));
+		},
+		orderBy: (fields, operators) => {
+			return operators.asc(fields.depth);
+		},
+	});
+};
+
+export const getPagePathByDescendantZod = z.object({
+	descendant: z.string().describe("页面id"),
+});
+
+export const getPagePathByDescendant = async (
+	ctx: Context,
+	input: z.infer<typeof getPagePathByDescendantZod>,
+) => {
+	return await ctx.db.query.pagesPath.findMany({
+		where: (fields, operators) => {
+			return operators.and(operators.eq(fields.descendant, input.descendant));
+		},
+		orderBy: (fields, operators) => {
+			return operators.asc(fields.depth);
+		},
 	});
 };

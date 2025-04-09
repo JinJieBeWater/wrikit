@@ -1,17 +1,16 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { pages, pagesPath, pagesPinned } from "@/server/db/schema";
 import { PageTypeArray } from "@/types/page";
-import { and, count, eq, inArray, like } from "drizzle-orm";
+import { and, count, eq, inArray, like, or } from "drizzle-orm";
 import { z } from "zod";
-import { createPageWithPagePath } from "../utils/page";
-
-export const createPageZod = z.object({
-	id: z.string().optional().describe("页面id"),
-	type: z.enum(PageTypeArray).describe("页面类型"),
-	name: z.string().optional().describe("页面名称"),
-	content: z.string().optional().describe("页面内容"),
-	parentId: z.string().optional().describe("父页面id"),
-});
+import {
+	createPageWithPagePath,
+	createPageZod,
+	getPagePathByAncestor,
+	getPagePathByAncestorZod,
+	getPagePathByDescendant,
+	getPagePathByDescendantZod,
+} from "../drizzle/page";
 
 export const pageRouter = createTRPCRouter({
 	get: protectedProcedure
@@ -174,6 +173,20 @@ export const pageRouter = createTRPCRouter({
 			return await createPageWithPagePath(ctx, input);
 		}),
 
+	getPathByAncestor: protectedProcedure
+		.meta({ description: "获取页面在当前闭包表中作为父节点的所有路径记录" })
+		.input(getPagePathByAncestorZod)
+		.query(async ({ ctx, input }) => {
+			return await getPagePathByAncestor(ctx, input);
+		}),
+
+	getPathByDescendant: protectedProcedure
+		.meta({ description: "获取页面在当前闭包表中作为子节点的所有路径记录" })
+		.input(getPagePathByDescendantZod)
+		.query(async ({ ctx, input }) => {
+			return await getPagePathByDescendant(ctx, input);
+		}),
+
 	update: protectedProcedure
 		.input(
 			z.object({
@@ -310,7 +323,7 @@ export const pageRouter = createTRPCRouter({
 	delete: protectedProcedure
 		.input(z.array(z.string()).describe("页面id数组"))
 		.mutation(async ({ ctx, input }) => {
-			await ctx.db.transaction(async (trx) => {
+			return await ctx.db.transaction(async (trx) => {
 				const getAllRelatedPages = async (rootIds: string[]) => {
 					const allPages = [...rootIds];
 					const stack = [...rootIds];
@@ -343,6 +356,16 @@ export const pageRouter = createTRPCRouter({
 					.returning({
 						id: pages.id,
 					});
+
+				// 删除所有相关路径
+				await trx
+					.delete(pagesPath)
+					.where(
+						or(
+							inArray(pagesPath.ancestor, relatedPageIds),
+							inArray(pagesPath.descendant, relatedPageIds),
+						),
+					);
 
 				return { count: result.length };
 			});

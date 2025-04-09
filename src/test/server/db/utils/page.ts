@@ -1,13 +1,19 @@
 import { type PageTypeUnion, PageType } from "@/types/page";
 import { createContext } from "../../utils/createContext";
-import { createPageWithPagePath } from "@/server/api/utils/page";
+import { createPageWithPagePath } from "@/server/api/drizzle/page";
 import { pages } from "@/server/db/schema";
 import { testDB } from "@/test/setup";
+import type { Session } from "next-auth";
 
 export const user = {
 	id: crypto.randomUUID(),
 	name: "test",
 	email: "test@test.com",
+};
+
+export const session: Session = {
+	user,
+	expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toString(),
 };
 
 export interface TestNode {
