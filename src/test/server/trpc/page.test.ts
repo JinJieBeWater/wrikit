@@ -1,67 +1,17 @@
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { testDB } from "@/test/setup";
-import { pages, users, type pagesPath } from "@/server/db/schema";
-import { and, eq, type InferSelectModel } from "drizzle-orm";
-import { session, user } from "../db/utils/page";
+import { pages, users } from "@/server/db/schema";
+import { and, eq } from "drizzle-orm";
+import { session, user } from "../../fake/user";
 import { setupAuthorizedTrpc } from "../utils/setupTrpc";
-import { PageType } from "@/types/page";
-import type { RouterInputs, RouterOutputs } from "@/trpc/react";
-
-beforeAll(async () => {
-	await testDB.insert(users).values(user).returning();
-
-	return async () => {
-		await testDB.delete(pages).where(eq(pages.createdById, user.id));
-
-		await testDB.select().from(pages).where(eq(pages.createdById, user.id));
-
-		await testDB.delete(pages).where(eq(pages.createdById, user.id));
-
-		await testDB.delete(users).where(eq(users.id, user.id));
-	};
-});
-
-const rootPage = {
-	id: "0e5a22c9-6574-4b93-948e-a5c70c3e4266",
-	name: "测试页面",
-	content: "测试页面内容",
-	type: PageType.md,
-} satisfies RouterInputs["page"]["create"];
-
-const child1Page = {
-	id: "13048de8-1564-41e1-b791-49040e3a089a",
-	name: "测试子页面1",
-	content: "测试子页面内容",
-	type: PageType.md,
-	parentId: rootPage.id,
-} satisfies RouterInputs["page"]["create"];
-
-const child2Page = {
-	id: "e250576c-6f33-4ff6-80d1-16e9f2bab6bc",
-	name: "测试子页面2",
-	content: "测试子页面内容",
-	type: PageType.md,
-	parentId: child1Page.id,
-} satisfies RouterInputs["page"]["create"];
-
-const createFakeData = async (
-	callerAuthorized: ReturnType<typeof setupAuthorizedTrpc>["callerAuthorized"],
-) => {
-	await callerAuthorized.page.create(rootPage);
-	await callerAuthorized.page.create(child1Page);
-	await callerAuthorized.page.create(child2Page);
-};
-
-const cleanFakeData = async (
-	callerAuthorized: ReturnType<typeof setupAuthorizedTrpc>["callerAuthorized"],
-) => {
-	const result = await callerAuthorized.page.delete([
-		rootPage.id,
-		child1Page.id,
-		child2Page.id,
-	]);
-	expect(result.count).toBeTypeOf("number");
-};
+import type { RouterOutputs } from "@/trpc/react";
+import {
+	child1Page,
+	child2Page,
+	cleanFakeData,
+	createFakeData,
+	rootPage,
+} from "./utils/page";
 
 const verifyPagePaths = async ({
 	caller,
@@ -86,11 +36,16 @@ const verifyPagePaths = async ({
 };
 
 describe("Page 路由", async () => {
+	beforeEach(async () => {
+		const { callerAuthorized } = setupAuthorizedTrpc({ session });
+		await createFakeData(callerAuthorized);
+		return async () => {
+			await cleanFakeData(callerAuthorized);
+		};
+	});
 	describe("创建页面", () => {
 		it("创建页面并验证路径完整性", async () => {
 			const { callerAuthorized } = setupAuthorizedTrpc({ session });
-			await createFakeData(callerAuthorized);
-
 			// 验证根页面路径
 			await verifyPagePaths({
 				caller: callerAuthorized,
@@ -132,8 +87,6 @@ describe("Page 路由", async () => {
 					{ ancestor: rootPage.id, descendant: child2Page.id, depth: 2 },
 				],
 			});
-
-			await cleanFakeData(callerAuthorized);
 		});
 
 		it("创建页面使用无效的ID应该失效", async () => {
@@ -162,7 +115,6 @@ describe("Page 路由", async () => {
 		it("更新页面名称", async () => {
 			const updateName = "测试页面更新";
 			const { callerAuthorized } = setupAuthorizedTrpc({ session });
-			await createFakeData(callerAuthorized);
 			await callerAuthorized.page.update({
 				id: rootPage.id,
 				name: updateName,
@@ -173,13 +125,11 @@ describe("Page 路由", async () => {
 			});
 
 			expect(pageAfterUpdate?.name).toBe(updateName);
-			await cleanFakeData(callerAuthorized);
 		});
 
 		it("更新页面内容", async () => {
 			const updateContent = "测试页面更新";
 			const { callerAuthorized } = setupAuthorizedTrpc({ session });
-			await createFakeData(callerAuthorized);
 			await callerAuthorized.page.update({
 				id: rootPage.id,
 				content: updateContent,
@@ -190,15 +140,12 @@ describe("Page 路由", async () => {
 			});
 
 			expect(pageAfterUpdate?.content).toBe(updateContent);
-			await cleanFakeData(callerAuthorized);
 		});
 	});
 
 	describe("删除页面", () => {
 		it("删除根节点 则所有子节点包含其路径应该被删除", async () => {
 			const { callerAuthorized } = setupAuthorizedTrpc({ session });
-			// 创建测试数据
-			await createFakeData(callerAuthorized);
 			// 删除根节点
 			await callerAuthorized.page.delete([rootPage.id]);
 			// 验证根节点
@@ -233,8 +180,6 @@ describe("Page 路由", async () => {
 
 		it("删除节点，则与节点相关的所有路径应该被删除", async () => {
 			const { callerAuthorized } = setupAuthorizedTrpc({ session });
-			// 创建测试数据
-			await createFakeData(callerAuthorized);
 			// 删除child2节点
 			await callerAuthorized.page.delete([child2Page.id]);
 
@@ -248,14 +193,10 @@ describe("Page 路由", async () => {
 					descendant: child2Page.id,
 				});
 			expect(child2PageDescendant).toEqual([]);
-
-			await cleanFakeData(callerAuthorized);
 		});
 
 		it("删除节点，不应删除无关的其他路径", async () => {
 			const { callerAuthorized } = setupAuthorizedTrpc({ session });
-			// 创建测试数据
-			await createFakeData(callerAuthorized);
 			// 删除child2节点
 			await callerAuthorized.page.delete([child2Page.id]);
 
@@ -263,8 +204,6 @@ describe("Page 路由", async () => {
 				ancestor: child1Page.id,
 			});
 			expect(child1PageAncestor.length).toBe(1);
-
-			await cleanFakeData(callerAuthorized);
 		});
 
 		it("删除不合法的页面ID应该抛出错误", async () => {
@@ -276,8 +215,6 @@ describe("Page 路由", async () => {
 
 		it("批量删除多个页面应该成功", async () => {
 			const { callerAuthorized } = setupAuthorizedTrpc({ session });
-			await createFakeData(callerAuthorized);
-
 			const result = await callerAuthorized.page.delete([
 				child1Page.id,
 				child2Page.id,
@@ -289,14 +226,10 @@ describe("Page 路由", async () => {
 				id: rootPage.id,
 			});
 			expect(rootPageAfterDelete).toBeDefined();
-
-			await cleanFakeData(callerAuthorized);
 		});
 
 		it("删除子页面不应影响父页面", async () => {
 			const { callerAuthorized } = setupAuthorizedTrpc({ session });
-			await createFakeData(callerAuthorized);
-
 			await callerAuthorized.page.delete([child1Page.id]);
 
 			// 验证父页面仍然存在
@@ -310,15 +243,12 @@ describe("Page 路由", async () => {
 				id: child1Page.id,
 			});
 			expect(deletedPage).toBeUndefined();
-
-			await cleanFakeData(callerAuthorized);
 		});
 	});
 
 	describe("回收页面", () => {
 		it("验证父页面回收后，子页面应该同时被回收", async () => {
 			const { callerAuthorized } = setupAuthorizedTrpc({ session });
-			await createFakeData(callerAuthorized);
 			// 回收根节点
 			await callerAuthorized.page.toggleTrash({
 				id: rootPage.id,
@@ -336,13 +266,10 @@ describe("Page 路由", async () => {
 				.from(pages)
 				.where(eq(pages.isDeleted, false));
 			expect(pagesNotInTrash.length).toBe(0);
-
-			await cleanFakeData(callerAuthorized);
 		});
 
 		it("恢复页面 验证父页面恢复后，子页面应该同时恢复", async () => {
 			const { callerAuthorized } = setupAuthorizedTrpc({ session });
-			await createFakeData(callerAuthorized);
 			// 回收根节点
 			await callerAuthorized.page.toggleTrash({
 				id: rootPage.id,
@@ -366,14 +293,10 @@ describe("Page 路由", async () => {
 				.from(pages)
 				.where(eq(pages.isDeleted, false));
 			expect(pagesNotInTrash.length).toBe(3);
-
-			await cleanFakeData(callerAuthorized);
 		});
 
 		it("单独恢复1级子页面，断开与父页面的联系，同时2级子页面也被恢复", async () => {
 			const { callerAuthorized } = setupAuthorizedTrpc({ session });
-			await createFakeData(callerAuthorized);
-
 			// 回收根节点
 			await callerAuthorized.page.toggleTrash({
 				id: rootPage.id,
@@ -401,14 +324,10 @@ describe("Page 路由", async () => {
 					.from(pages)
 					.where(and(eq(pages.isDeleted, false), eq(pages.id, child2Page.id))),
 			).resolves.toBeDefined();
-
-			await cleanFakeData(callerAuthorized);
 		});
 
 		it("清空回收站 验证回收站中的所有页面已被清空", async () => {
 			const { callerAuthorized } = setupAuthorizedTrpc({ session });
-			await createFakeData(callerAuthorized);
-
 			// 清空回收站
 			await callerAuthorized.page.clearTrash();
 
@@ -418,14 +337,10 @@ describe("Page 路由", async () => {
 				.from(pages)
 				.where(eq(pages.isDeleted, true));
 			expect(pagesInTrash.length).toBe(0);
-
-			await cleanFakeData(callerAuthorized);
 		});
 
 		it("回收页面 应该删除关联的pinned关系", async () => {
 			const { callerAuthorized } = setupAuthorizedTrpc({ session });
-			await createFakeData(callerAuthorized);
-
 			// 添加pinned关系
 			await callerAuthorized.pagePinned.create({
 				pageId: rootPage.id,
@@ -441,8 +356,6 @@ describe("Page 路由", async () => {
 			// 验证pinned关系已被删除
 			const pinneds = await callerAuthorized.pagePinned.get();
 			expect(pinneds.length).toBe(0);
-
-			await cleanFakeData(callerAuthorized);
 		});
 	});
 });

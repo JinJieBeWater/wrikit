@@ -1,9 +1,8 @@
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
-import { drizzle } from "drizzle-orm/postgres-js";
+import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import path from "node:path";
 import postgres from "postgres";
-import { afterAll } from "vitest";
 import * as schema from "@/server/db/schema";
 
 export async function setupDockerTestDb() {
@@ -40,9 +39,5 @@ export async function setupDockerTestDb() {
 		await client.end();
 	};
 
-	afterAll(async () => {
-		await cleanup();
-	});
-
-	return { db, client };
+	return { db, cleanup };
 }
