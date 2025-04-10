@@ -13,7 +13,7 @@ export const PageL2C0 = createPageFactory({
 	parentId: PageL1C0.id,
 });
 
-export const createFakeData = async (
+export const seedPage = async (
 	callerAuthorized: ReturnType<typeof setupAuthorizedTrpc>["callerAuthorized"],
 ) => {
 	await callerAuthorized.page.create(PageL0C0);
@@ -21,7 +21,7 @@ export const createFakeData = async (
 	await callerAuthorized.page.create(PageL2C0);
 };
 
-export const cleanFakeData = async (
+export const cleanSeedPage = async (
 	callerAuthorized: ReturnType<typeof setupAuthorizedTrpc>["callerAuthorized"],
 ) => {
 	const result = await callerAuthorized.page.delete([

@@ -1,20 +1,25 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { session } from "../../fake/user";
 import { setupAuthorizedTrpc } from "../utils/setupTrpc";
-import { cleanFakeData, createFakeData, PageL0C0 } from "./utils/page";
+import { cleanSeedPage, seedPage, PageL0C0 } from "./utils/page";
 
 describe("Page Pinned 路由", async () => {
+	let callerAuthorized: ReturnType<
+		typeof setupAuthorizedTrpc
+	>["callerAuthorized"];
+
+	beforeAll(() => {
+		callerAuthorized = setupAuthorizedTrpc({ session }).callerAuthorized;
+	});
+
 	beforeEach(async () => {
-		const { callerAuthorized } = setupAuthorizedTrpc({ session });
-		await createFakeData(callerAuthorized);
+		await seedPage(callerAuthorized);
 		return async () => {
-			await cleanFakeData(callerAuthorized);
+			await cleanSeedPage(callerAuthorized);
 		};
 	});
 
 	it("固定功能常规测试", async () => {
-		const { callerAuthorized } = setupAuthorizedTrpc({ session });
-
 		// 添加pinned关系
 		await callerAuthorized.pagePinned.create({
 			pageId: PageL0C0.id,

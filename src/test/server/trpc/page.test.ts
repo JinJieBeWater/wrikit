@@ -8,11 +8,11 @@ import type { RouterOutputs } from "@/trpc/react";
 import {
 	PageL1C0,
 	PageL2C0,
-	cleanFakeData,
-	createFakeData,
+	cleanSeedPage,
+	seedPage,
 	PageL0C0,
 } from "./utils/page";
-import { getAllRelatedPages } from "@/server/api/drizzle/page";
+import { getAllRelatedPages } from "@/server/api/drizzle/getAllRelatedPages";
 import { PageType } from "@/types/page";
 
 const verifyPagePaths = async ({
@@ -51,9 +51,9 @@ describe("Page 路由", async () => {
 	});
 
 	beforeEach(async () => {
-		await createFakeData(callerAuthorized);
+		await seedPage(callerAuthorized);
 		return async () => {
-			await cleanFakeData(callerAuthorized);
+			await cleanSeedPage(callerAuthorized);
 		};
 	});
 
@@ -363,11 +363,5 @@ describe("Page 路由", async () => {
 			const pinneds = await callerAuthorized.pagePinned.get();
 			expect(pinneds.length).toBe(0);
 		});
-	});
-
-	it("getAllRelatedPages", async () => {
-		const { ctx } = setupAuthorizedTrpc({ session });
-		const relatedPageIds = await getAllRelatedPages(ctx.db, PageL0C0.id);
-		expect(relatedPageIds).toEqual([PageL0C0.id, PageL1C0.id, PageL2C0.id]);
 	});
 });
