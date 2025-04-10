@@ -48,7 +48,7 @@ export function PurePageAction({
 				<DropdownMenuItem
 					onClick={() => {
 						if (isPinned) {
-							deletePinned.mutate({ pageId: page.id });
+							deletePinned.mutate([page.id]);
 						} else {
 							createPinned.mutate({ pageId: page.id });
 						}

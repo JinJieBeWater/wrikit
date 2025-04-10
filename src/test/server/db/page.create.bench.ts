@@ -7,8 +7,8 @@ import {
 	adjacencyListCreate,
 	closureTableCreate,
 	generateTreeData,
-	user,
 } from "./utils/page";
+import { user } from "../../fake/user";
 
 beforeAll(async () => {
 	await testDB.insert(users).values(user).returning();

@@ -1,14 +1,9 @@
 import { type PageTypeUnion, PageType } from "@/types/page";
 import { createContext } from "../../utils/createContext";
-import { createPageWithPagePath } from "@/server/api/utils/page";
+import { createPageWithPagePath } from "@/server/api/drizzle/page";
 import { pages } from "@/server/db/schema";
 import { testDB } from "@/test/setup";
-
-export const user = {
-	id: crypto.randomUUID(),
-	name: "test",
-	email: "test@test.com",
-};
+import { user } from "../../../fake/user";
 
 export interface TestNode {
 	id: string;

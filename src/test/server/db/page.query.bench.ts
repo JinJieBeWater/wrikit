@@ -2,7 +2,8 @@ import { users, pages } from "@/server/db/schema";
 import { testDB } from "@/test/setup";
 import { eq, inArray } from "drizzle-orm";
 import { beforeAll, bench, describe } from "vitest";
-import { adjacencyListCreate, generateTreeData, user } from "./utils/page";
+import { adjacencyListCreate, generateTreeData } from "./utils/page";
+import { user } from "../../fake/user";
 import type { Page } from "@/types/page";
 
 const case_1_depth_0 = generateTreeData({

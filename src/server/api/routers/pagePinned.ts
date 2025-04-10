@@ -1,5 +1,5 @@
 import { pagesPinned } from "@/server/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 
@@ -53,14 +53,10 @@ export const pagePinnedRouter = createTRPCRouter({
 		}),
 
 	delete: protectedProcedure
-		.input(
-			z.object({
-				pageId: z.string().describe("页面id"),
-			}),
-		)
+		.input(z.array(z.string()).describe("页面id数组"))
 		.mutation(async ({ ctx, input }) => {
 			await ctx.db
 				.delete(pagesPinned)
-				.where(eq(pagesPinned.pageId, input.pageId));
+				.where(inArray(pagesPinned.pageId, input));
 		}),
 });

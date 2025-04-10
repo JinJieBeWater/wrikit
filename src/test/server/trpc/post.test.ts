@@ -1,9 +1,13 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
-
+import { afterAll, describe, expect, it } from "vitest";
 import { setupAuthorizedTrpc, setupTrpc } from "../utils/setupTrpc";
 import { posts, users } from "@/server/db/schema";
 import { testDB } from "@/test/setup";
 import { eq } from "drizzle-orm";
+import { user } from "../../fake/user";
+
+afterAll(async () => {
+	await testDB.delete(users).where(eq(users.id, user.id));
+});
 
 describe("post router", async () => {
 	it("returns the correct greeting", async () => {
@@ -40,16 +44,6 @@ describe("post router", async () => {
 		);
 	});
 
-	const user = {
-		email: "test@test.com",
-		name: "test",
-		id: crypto.randomUUID(),
-	};
-
-	beforeAll(async () => {
-		await testDB.insert(users).values(user);
-	});
-
 	it("should return the latest post", async () => {
 		const { callerAuthorized } = setupAuthorizedTrpc({
 			session: {
@@ -62,10 +56,8 @@ describe("post router", async () => {
 
 		const result = await callerAuthorized.post.getLatest();
 		expect(result).toMatchObject({ name: "test" });
-	});
-
-	afterAll(async () => {
-		await testDB.delete(posts).where(eq(posts.createdById, user.id));
-		await testDB.delete(users).where(eq(users.id, user.id));
+		if (result?.id) {
+			await testDB.delete(posts).where(eq(posts.id, result?.id));
+		}
 	});
 });
