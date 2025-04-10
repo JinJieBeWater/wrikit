@@ -58,6 +58,9 @@ export const authConfig = {
 		sessionsTable: sessions,
 		verificationTokensTable: verificationTokens,
 	}),
+	pages: {
+		signIn: "/auth/signIn",
+	},
 	callbacks: {
 		session: ({ session, user }) => ({
 			...session,
