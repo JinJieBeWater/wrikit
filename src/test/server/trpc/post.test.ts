@@ -9,7 +9,7 @@ afterAll(async () => {
 	await testDB.delete(users).where(eq(users.id, user.id));
 });
 
-describe("post router", async () => {
+describe("Post 路由", async () => {
 	let callerAuthorized: ReturnType<
 		typeof setupAuthorizedTrpc
 	>["callerAuthorized"];
@@ -20,27 +20,27 @@ describe("post router", async () => {
 		caller = setupTrpc().caller;
 	});
 
-	it("returns the correct greeting", async () => {
+	it("当调用hello方法时，应该返回正确的问候语", async () => {
 		const result = await caller.post.hello({
 			text: "vitest",
 		});
 		expect(result).toMatchObject({ greeting: "Hello vitest" });
 	});
 
-	it("throws an error if not logged in", async () => {
+	it("当未登录用户访问受保护资源时，应该抛出未授权错误", async () => {
 		await expect(() =>
 			caller.post.getSecretMessage(),
 		).rejects.toThrowErrorMatchingInlineSnapshot("[TRPCError: UNAUTHORIZED]");
 	});
 
-	it("returns the secret message if logged in", async () => {
+	it("当已登录用户访问受保护资源时，应该返回秘密信息", async () => {
 		const result = await callerAuthorized.post.getSecretMessage();
 		expect(result).toMatchInlineSnapshot(
 			`"you can now see this secret message!"`,
 		);
 	});
 
-	it("should return the latest post", async () => {
+	it("当创建帖子后获取最新帖子时，应该返回刚创建的帖子", async () => {
 		await callerAuthorized.post.create({ name: "test" });
 
 		const result = await callerAuthorized.post.getLatest();

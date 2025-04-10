@@ -19,7 +19,7 @@ describe("Page Pinned 路由", async () => {
 		};
 	});
 
-	it("固定功能常规测试", async () => {
+	it("当添加和删除固定页面时，应该正确处理固定关系", async () => {
 		// 添加pinned关系
 		await callerAuthorized.pagePinned.create({
 			pageId: PageL0C0.id,

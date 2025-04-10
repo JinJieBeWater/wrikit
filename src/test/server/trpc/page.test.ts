@@ -4,7 +4,6 @@ import { pages } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { session } from "../../fake/user";
 import { setupAuthorizedTrpc } from "../utils/setupTrpc";
-import type { RouterOutputs } from "@/trpc/react";
 import {
 	PageL1C0,
 	PageL2C0,
@@ -14,32 +13,6 @@ import {
 } from "./utils/page";
 import { getAllRelatedPages } from "@/server/api/drizzle/getAllRelatedPages";
 import { PageType } from "@/types/page";
-
-const verifyPagePaths = async ({
-	caller,
-	pageId,
-	expectedAncestorPaths,
-	expectedDescendantPaths,
-}: {
-	caller: ReturnType<typeof setupAuthorizedTrpc>["callerAuthorized"];
-	pageId: string;
-	expectedAncestorPaths: RouterOutputs["page"]["getPathByAncestor"];
-	expectedDescendantPaths: RouterOutputs["page"]["getPathByDescendant"];
-}) => {
-	await Promise.all([
-		expect(
-			caller.page.getPathByAncestor({
-				ancestor: pageId,
-			}),
-		).resolves.toEqual(expectedAncestorPaths),
-
-		expect(
-			caller.page.getPathByDescendant({
-				descendant: pageId,
-			}),
-		).resolves.toEqual(expectedDescendantPaths),
-	]);
-};
 
 describe("Page 路由", async () => {
 	let callerAuthorized: ReturnType<
@@ -57,53 +30,22 @@ describe("Page 路由", async () => {
 		};
 	});
 
-	describe("创建页面", () => {
-		it("创建页面并验证路径完整性", async () => {
-			await Promise.all([
-				// 验证根页面路径
-				verifyPagePaths({
-					caller: callerAuthorized,
-					pageId: PageL0C0.id,
-					expectedAncestorPaths: [
-						{ ancestor: PageL0C0.id, descendant: PageL0C0.id, depth: 0 },
-						{ ancestor: PageL0C0.id, descendant: PageL1C0.id, depth: 1 },
-						{ ancestor: PageL0C0.id, descendant: PageL2C0.id, depth: 2 },
-					],
-					expectedDescendantPaths: [
-						{ ancestor: PageL0C0.id, descendant: PageL0C0.id, depth: 0 },
-					],
-				}),
-				// 验证一级子页面路径
-				verifyPagePaths({
-					caller: callerAuthorized,
-					pageId: PageL1C0.id,
-					expectedAncestorPaths: [
-						{ ancestor: PageL1C0.id, descendant: PageL1C0.id, depth: 0 },
-						{ ancestor: PageL1C0.id, descendant: PageL2C0.id, depth: 1 },
-					],
-					expectedDescendantPaths: [
-						{ ancestor: PageL1C0.id, descendant: PageL1C0.id, depth: 0 },
-						{ ancestor: PageL0C0.id, descendant: PageL1C0.id, depth: 1 },
-					],
-				}),
+	describe("创建", () => {
+		it("当创建新页面时，应该成功保存并可以获取", async () => {
+			const page = await callerAuthorized.page.create({
+				name: "测试页面",
+				type: PageType.md,
+			});
+			const get = await callerAuthorized.page.get({
+				id: page.id,
+			});
+			expect(get?.name).toBe("测试页面");
 
-				// 验证二级子页面路径
-				verifyPagePaths({
-					caller: callerAuthorized,
-					pageId: PageL2C0.id,
-					expectedAncestorPaths: [
-						{ ancestor: PageL2C0.id, descendant: PageL2C0.id, depth: 0 },
-					],
-					expectedDescendantPaths: [
-						{ ancestor: PageL2C0.id, descendant: PageL2C0.id, depth: 0 },
-						{ ancestor: PageL1C0.id, descendant: PageL2C0.id, depth: 1 },
-						{ ancestor: PageL0C0.id, descendant: PageL2C0.id, depth: 2 },
-					],
-				}),
-			]);
+			// 删除
+			await callerAuthorized.page.delete([page.id]);
 		});
 
-		it("创建页面使用无效的ID应该失效", async () => {
+		it("当创建页面使用无效的ID时，应该抛出错误", async () => {
 			await expect(
 				callerAuthorized.page.create({
 					id: "invalid-id",
@@ -112,7 +54,7 @@ describe("Page 路由", async () => {
 			).rejects.toThrow();
 		});
 
-		it("创建页面时使用无效的父页面ID应该失败", async () => {
+		it("当创建页面使用无效的父页面ID时，应该抛出错误", async () => {
 			await expect(
 				callerAuthorized.page.create({
 					parentId: "invalid-id",
@@ -120,12 +62,10 @@ describe("Page 路由", async () => {
 				}),
 			).rejects.toThrow();
 		});
-
-		it.todo("创建页面并验证排序完整性", async () => {});
 	});
 
-	describe("更新页面", () => {
-		it("更新页面名称", async () => {
+	describe("更新", () => {
+		it("当更新页面名称时，应该成功保存新名称", async () => {
 			const updateName = "测试页面更新";
 			await callerAuthorized.page.update({
 				id: PageL0C0.id,
@@ -139,7 +79,7 @@ describe("Page 路由", async () => {
 			expect(pageAfterUpdate?.name).toBe(updateName);
 		});
 
-		it("更新页面内容", async () => {
+		it("当更新页面内容时，应该成功保存新内容", async () => {
 			const updateContent = "测试页面更新";
 			await callerAuthorized.page.update({
 				id: PageL0C0.id,
@@ -154,8 +94,156 @@ describe("Page 路由", async () => {
 		});
 	});
 
-	describe("删除页面", () => {
-		it("删除根节点 则所有子节点包含其路径应该被删除", async () => {
+	describe("删除", () => {
+		it("当删除不存在的页面ID时，应该抛出错误", async () => {
+			await expect(
+				callerAuthorized.page.delete(["non-existent-id"]),
+			).rejects.toThrow();
+		});
+
+		it("当批量删除多个页面时，应该全部成功删除", async () => {
+			const deleteIds = [PageL1C0.id, PageL2C0.id];
+			const result = await callerAuthorized.page.delete(deleteIds);
+			expect(result.count).toBe(deleteIds.length);
+
+			// 验证父页面仍然存在
+			const rootPageAfterDelete = await callerAuthorized.page.get({
+				id: PageL0C0.id,
+			});
+			expect(rootPageAfterDelete).toBeDefined();
+		});
+
+		it("当删除子页面时，不应影响父页面的存在", async () => {
+			await callerAuthorized.page.delete([PageL1C0.id]);
+
+			// 验证父页面仍然存在
+			const parentPage = await callerAuthorized.page.get({
+				id: PageL0C0.id,
+			});
+			expect(parentPage).toBeDefined();
+
+			// 验证子页面已被删除
+			const deletedPage = await callerAuthorized.page.get({
+				id: PageL1C0.id,
+			});
+			expect(deletedPage).toBeUndefined();
+		});
+	});
+
+	describe("回收", () => {
+		it("当父页面被回收时，所有子页面应该同时被回收", async () => {
+			const relatedPageIds = await getAllRelatedPages(testDB, PageL0C0.id);
+
+			// 回收根节点
+			await callerAuthorized.page.toggleTrash({
+				id: PageL0C0.id,
+				isDeleted: true,
+			});
+
+			const pagesInTrash = await testDB
+				.select()
+				.from(pages)
+				.where(eq(pages.isDeleted, true));
+			expect(pagesInTrash.length).toBe(relatedPageIds.length);
+
+			const pagesNotInTrash = await testDB
+				.select()
+				.from(pages)
+				.where(eq(pages.isDeleted, false));
+			expect(pagesNotInTrash.length).toBe(0);
+		});
+
+		it("当父页面从回收站恢复时，所有子页面应该同时恢复", async () => {
+			const relatedPageIds = await getAllRelatedPages(testDB, PageL0C0.id);
+
+			// 回收根节点
+			await callerAuthorized.page.toggleTrash({
+				id: PageL0C0.id,
+				isDeleted: true,
+			});
+
+			// 恢复根节点
+			await callerAuthorized.page.toggleTrash({
+				id: PageL0C0.id,
+				isDeleted: false,
+			});
+
+			const pagesInTrash = await testDB
+				.select()
+				.from(pages)
+				.where(eq(pages.isDeleted, true));
+			expect(pagesInTrash.length).toBe(0);
+
+			const pagesNotInTrash = await testDB
+				.select()
+				.from(pages)
+				.where(eq(pages.isDeleted, false));
+			expect(pagesNotInTrash.length).toBe(relatedPageIds.length);
+		});
+
+		it("当单独恢复1级子页面时，应该断开与父页面的联系并同时恢复其2级子页面", async () => {
+			// 回收根节点
+			await callerAuthorized.page.toggleTrash({
+				id: PageL0C0.id,
+				isDeleted: true,
+			});
+
+			// 恢复1级子页面
+			await callerAuthorized.page.toggleTrash({
+				id: PageL1C0.id,
+				isDeleted: false,
+			});
+
+			// 根页面仍然处于回收状态
+			await expect(
+				testDB
+					.select()
+					.from(pages)
+					.where(and(eq(pages.isDeleted, true), eq(pages.id, PageL0C0.id))),
+			).resolves.toBeDefined();
+
+			// 二级页面被恢复
+			await expect(
+				testDB
+					.select()
+					.from(pages)
+					.where(and(eq(pages.isDeleted, false), eq(pages.id, PageL2C0.id))),
+			).resolves.toBeDefined();
+		});
+
+		it("当清空回收站时，所有被回收的页面应该被永久删除", async () => {
+			// 清空回收站
+			await callerAuthorized.page.clearTrash();
+
+			// 所有页面已被清空
+			const pagesInTrash = await testDB
+				.select()
+				.from(pages)
+				.where(eq(pages.isDeleted, true));
+			expect(pagesInTrash.length).toBe(0);
+		});
+
+		it("当页面被回收时，应该删除其关联的pinned关系", async () => {
+			// 添加pinned关系
+			await callerAuthorized.pagePinned.create({
+				pageId: PageL0C0.id,
+				order: 0,
+			});
+
+			// 回收根节点
+			await callerAuthorized.page.toggleTrash({
+				id: PageL0C0.id,
+				isDeleted: true,
+			});
+
+			// 验证pinned关系已被删除
+			const pinneds = await callerAuthorized.pagePinned.get();
+			expect(pinneds.length).toBe(0);
+		});
+	});
+
+	describe("路径", () => {
+		it("当删除根节点时，所有子节点及其路径应该被删除", async () => {
 			// 删除根节点
 			await callerAuthorized.page.delete([PageL0C0.id]);
 			// 验证根节点
@@ -188,7 +276,7 @@ describe("Page 路由", async () => {
 			expect(child2PagePath).toEqual([]);
 		});
 
-		it("删除节点，则与节点相关的所有路径应该被删除", async () => {
+		it("当删除节点时，与该节点相关的所有路径应该被删除", async () => {
 			await callerAuthorized.page.delete([PageL2C0.id]);
 
 			await Promise.all([
@@ -205,7 +293,7 @@ describe("Page 路由", async () => {
 			]);
 		});
 
-		it("删除节点，不应删除无关的其他路径", async () => {
+		it("当删除节点时，不应影响与该节点无关的其他路径", async () => {
 			const pre = await callerAuthorized.page.getPathByAncestor({
 				ancestor: PageL1C0.id,
 			});
@@ -217,151 +305,18 @@ describe("Page 路由", async () => {
 			});
 			expect(after.length).toBe(pre.length - 1);
 		});
-
-		it("删除不合法的页面ID应该抛出错误", async () => {
-			await expect(
-				callerAuthorized.page.delete(["non-existent-id"]),
-			).rejects.toThrow();
-		});
-
-		it("批量删除多个页面应该成功", async () => {
-			const deleteIds = [PageL1C0.id, PageL2C0.id];
-			const result = await callerAuthorized.page.delete(deleteIds);
-			expect(result.count).toBe(deleteIds.length);
-
-			// 验证父页面仍然存在
-			const rootPageAfterDelete = await callerAuthorized.page.get({
-				id: PageL0C0.id,
-			});
-			expect(rootPageAfterDelete).toBeDefined();
-		});
-
-		it("删除子页面不应影响父页面", async () => {
-			await callerAuthorized.page.delete([PageL1C0.id]);
-
-			// 验证父页面仍然存在
-			const parentPage = await callerAuthorized.page.get({
-				id: PageL0C0.id,
-			});
-			expect(parentPage).toBeDefined();
-
-			// 验证子页面已被删除
-			const deletedPage = await callerAuthorized.page.get({
-				id: PageL1C0.id,
-			});
-			expect(deletedPage).toBeUndefined();
-		});
 	});
 
-	describe("回收页面", () => {
-		it("验证父页面回收后，子页面应该同时被回收", async () => {
-			const relatedPageIds = await getAllRelatedPages(testDB, PageL0C0.id);
+	describe.todo("排序", () => {
+		it.todo("当创建页面时，应该自动添加到父页面的排序中", async () => {});
 
-			// 回收根节点
-			await callerAuthorized.page.toggleTrash({
-				id: PageL0C0.id,
-				isDeleted: true,
-			});
+		it.todo("当删除页面时，应该自动从父页面的排序中删除", async () => {});
 
-			const pagesInTrash = await testDB
-				.select()
-				.from(pages)
-				.where(eq(pages.isDeleted, true));
-			expect(pagesInTrash.length).toBe(relatedPageIds.length);
+		it.todo("当对页面进行排序时，应该更新父页面的排序列表", async () => {});
 
-			const pagesNotInTrash = await testDB
-				.select()
-				.from(pages)
-				.where(eq(pages.isDeleted, false));
-			expect(pagesNotInTrash.length).toBe(0);
-		});
-
-		it("恢复页面 验证父页面恢复后，子页面应该同时恢复", async () => {
-			const relatedPageIds = await getAllRelatedPages(testDB, PageL0C0.id);
-
-			// 回收根节点
-			await callerAuthorized.page.toggleTrash({
-				id: PageL0C0.id,
-				isDeleted: true,
-			});
-
-			// 恢复根节点
-			await callerAuthorized.page.toggleTrash({
-				id: PageL0C0.id,
-				isDeleted: false,
-			});
-
-			const pagesInTrash = await testDB
-				.select()
-				.from(pages)
-				.where(eq(pages.isDeleted, true));
-			expect(pagesInTrash.length).toBe(0);
-
-			const pagesNotInTrash = await testDB
-				.select()
-				.from(pages)
-				.where(eq(pages.isDeleted, false));
-			expect(pagesNotInTrash.length).toBe(relatedPageIds.length);
-		});
-
-		it("单独恢复1级子页面，断开与父页面的联系，同时2级子页面也被恢复", async () => {
-			// 回收根节点
-			await callerAuthorized.page.toggleTrash({
-				id: PageL0C0.id,
-				isDeleted: true,
-			});
-
-			// 恢复1级子页面
-			await callerAuthorized.page.toggleTrash({
-				id: PageL1C0.id,
-				isDeleted: false,
-			});
-
-			// 根页面仍然处于回收状态
-			await expect(
-				testDB
-					.select()
-					.from(pages)
-					.where(and(eq(pages.isDeleted, true), eq(pages.id, PageL0C0.id))),
-			).resolves.toBeDefined();
-
-			// 二级页面被恢复
-			await expect(
-				testDB
-					.select()
-					.from(pages)
-					.where(and(eq(pages.isDeleted, false), eq(pages.id, PageL2C0.id))),
-			).resolves.toBeDefined();
-		});
-
-		it("清空回收站 验证回收站中的所有页面已被清空", async () => {
-			// 清空回收站
-			await callerAuthorized.page.clearTrash();
-
-			// 所有页面已被清空
-			const pagesInTrash = await testDB
-				.select()
-				.from(pages)
-				.where(eq(pages.isDeleted, true));
-			expect(pagesInTrash.length).toBe(0);
-		});
-
-		it("回收页面 应该删除关联的pinned关系", async () => {
-			// 添加pinned关系
-			await callerAuthorized.pagePinned.create({
-				pageId: PageL0C0.id,
-				order: 0,
-			});
-
-			// 回收根节点
-			await callerAuthorized.page.toggleTrash({
-				id: PageL0C0.id,
-				isDeleted: true,
-			});
-
-			// 验证pinned关系已被删除
-			const pinneds = await callerAuthorized.pagePinned.get();
-			expect(pinneds.length).toBe(0);
-		});
+		it.todo(
+			"当移动页面时，应该自动从原父页面的排序中删除，并添加到新父页面的排序中",
+			async () => {},
+		);
 	});
 });

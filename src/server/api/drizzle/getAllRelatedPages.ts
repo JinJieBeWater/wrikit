@@ -15,5 +15,6 @@ export const getAllRelatedPages = async (db: DB, rootId: string | string[]) => {
 		},
 	});
 	const relatedPageIds = relatedPage.map((r) => r.descendant);
-	return relatedPageIds;
+	const uniqueRelatedPageIds = [...new Set(relatedPageIds)];
+	return uniqueRelatedPageIds;
 };
