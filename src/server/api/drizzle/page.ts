@@ -1,7 +1,8 @@
-import { pages, pagesPath } from "@/server/db/schema";
+import { pageOrders, pages, pagesPath } from "@/server/db/schema";
 import { z } from "zod";
 import { PageTypeArray } from "@/types/page";
 import type { Context, DB } from ".";
+import { eq } from "drizzle-orm";
 
 export const createPageZod = z.object({
 	id: z.string().optional().describe("页面id"),
@@ -38,9 +39,7 @@ export const createPageWithPagePath = async (
 			}),
 		);
 
-		// 存在父页面时 添加所有父页面到当前页面的路径
 		const parentId = input.parentId;
-
 		if (parentId) {
 			// 获取父页面在当前闭包表中作为子节点的所有路径记录 将depth+1后为当前节点插入路径
 			const addPath = async ({
@@ -65,6 +64,32 @@ export const createPageWithPagePath = async (
 				);
 			};
 			promises.push(addPath({ parentId, id }));
+
+			// 插入页面排序记录
+			const addOrder = async ({
+				parentId,
+				id,
+			}: { parentId: string; id: string }) => {
+				const orders = await trx.query.pageOrders.findFirst({
+					where: (fields, operators) => {
+						return operators.and(operators.eq(fields.parentId, parentId));
+					},
+				});
+				if (!orders) {
+					await trx.insert(pageOrders).values({
+						parentId,
+						orderedIds: [id],
+					});
+				} else {
+					await trx
+						.update(pageOrders)
+						.set({
+							orderedIds: orders.orderedIds.concat(id),
+						})
+						.where(eq(pageOrders.parentId, parentId));
+				}
+			};
+			promises.push(addOrder({ parentId, id }));
 		}
 		await Promise.all(promises);
 
@@ -72,7 +97,9 @@ export const createPageWithPagePath = async (
 	});
 };
 
-// 获取所有相关页面
+/**
+ * 获取所有相关页面
+ */
 export const getAllRelatedPages = async (db: DB, rootId: string | string[]) => {
 	const ids = Array.isArray(rootId) ? rootId : [rootId];
 	const relatedPage = await db.query.pagesPath.findMany({
@@ -91,6 +118,9 @@ export const getPagePathByAncestorZod = z.object({
 	ancestor: z.string().describe("页面id"),
 });
 
+/**
+ * 获取页面在当前闭包表中作为父节点的所有路径记录
+ */
 export const getPagePathByAncestor = async (
 	db: DB,
 	input: z.infer<typeof getPagePathByAncestorZod>,
@@ -109,6 +139,9 @@ export const getPagePathByDescendantZod = z.object({
 	descendant: z.string().describe("页面id"),
 });
 
+/**
+ * 获取页面在当前闭包表中作为子节点的所有路径记录
+ */
 export const getPagePathByDescendant = async (
 	db: DB,
 	input: z.infer<typeof getPagePathByDescendantZod>,

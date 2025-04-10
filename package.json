@@ -109,6 +109,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
+		"@faker-js/faker": "^9.6.0",
 		"@next/env": "^15.2.4",
 		"@testcontainers/postgresql": "^10.24.0",
 		"@testing-library/dom": "^10.4.0",
