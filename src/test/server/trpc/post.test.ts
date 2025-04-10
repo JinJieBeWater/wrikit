@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { setupAuthorizedTrpc, setupTrpc } from "../utils/setupTrpc";
-import { users } from "@/server/db/schema";
+import { posts, users } from "@/server/db/schema";
 import { testDB } from "@/test/setup";
 import { eq } from "drizzle-orm";
 import { user } from "../../fake/user";
@@ -56,5 +56,8 @@ describe("post router", async () => {
 
 		const result = await callerAuthorized.post.getLatest();
 		expect(result).toMatchObject({ name: "test" });
+		if (result?.id) {
+			await testDB.delete(posts).where(eq(posts.id, result?.id));
+		}
 	});
 });
