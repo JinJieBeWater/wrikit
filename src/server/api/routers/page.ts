@@ -5,6 +5,7 @@ import { z } from "zod";
 import {
 	createPageWithPagePath,
 	createPageZod,
+	getAllRelatedPages,
 	getPagePathByAncestor,
 	getPagePathByAncestorZod,
 	getPagePathByDescendant,
@@ -176,14 +177,14 @@ export const pageRouter = createTRPCRouter({
 		.meta({ description: "获取页面在当前闭包表中作为父节点的所有路径记录" })
 		.input(getPagePathByAncestorZod)
 		.query(async ({ ctx, input }) => {
-			return await getPagePathByAncestor(ctx, input);
+			return await getPagePathByAncestor(ctx.db, input);
 		}),
 
 	getPathByDescendant: protectedProcedure
 		.meta({ description: "获取页面在当前闭包表中作为子节点的所有路径记录" })
 		.input(getPagePathByDescendantZod)
 		.query(async ({ ctx, input }) => {
-			return await getPagePathByDescendant(ctx, input);
+			return await getPagePathByDescendant(ctx.db, input);
 		}),
 
 	update: protectedProcedure
@@ -219,33 +220,6 @@ export const pageRouter = createTRPCRouter({
 		)
 		.mutation(async ({ ctx, input }) => {
 			await ctx.db.transaction(async (trx) => {
-				// 获取所有相关页面
-				const getAllRelatedPages = async (rootId: string) => {
-					const allPages = [];
-					const stack = [rootId];
-
-					while (stack.length > 0) {
-						const childPages = await trx.query.pages.findMany({
-							where(fields, operators) {
-								return operators.and(
-									operators.inArray(fields.parentId, stack),
-									operators.eq(fields.isDeleted, !input.isDeleted),
-								);
-							},
-							columns: {
-								id: true,
-							},
-						});
-						// 清空stack
-						stack.length = 0;
-						const childPageIds = childPages.map((p) => p.id);
-						allPages.push(...childPageIds);
-						stack.push(...childPageIds);
-					}
-
-					return allPages;
-				};
-
 				// 批量更新页面状态
 				const updatePages = async (pageIds: string[]) => {
 					await trx
@@ -262,16 +236,16 @@ export const pageRouter = createTRPCRouter({
 				};
 
 				// 获取所有相关页面ID
-				const relatedPageIds = await getAllRelatedPages(input.id);
+				const relatedPageIds = await getAllRelatedPages(trx, input.id);
 
 				// 更新所有相关页面
 				const promises = [];
-				promises.push(updatePages([input.id, ...relatedPageIds]));
+				promises.push(updatePages(relatedPageIds));
 
 				// 如果是删除操作
 				if (input.isDeleted) {
 					// 需要删除pinned关系
-					promises.push(deletePinned([input.id, ...relatedPageIds]));
+					promises.push(deletePinned(relatedPageIds));
 				}
 				// 如果是还原操作
 				if (!input.isDeleted) {
@@ -333,30 +307,8 @@ export const pageRouter = createTRPCRouter({
 		.input(z.array(z.string()).describe("页面id数组"))
 		.mutation(async ({ ctx, input }) => {
 			return await ctx.db.transaction(async (trx) => {
-				const getAllRelatedPages = async (rootIds: string[]) => {
-					const allPages = [...rootIds];
-					const stack = [...rootIds];
-
-					while (stack.length > 0) {
-						const childPages = await trx.query.pages.findMany({
-							where(fields, operators) {
-								return operators.and(operators.inArray(fields.parentId, stack));
-							},
-							columns: {
-								id: true,
-							},
-						});
-						// 清空stack
-						stack.length = 0;
-						const childPageIds = childPages.map((p) => p.id);
-						allPages.push(...childPageIds);
-						stack.push(...childPageIds);
-					}
-
-					return allPages;
-				};
-
-				const relatedPageIds = await getAllRelatedPages(input);
+				// 获取所有相关页面ID
+				const relatedPageIds = await getAllRelatedPages(trx, input);
 
 				// 删除所有相关页面
 				const result = await trx

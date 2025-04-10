@@ -1,8 +1,8 @@
-import { beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, test } from "vitest";
 import { testDB } from "@/test/setup";
-import { pages, users } from "@/server/db/schema";
+import { pages } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
-import { session, user } from "../../fake/user";
+import { session } from "../../fake/user";
 import { setupAuthorizedTrpc } from "../utils/setupTrpc";
 import type { RouterOutputs } from "@/trpc/react";
 import {
@@ -12,6 +12,7 @@ import {
 	createFakeData,
 	rootPage,
 } from "./utils/page";
+import { getAllRelatedPages } from "@/server/api/drizzle/page";
 
 const verifyPagePaths = async ({
 	caller,
@@ -357,5 +358,11 @@ describe("Page 路由", async () => {
 			const pinneds = await callerAuthorized.pagePinned.get();
 			expect(pinneds.length).toBe(0);
 		});
+	});
+
+	it("getAllRelatedPages", async () => {
+		const { ctx } = setupAuthorizedTrpc({ session });
+		const relatedPageIds = await getAllRelatedPages(ctx.db, rootPage.id);
+		expect(relatedPageIds).toEqual([rootPage.id, child1Page.id, child2Page.id]);
 	});
 });

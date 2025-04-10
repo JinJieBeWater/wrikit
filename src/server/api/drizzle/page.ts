@@ -1,13 +1,7 @@
-import { pages, pagesPath, users } from "@/server/db/schema";
+import { pages, pagesPath } from "@/server/db/schema";
 import { z } from "zod";
-import type { createTRPCContext } from "../trpc";
-import type { Session } from "next-auth";
-import { eq } from "drizzle-orm";
 import { PageTypeArray } from "@/types/page";
-
-type Context = Awaited<ReturnType<typeof createTRPCContext>> & {
-	session: Session;
-};
+import type { Context, DB } from ".";
 
 export const createPageZod = z.object({
 	id: z.string().optional().describe("页面id"),
@@ -78,15 +72,30 @@ export const createPageWithPagePath = async (
 	});
 };
 
+// 获取所有相关页面
+export const getAllRelatedPages = async (db: DB, rootId: string | string[]) => {
+	const ids = Array.isArray(rootId) ? rootId : [rootId];
+	const relatedPage = await db.query.pagesPath.findMany({
+		where: (fields, operators) => {
+			return operators.and(operators.inArray(fields.ancestor, ids));
+		},
+		columns: {
+			descendant: true,
+		},
+	});
+	const relatedPageIds = relatedPage.map((r) => r.descendant);
+	return relatedPageIds;
+};
+
 export const getPagePathByAncestorZod = z.object({
 	ancestor: z.string().describe("页面id"),
 });
 
 export const getPagePathByAncestor = async (
-	ctx: Context,
+	db: DB,
 	input: z.infer<typeof getPagePathByAncestorZod>,
 ) => {
-	return await ctx.db.query.pagesPath.findMany({
+	return await db.query.pagesPath.findMany({
 		where: (fields, operators) => {
 			return operators.and(operators.eq(fields.ancestor, input.ancestor));
 		},
@@ -101,10 +110,10 @@ export const getPagePathByDescendantZod = z.object({
 });
 
 export const getPagePathByDescendant = async (
-	ctx: Context,
+	db: DB,
 	input: z.infer<typeof getPagePathByDescendantZod>,
 ) => {
-	return await ctx.db.query.pagesPath.findMany({
+	return await db.query.pagesPath.findMany({
 		where: (fields, operators) => {
 			return operators.and(operators.eq(fields.descendant, input.descendant));
 		},
