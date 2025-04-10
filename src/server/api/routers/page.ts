@@ -5,12 +5,14 @@ import { z } from "zod";
 import {
 	createPageWithPagePath,
 	createPageZod,
-	getAllRelatedPages,
+} from "../drizzle/createPageWithPagePath";
+import {
 	getPagePathByAncestor,
 	getPagePathByAncestorZod,
 	getPagePathByDescendant,
 	getPagePathByDescendantZod,
-} from "../drizzle/page";
+} from "../drizzle/getPagePath";
+import { getAllRelatedPages } from "../drizzle/getAllRelatedPages";
 
 export const pageRouter = createTRPCRouter({
 	get: protectedProcedure

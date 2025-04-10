@@ -1,4 +1,4 @@
-import type { DB } from ".";
+import type { DB } from "./type";
 
 export const getAllRelatedPagesLegacy = async (
 	db: DB,

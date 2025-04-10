@@ -1,6 +1,6 @@
 import { type PageTypeUnion, PageType } from "@/types/page";
 import { createContext } from "../../utils/createContext";
-import { createPageWithPagePath } from "@/server/api/drizzle/page";
+import { createPageWithPagePath } from "@/server/api/drizzle/createPageWithPagePath";
 import { pages } from "@/server/db/schema";
 import { testDB } from "@/test/setup";
 import { user } from "../../../fake/user";

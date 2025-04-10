@@ -1,34 +1,40 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { session } from "../../fake/user";
 import { setupAuthorizedTrpc } from "../utils/setupTrpc";
-import { cleanFakeData, createFakeData, rootPage } from "./utils/page";
+import { cleanSeedPage, seedPage, PageL0C0 } from "./utils/page";
 
 describe("Page Pinned 路由", async () => {
+	let callerAuthorized: ReturnType<
+		typeof setupAuthorizedTrpc
+	>["callerAuthorized"];
+
+	beforeAll(() => {
+		callerAuthorized = setupAuthorizedTrpc({ session }).callerAuthorized;
+	});
+
 	beforeEach(async () => {
-		const { callerAuthorized } = setupAuthorizedTrpc({ session });
-		await createFakeData(callerAuthorized);
+		await seedPage(callerAuthorized);
 		return async () => {
-			await cleanFakeData(callerAuthorized);
+			await cleanSeedPage(callerAuthorized);
 		};
 	});
 
 	it("固定功能常规测试", async () => {
-		const { callerAuthorized } = setupAuthorizedTrpc({ session });
 		// 添加pinned关系
 		await callerAuthorized.pagePinned.create({
-			pageId: rootPage.id,
+			pageId: PageL0C0.id,
 			order: 0,
 		});
 
 		// 验证pinned关系已添加
-		const pinneds = await callerAuthorized.pagePinned.get();
-		expect(pinneds[0]?.id).toBe(rootPage.id);
+		expect(
+			(await callerAuthorized.pagePinned.get()).map((p) => p.id),
+		).toContain(PageL0C0.id);
 
 		// 删除pinned关系
-		await callerAuthorized.pagePinned.delete([rootPage.id]);
+		await callerAuthorized.pagePinned.delete([PageL0C0.id]);
 
 		// 验证pinned关系已删除
-		const pinnedsAfterDelete = await callerAuthorized.pagePinned.get();
-		expect(pinnedsAfterDelete.length).toBe(0);
+		await expect(callerAuthorized.pagePinned.get()).resolves.toEqual([]);
 	});
 });

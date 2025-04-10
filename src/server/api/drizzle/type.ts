@@ -1,4 +1,3 @@
-import { PageTypeArray } from "@/types/page";
 import type { Session } from "next-auth";
 import type { createTRPCContext } from "../trpc";
 import type {
