@@ -6,8 +6,9 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { auth } from "@/server/auth";
+import { auth, signIn } from "@/server/auth";
 import { HydrateClient, api } from "@/trpc/server";
+import { redirect } from "next/navigation";
 
 export default async function Layout({
 	children,
@@ -15,6 +16,7 @@ export default async function Layout({
 	children: React.ReactNode;
 }) {
 	const session = await auth();
+	if (!session) redirect("/api/auth/signin");
 
 	if (session?.user) {
 		void api.page.getByParentId.prefetch({});

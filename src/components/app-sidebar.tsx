@@ -16,6 +16,7 @@ import { TeamSwitcher } from "@/components/team-switcher";
 import {
 	Sidebar,
 	SidebarContent,
+	SidebarFooter,
 	SidebarHeader,
 	SidebarRail,
 } from "@/components/ui/sidebar";
@@ -23,6 +24,7 @@ import { NavPage } from "./nav-page";
 import { NavPagePinned } from "./nav-page-pinned";
 import { useSession } from "./provider/session-provider";
 import { ThemeSwitch } from "./theme-switch";
+import { NavUser } from "./nav-user";
 
 // This is sample data.
 const data = {
@@ -131,6 +133,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				)}
 				<NavSecondary className="mt-auto" />
 			</SidebarContent>
+			<SidebarFooter>
+				<NavUser />
+			</SidebarFooter>
 			<SidebarRail />
 		</Sidebar>
 	);
