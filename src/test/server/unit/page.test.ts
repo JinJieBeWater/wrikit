@@ -27,7 +27,7 @@ describe("Page 相关功能函数 单元测试", () => {
 	});
 
 	it("当通过页面ID获取相关页面时，应该返回所有关联页面", async () => {
-		const relatedPageIds = await getAllRelatedPages(ctx.db, PageL0C0.id);
+		const { relatedPageIds } = await getAllRelatedPages(ctx.db, PageL0C0.id);
 		expect(relatedPageIds).toEqual(PageArray.map((p) => p.id));
 	});
 });

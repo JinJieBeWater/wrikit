@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { testDB } from "@/test/setup";
-import { pages } from "@/server/db/schema";
-import { and, eq } from "drizzle-orm";
+import { pageOrders, pages } from "@/server/db/schema";
+import { and, eq, isNull } from "drizzle-orm";
 import { session } from "../../fake/user";
 import { setupAuthorizedTrpc } from "../utils/setupTrpc";
 import {
@@ -13,6 +13,7 @@ import {
 } from "./utils/page";
 import { getAllRelatedPages } from "@/server/api/drizzle/getAllRelatedPages";
 import { PageType } from "@/types/page";
+import { getPageOrder } from "@/server/api/drizzle/getPageOrder";
 
 describe("Page 路由", async () => {
 	let callerAuthorized: ReturnType<
@@ -61,6 +62,42 @@ describe("Page 路由", async () => {
 					type: PageType.md,
 				}),
 			).rejects.toThrow();
+		});
+	});
+
+	describe("查询", () => {
+		it("当查询不存在的页面ID时，应该返回undefined", async () => {
+			await expect(
+				callerAuthorized.page.get({
+					id: crypto.randomUUID(),
+				}),
+			).resolves.toBeUndefined();
+		});
+
+		it("当通过父页面ID查询页面时，应该返回所有子页面", async () => {
+			const right = await testDB.query.pages.findMany({
+				where(fields, operators) {
+					return operators.and(operators.eq(fields.parentId, PageL0C0.id));
+				},
+			});
+
+			const childs = await callerAuthorized.page.getByParentId({
+				parentId: PageL0C0.id,
+			});
+
+			expect(childs.length).toBe(right.length);
+		});
+
+		it("当不传入父页面ID 直接查询页面时，应该返回所有根页面", async () => {
+			const right = await testDB.query.pages.findMany({
+				where(fields, operators) {
+					return operators.and(operators.isNull(fields.parentId));
+				},
+			});
+
+			const roots = await callerAuthorized.page.getByParentId({});
+
+			expect(roots.length).toBe(right.length);
 		});
 	});
 
@@ -132,7 +169,7 @@ describe("Page 路由", async () => {
 
 	describe("回收", () => {
 		it("当父页面被回收时，所有子页面应该同时被回收", async () => {
-			const relatedPageIds = await getAllRelatedPages(testDB, PageL0C0.id);
+			const { relatedPageIds } = await getAllRelatedPages(testDB, PageL0C0.id);
 
 			// 回收根节点
 			await callerAuthorized.page.toggleTrash({
@@ -154,7 +191,7 @@ describe("Page 路由", async () => {
 		});
 
 		it("当父页面从回收站恢复时，所有子页面应该同时恢复", async () => {
-			const relatedPageIds = await getAllRelatedPages(testDB, PageL0C0.id);
+			const { relatedPageIds } = await getAllRelatedPages(testDB, PageL0C0.id);
 
 			// 回收根节点
 			await callerAuthorized.page.toggleTrash({
@@ -307,10 +344,85 @@ describe("Page 路由", async () => {
 		});
 	});
 
-	describe.todo("排序", () => {
-		it.todo("当创建页面时，应该自动添加到父页面的排序中", async () => {});
+	describe("排序", () => {
+		it("当创建页面时，应该自动添加到父页面的排序中", async () => {
+			const childs = await testDB
+				.select()
+				.from(pages)
+				.where(eq(pages.parentId, PageL0C0.id));
 
-		it.todo("当删除页面时，应该自动从父页面的排序中删除", async () => {});
+			const orders = await getPageOrder(testDB, { parentId: PageL0C0.id });
+
+			expect(orders?.length).toBe(childs.length);
+
+			childs.forEach((c) => {
+				expect(orders).toContain(c.id);
+			});
+		});
+
+		it("当创建根页面时，应该添加到根路径排序中", async () => {
+			const preRootOrder = await testDB.query.pageOrders.findFirst({
+				where(fields, operators) {
+					return operators.isNull(fields.parentId);
+				},
+			});
+
+			const pageCreated = await callerAuthorized.page.create({
+				name: "测试页面",
+				type: PageType.md,
+			});
+
+			const afterRootOrder = await testDB.query.pageOrders.findFirst({
+				where(fields, operators) {
+					return operators.isNull(fields.parentId);
+				},
+			});
+
+			expect(afterRootOrder?.orderedIds).toEqual(
+				preRootOrder?.orderedIds.concat(pageCreated.id),
+			);
+
+			// 清除数据
+			await callerAuthorized.page.delete([pageCreated.id]);
+
+			const data = await testDB.query.pages.findFirst({
+				where(fields, operators) {
+					return operators.eq(fields.id, pageCreated.id);
+				},
+			});
+
+			expect(data).toBeUndefined();
+		});
+
+		it("当删除页面时，应该自动从父页面的排序中删除", async () => {
+			const childs = await testDB
+				.select()
+				.from(pages)
+				.where(eq(pages.parentId, PageL0C0.id));
+
+			for await (const [i, c] of childs.entries()) {
+				await callerAuthorized.page.delete([c.id]);
+
+				// 验证排序已删除
+				const orders = await getPageOrder(testDB, { parentId: PageL0C0.id });
+
+				// 排序长度减一
+				expect(orders?.length ?? 0).toBe(childs.length - i - 1);
+
+				// 排序中不包含已删除的页面
+				expect(orders ?? []).not.toContain(c.id);
+			}
+
+			// 验证排序已删除
+			const orders = await getPageOrder(testDB, { parentId: PageL0C0.id });
+			expect(orders).toBeUndefined();
+		});
+
+		it.todo("当删除父页面最后一个子页面时，应删除父页面的排序记录");
+
+		it.todo("当进行根页面查询时，得到的数据顺序应与排序一致");
+
+		it.todo("当通过父页面查询时，得到的数据顺序应与排序一致");
 
 		it.todo("当对页面进行排序时，应该更新父页面的排序列表", async () => {});
 

@@ -1,9 +1,11 @@
 import { type PageTypeUnion, PageType } from "@/types/page";
 import { createContext } from "../../utils/createContext";
-import { createPageWithPagePath } from "@/server/api/drizzle/createPageWithPagePath";
-import { pages } from "@/server/db/schema";
+import { pages, pagesPath } from "@/server/db/schema";
 import { testDB } from "@/test/setup";
 import { user } from "../../../fake/user";
+import type { Context } from "@/server/api/drizzle/type";
+import type { z } from "zod";
+import type { createPageZod } from "@/server/api/routers/page";
 
 export interface TestNode {
 	id: string;
@@ -66,6 +68,65 @@ export const adjacencyListCreate = async (root: TestNode) => {
 	await create(root);
 };
 
+const createPageWithPagePath = async (
+	ctx: Context,
+	input: z.infer<typeof createPageZod>,
+) => {
+	return await ctx.db.transaction(async (trx) => {
+		const id = input.id ?? crypto.randomUUID();
+		const promises = [];
+
+		const newPage = {
+			...input,
+			id,
+			createdById: ctx.session.user.id,
+		};
+
+		// 创建页面
+		promises.push(trx.insert(pages).values(newPage));
+
+		/* 页面路径 */
+		// 插入自引用路径
+		promises.push(
+			trx.insert(pagesPath).values({
+				ancestor: id,
+				descendant: id,
+				depth: 0,
+			}),
+		);
+
+		const parentId = input.parentId;
+		if (parentId) {
+			// 获取父页面在当前闭包表中作为子节点的所有路径记录 将depth+1后为当前节点插入路径
+			const addPath = async ({
+				parentId,
+				id,
+			}: { parentId: string; id: string }) => {
+				const parentPaths = await trx.query.pagesPath.findMany({
+					where: (fields, operators) => {
+						return operators.and(
+							// 查找父页面的所有路径
+							operators.eq(fields.descendant, parentId),
+						);
+					},
+				});
+
+				await trx.insert(pagesPath).values(
+					parentPaths.map((path) => ({
+						ancestor: path.ancestor,
+						descendant: id,
+						depth: path.depth + 1,
+					})),
+				);
+			};
+			promises.push(addPath({ parentId, id }));
+		}
+		await Promise.all(promises);
+
+		return newPage;
+	});
+};
+
 // 闭包表方案
 export const closureTableCreate = async (root: TestNode) => {
 	const ctx = createContext({
@@ -75,7 +136,6 @@ export const closureTableCreate = async (root: TestNode) => {
 
 	const create = async (node: TestNode) => {
 		await createPageWithPagePath(ctx, node);
-
 		if (node.children) {
 			for await (const child of node.children) {
 				await create(child);

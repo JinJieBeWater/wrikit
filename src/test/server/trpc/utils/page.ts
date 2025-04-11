@@ -2,6 +2,8 @@ import type { setupAuthorizedTrpc } from "../../utils/setupTrpc";
 import { expect } from "vitest";
 import { createPageFactory } from "@/test/factory/page";
 import { faker } from "@faker-js/faker/locale/zh_CN";
+import { pages } from "@/server/db/schema";
+import { testDB } from "@/test/setup";
 
 faker.seed(1234);
 
@@ -33,12 +35,8 @@ export const seedPage = async (
 export const cleanSeedPage = async (
 	callerAuthorized: ReturnType<typeof setupAuthorizedTrpc>["callerAuthorized"],
 ) => {
-	const result = await callerAuthorized.page.delete([
-		PageL0C0.id,
-		PageL1C0.id,
-		PageL1C1.id,
-		PageL1C2.id,
-		PageL2C0.id,
-	]);
-	expect(result.count).toBeTypeOf("number");
+	await callerAuthorized.page.delete([PageL0C0.id]);
+
+	// 检查不应有残留数据
+	await expect(testDB.select().from(pages)).resolves.toEqual([]);
 };

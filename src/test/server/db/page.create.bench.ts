@@ -1,27 +1,15 @@
-import { pages, users } from "@/server/db/schema";
-import { testDB } from "@/test/setup";
-import { eq } from "drizzle-orm";
-import { beforeAll, bench, describe } from "vitest";
+import { afterAll, bench, describe } from "vitest";
 import {
 	type GenerateTreeDataProps,
 	adjacencyListCreate,
 	closureTableCreate,
 	generateTreeData,
 } from "./utils/page";
-import { user } from "../../fake/user";
+import { testDB } from "@/test/setup";
+import { pages } from "@/server/db/schema";
 
-beforeAll(async () => {
-	await testDB.insert(users).values(user).returning();
-
-	return async () => {
-		await testDB.delete(pages).where(eq(pages.createdById, user.id));
-
-		await testDB.select().from(pages).where(eq(pages.createdById, user.id));
-
-		await testDB.delete(pages).where(eq(pages.createdById, user.id));
-
-		await testDB.delete(users).where(eq(users.id, user.id));
-	};
+afterAll(async () => {
+	await testDB.delete(pages);
 });
 
 describe("Page创建对比 创建独立节点", async () => {

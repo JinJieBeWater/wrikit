@@ -1,10 +1,9 @@
-import { users, pages } from "@/server/db/schema";
 import { testDB } from "@/test/setup";
-import { eq, inArray } from "drizzle-orm";
-import { beforeAll, bench, describe } from "vitest";
+import { afterAll, beforeAll, bench, describe } from "vitest";
 import { adjacencyListCreate, generateTreeData } from "./utils/page";
 import { user } from "../../fake/user";
 import type { Page } from "@/types/page";
+import { pages } from "@/server/db/schema";
 
 const case_1_depth_0 = generateTreeData({
 	depth: 0,
@@ -26,8 +25,6 @@ const case_4_depth_6_children_3 = generateTreeData({
 });
 
 beforeAll(async () => {
-	await testDB.insert(users).values(user);
-
 	// 添加测试数据
 	await adjacencyListCreate(case_1_depth_0);
 
@@ -36,16 +33,10 @@ beforeAll(async () => {
 	await adjacencyListCreate(case_3_depth_3_children_3);
 
 	await adjacencyListCreate(case_4_depth_6_children_3);
+});
 
-	return async () => {
-		await testDB.delete(pages).where(eq(pages.createdById, user.id));
-
-		await testDB.select().from(pages).where(eq(pages.createdById, user.id));
-
-		await testDB.delete(pages).where(eq(pages.createdById, user.id));
-
-		await testDB.delete(users).where(eq(users.id, user.id));
-	};
+afterAll(async () => {
+	await testDB.delete(pages);
 });
 
 const adjacencyListQuery = async (root: Page["id"]) => {

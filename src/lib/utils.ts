@@ -1,3 +1,4 @@
+import { env } from "@/env";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -12,3 +13,12 @@ export function generateUUID(): string {
 		return v.toString(16);
 	});
 }
+
+export const shouldNeverHappen = (msg: string, ...args: unknown[]): never => {
+	console.error(msg, ...args);
+	if (env.NODE_ENV === "development") {
+		// biome-ignore lint/suspicious/noDebugger: <explanation>
+		debugger;
+	}
+	throw new Error(`This should never happen: ${msg}`);
+};

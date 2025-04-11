@@ -40,7 +40,6 @@ import {
 	getProjection,
 	removeChildrenOf,
 	removeItem,
-	setProperty,
 } from "./utilities";
 const initialItems: TreeItems = [
 	{

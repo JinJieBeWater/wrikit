@@ -2,7 +2,7 @@ import { beforeAll, vi } from "vitest";
 import type * as schema from "@/server/db/schema";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { setupDockerTestDb } from "./server/utils/setupDockerTestDb";
-import { users } from "@/server/db/schema";
+import { users, pages } from "@/server/db/schema";
 import { user } from "./fake/user";
 import { eq } from "drizzle-orm";
 

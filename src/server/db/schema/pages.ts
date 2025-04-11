@@ -77,7 +77,7 @@ export const pagesPathRelations = relations(pagesPath, ({ one }) => ({
 export const pageOrders = createTable(
 	"page_order",
 	{
-		parentId: uuid("parent_id").notNull(),
+		parentId: uuid("parent_id"),
 		orderedIds: uuid("ordered_ids").array().notNull(),
 	},
 	(table) => ({
