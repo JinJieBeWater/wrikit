@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { testDB } from "@/test/setup";
-import { pageOrders, pages } from "@/server/db/schema";
-import { and, eq, isNull } from "drizzle-orm";
+import { pageOrders, pages, pagesPath } from "@/server/db/schema";
+import { and, eq, gt } from "drizzle-orm";
 import { session } from "../../fake/user";
 import { setupAuthorizedTrpc } from "../utils/setupTrpc";
 import {
@@ -418,17 +418,324 @@ describe("Page 路由", async () => {
 			expect(orders).toBeUndefined();
 		});
 
-		it.todo("当删除父页面最后一个子页面时，应删除父页面的排序记录");
+		it("当删除父页面最后一个子页面时，应删除父页面的排序记录", async () => {
+			// 创建一个测试父页面
+			const parentPage = await callerAuthorized.page.create({
+				name: "测试父页面",
+				type: PageType.md,
+			});
 
-		it.todo("当进行根页面查询时，得到的数据顺序应与排序一致");
+			// 创建一个子页面
+			const childPage = await callerAuthorized.page.create({
+				name: "测试子页面",
+				type: PageType.md,
+				parentId: parentPage.id,
+			});
 
-		it.todo("当通过父页面查询时，得到的数据顺序应与排序一致");
+			// 验证排序记录已创建
+			const orderBeforeDelete = await testDB.query.pageOrders.findFirst({
+				where(fields, operators) {
+					return operators.eq(fields.parentId, parentPage.id);
+				},
+			});
+			expect(orderBeforeDelete).toBeDefined();
+			expect(orderBeforeDelete?.orderedIds).toContain(childPage.id);
 
-		it.todo("当对页面进行排序时，应该更新父页面的排序列表", async () => {});
+			// 删除子页面
+			await callerAuthorized.page.delete([childPage.id]);
+
+			// 验证排序记录已删除
+			const orderAfterDelete = await testDB.query.pageOrders.findFirst({
+				where(fields, operators) {
+					return operators.eq(fields.parentId, parentPage.id);
+				},
+			});
+			expect(orderAfterDelete).toBeUndefined();
+
+			// 清理测试数据
+			await callerAuthorized.page.delete([parentPage.id]);
+		});
+
+		it("当进行根页面查询时，得到的数据顺序应与排序一致", async () => {
+			// 创建多个根页面
+			const rootPage1 = await callerAuthorized.page.create({
+				name: "测试根页面1",
+				type: PageType.md,
+			});
+			const rootPage2 = await callerAuthorized.page.create({
+				name: "测试根页面2",
+				type: PageType.md,
+			});
+			const rootPage3 = await callerAuthorized.page.create({
+				name: "测试根页面3",
+				type: PageType.md,
+			});
+
+			// 获取根页面排序
+			const rootOrder = await testDB.query.pageOrders.findFirst({
+				where(fields, operators) {
+					return operators.isNull(fields.parentId);
+				},
+			});
+			expect(rootOrder).toBeDefined();
+
+			// 获取根页面列表
+			const rootPages = await callerAuthorized.page.getByParentId({});
+
+			// 验证顺序一致
+			const testPageIds = [rootPage1.id, rootPage2.id, rootPage3.id];
+			const testPagesInResult = rootPages.filter((page) =>
+				testPageIds.includes(page.id),
+			);
+
+			// 验证这些页面在结果中的顺序与排序表中的顺序一致
+			if (rootOrder?.orderedIds) {
+				for (let i = 0; i < testPagesInResult.length - 1; i++) {
+					if (testPagesInResult[i]?.id && testPagesInResult[i + 1]?.id) {
+						// 我们已经在上面的if条件中检查了这些值不为undefined
+						const id1 = testPagesInResult[i]?.id as string;
+						const id2 = testPagesInResult[i + 1]?.id as string;
+						const currentIndex = rootOrder.orderedIds.indexOf(id1);
+						const nextIndex = rootOrder.orderedIds.indexOf(id2);
+						expect(currentIndex).toBeLessThan(nextIndex);
+					}
+				}
+			}
+
+			// 清理测试数据
+			await callerAuthorized.page.delete([
+				rootPage1.id,
+				rootPage2.id,
+				rootPage3.id,
+			]);
+		});
+
+		it("当通过父页面查询时，得到的数据顺序应与排序一致", async () => {
+			// 创建一个测试父页面
+			const parentPage = await callerAuthorized.page.create({
+				name: "测试父页面",
+				type: PageType.md,
+			});
+
+			// 创建多个子页面
+			await callerAuthorized.page.create({
+				name: "测试子页面1",
+				type: PageType.md,
+				parentId: parentPage.id,
+			});
+			await callerAuthorized.page.create({
+				name: "测试子页面2",
+				type: PageType.md,
+				parentId: parentPage.id,
+			});
+			await callerAuthorized.page.create({
+				name: "测试子页面3",
+				type: PageType.md,
+				parentId: parentPage.id,
+			});
+
+			// 获取父页面下的排序
+			const parentOrder = await testDB.query.pageOrders.findFirst({
+				where(fields, operators) {
+					return operators.eq(fields.parentId, parentPage.id);
+				},
+			});
+			expect(parentOrder).toBeDefined();
+
+			// 获取子页面列表
+			const childPages = await callerAuthorized.page.getByParentId({
+				parentId: parentPage.id,
+			});
+
+			// 验证顺序一致
+			expect(childPages.length).toBe(3);
+			expect(childPages.map((c) => c.id)).toEqual(parentOrder?.orderedIds);
+
+			// 清理测试数据
+			await callerAuthorized.page.delete([parentPage.id]);
+		});
+
+		it.todo("当对页面进行排序时，应该更新父页面的排序列表", async () => {
+			// 创建一个测试父页面
+			const parentPage = await callerAuthorized.page.create({
+				name: "测试父页面",
+				type: PageType.md,
+			});
+
+			// 创建多个子页面
+			const childPage1 = await callerAuthorized.page.create({
+				name: "测试子页面1",
+				type: PageType.md,
+				parentId: parentPage.id,
+			});
+			const childPage2 = await callerAuthorized.page.create({
+				name: "测试子页面2",
+				type: PageType.md,
+				parentId: parentPage.id,
+			});
+			const childPage3 = await callerAuthorized.page.create({
+				name: "测试子页面3",
+				type: PageType.md,
+				parentId: parentPage.id,
+			});
+
+			// 获取原始排序
+			const originalOrder = await testDB.query.pageOrders.findFirst({
+				where(fields, operators) {
+					return operators.eq(fields.parentId, parentPage.id);
+				},
+			});
+			expect(originalOrder).toBeDefined();
+			expect(originalOrder?.orderedIds).toEqual([
+				childPage1.id,
+				childPage2.id,
+				childPage3.id,
+			]);
+
+			// 手动更新排序（由于没有直接的排序API，我们直接操作数据库）
+			const newOrder = [childPage3.id, childPage1.id, childPage2.id];
+			await testDB
+				.update(pageOrders)
+				.set({ orderedIds: newOrder })
+				.where(eq(pageOrders.parentId, parentPage.id));
+
+			// 验证排序已更新
+			const updatedOrder = await testDB.query.pageOrders.findFirst({
+				where(fields, operators) {
+					return operators.eq(fields.parentId, parentPage.id);
+				},
+			});
+			expect(updatedOrder?.orderedIds).toEqual(newOrder);
+
+			// 获取子页面列表，验证顺序已更新
+			const childPages = await callerAuthorized.page.getByParentId({
+				parentId: parentPage.id,
+			});
+			expect(childPages.map((p) => p.id)).toEqual(newOrder);
+
+			// 清理测试数据
+			await callerAuthorized.page.delete([parentPage.id]);
+		});
 
 		it.todo(
 			"当移动页面时，应该自动从原父页面的排序中删除，并添加到新父页面的排序中",
-			async () => {},
+			async () => {
+				// 创建两个父页面
+				const parentPage1 = await callerAuthorized.page.create({
+					name: "测试父页面1",
+					type: PageType.md,
+				});
+				const parentPage2 = await callerAuthorized.page.create({
+					name: "测试父页面2",
+					type: PageType.md,
+				});
+
+				// 在父页面1下创建子页面
+				const childPage = await callerAuthorized.page.create({
+					name: "测试子页面",
+					type: PageType.md,
+					parentId: parentPage1.id,
+				});
+
+				// 验证父页面1的排序包含子页面
+				const originalOrder = await testDB.query.pageOrders.findFirst({
+					where(fields, operators) {
+						return operators.eq(fields.parentId, parentPage1.id);
+					},
+				});
+				expect(originalOrder?.orderedIds).toContain(childPage.id);
+
+				// 移动子页面到父页面2（通过更新页面的parentId）
+				await testDB
+					.update(pages)
+					.set({ parentId: parentPage2.id })
+					.where(eq(pages.id, childPage.id));
+
+				// 更新路径关系
+				// 1. 删除旧路径
+				await testDB
+					.delete(pagesPath)
+					.where(
+						and(eq(pagesPath.descendant, childPage.id), gt(pagesPath.depth, 0)),
+					);
+
+				// 2. 添加新路径
+				const parentPaths = await testDB.query.pagesPath.findMany({
+					where(fields, operators) {
+						return operators.eq(fields.descendant, parentPage2.id);
+					},
+				});
+
+				await testDB.insert(pagesPath).values(
+					parentPaths.map((path) => ({
+						ancestor: path.ancestor,
+						descendant: childPage.id,
+						depth: path.depth + 1,
+					})),
+				);
+
+				// 3. 从原父页面排序中删除
+				const parent1Order = await testDB.query.pageOrders.findFirst({
+					where(fields, operators) {
+						return operators.eq(fields.parentId, parentPage1.id);
+					},
+				});
+
+				if (parent1Order) {
+					const newOrderedIds = parent1Order.orderedIds.filter(
+						(id) => id !== childPage.id,
+					);
+
+					if (newOrderedIds.length === 0) {
+						await testDB
+							.delete(pageOrders)
+							.where(eq(pageOrders.parentId, parentPage1.id));
+					} else {
+						await testDB
+							.update(pageOrders)
+							.set({ orderedIds: newOrderedIds })
+							.where(eq(pageOrders.parentId, parentPage1.id));
+					}
+				}
+
+				// 4. 添加到新父页面排序中
+				const parent2Order = await testDB.query.pageOrders.findFirst({
+					where(fields, operators) {
+						return operators.eq(fields.parentId, parentPage2.id);
+					},
+				});
+
+				if (parent2Order) {
+					await testDB
+						.update(pageOrders)
+						.set({ orderedIds: [...parent2Order.orderedIds, childPage.id] })
+						.where(eq(pageOrders.parentId, parentPage2.id));
+				} else {
+					await testDB.insert(pageOrders).values({
+						parentId: parentPage2.id,
+						orderedIds: [childPage.id],
+					});
+				}
+
+				// 验证父页面1的排序不再包含子页面
+				const updatedOrder1 = await testDB.query.pageOrders.findFirst({
+					where(fields, operators) {
+						return operators.eq(fields.parentId, parentPage1.id);
+					},
+				});
+				expect(updatedOrder1?.orderedIds || []).not.toContain(childPage.id);
+
+				// 验证父页面2的排序包含子页面
+				const updatedOrder2 = await testDB.query.pageOrders.findFirst({
+					where(fields, operators) {
+						return operators.eq(fields.parentId, parentPage2.id);
+					},
+				});
+				expect(updatedOrder2?.orderedIds || []).toContain(childPage.id);
+
+				// 清理测试数据
+				await callerAuthorized.page.delete([parentPage1.id, parentPage2.id]);
+			},
 		);
 	});
 });
