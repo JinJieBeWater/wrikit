@@ -11,6 +11,7 @@ import {
 import { getAllRelatedPages } from "../drizzle/getAllRelatedPages";
 import { shouldNeverHappen } from "@/lib/utils";
 import { PageTypeArray } from "@/types/page";
+import { TRPCError } from "@trpc/server";
 
 export const createPageZod = z.object({
 	id: z.string().optional().describe("页面id"),
@@ -475,6 +476,181 @@ export const pageRouter = createTRPCRouter({
 				]);
 
 				return { count: result.length };
+			});
+		}),
+
+	securityUpdateOrder: protectedProcedure
+		.meta({ description: "更新页面排序" })
+		.input(
+			z.object({
+				parentId: z.string().optional().describe("父页面id"),
+				orderedIds: z
+					.array(z.string())
+					.min(1, "数组不能为空")
+					.refine((arr) => new Set(arr).size === arr.length, "数组元素必须唯一")
+					.describe("排序后的页面id数组"),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			await ctx.db.transaction(async (trx) => {
+				// 常规更新排序
+				const where =
+					input.parentId !== undefined
+						? eq(pageOrders.parentId, input.parentId)
+						: isNull(pageOrders.parentId);
+				const [order] = await trx
+					.select()
+					.from(pageOrders)
+					.where(where)
+					.limit(1);
+				// 调整排序 无法删减
+				// 校验是否合法 排序新后长度不可变
+				if (order?.orderedIds.length !== input.orderedIds.length) {
+					throw new TRPCError({
+						code: "BAD_REQUEST",
+						message: "排序先后长度不一致",
+					});
+				}
+				await trx
+					.insert(pageOrders)
+					.values({
+						parentId: input.parentId ?? null,
+						orderedIds: input.orderedIds,
+					})
+					.onConflictDoUpdate({
+						target: pageOrders.parentId,
+						set: { orderedIds: input.orderedIds },
+					});
+			});
+		}),
+
+	transferAndOrder: protectedProcedure
+		.meta({ description: "移动页面到新父页面并更新排序" })
+		.input(
+			z.object({
+				pageId: z.string().describe("页面id"),
+				oldParentId: z.string().optional().describe("旧父页面id"),
+				newParentId: z.string().optional().describe("新父页面id"),
+				orderedIds: z
+					.array(z.string())
+					.min(1, "数组不能为空")
+					.refine((arr) => new Set(arr).size === arr.length, "数组元素必须唯一")
+					.describe("排序后的页面id数组"),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			return await ctx.db.transaction(async (trx) => {
+				if (input.oldParentId === input.newParentId)
+					throw new TRPCError({
+						code: "BAD_REQUEST",
+						message: "新旧父页面id相同 使用securityUpdateOrder+",
+					});
+
+				// 验证排序数组是否包含当前页面ID
+				if (!input.orderedIds.includes(input.pageId)) {
+					throw new TRPCError({
+						code: "BAD_REQUEST",
+						message: "排序数组必须包含当前页面ID",
+					});
+				}
+
+				// 验证页面存在并属于当前用户
+				const page = await trx.query.pages.findFirst({
+					where(fields, operators) {
+						return operators.and(
+							operators.eq(fields.id, input.pageId),
+							operators.eq(fields.createdById, ctx.session.user.id),
+						);
+					},
+				});
+
+				if (!page) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "页面不存在",
+					});
+				}
+
+				// 1. 更新页面的 parentId
+				await trx
+					.update(pages)
+					.set({ parentId: input.newParentId })
+					.where(eq(pages.id, input.pageId));
+
+				// 2. 删除旧路径关系（保留深度为0的自引用路径）
+				await trx
+					.delete(pagesPath)
+					.where(
+						and(eq(pagesPath.descendant, input.pageId), gt(pagesPath.depth, 0)),
+					);
+
+				// 3. 添加新路径关系
+				if (input.newParentId) {
+					// 获取新父页面在当前闭包表中作为子节点的所有路径记录
+					const parentPaths = await trx.query.pagesPath.findMany({
+						where: (fields, operators) => {
+							return operators.and(
+								operators.eq(fields.descendant, input.newParentId as string),
+							);
+						},
+					});
+
+					// 为当前节点插入新路径
+					await trx.insert(pagesPath).values(
+						parentPaths.map((path) => ({
+							ancestor: path.ancestor,
+							descendant: input.pageId,
+							depth: path.depth + 1,
+						})),
+					);
+				}
+
+				// 4. 从原父页面排序中删除
+				// 根据 oldParentId 构建查询条件
+				const oldWhere =
+					input.oldParentId !== undefined
+						? eq(pageOrders.parentId, input.oldParentId)
+						: isNull(pageOrders.parentId);
+
+				// 查询原排序
+				const [oldOrder] = await trx
+					.select()
+					.from(pageOrders)
+					.where(oldWhere)
+					.limit(1);
+
+				// 如果存在原排序，则删除当前页面ID
+				if (oldOrder) {
+					const newOrderedIds = oldOrder.orderedIds.filter(
+						(id) => id !== input.pageId,
+					);
+
+					// 如果删除后排序为空，则删除整个排序记录
+					// 否则更新排序
+					if (newOrderedIds.length === 0) {
+						await trx.delete(pageOrders).where(oldWhere);
+					} else {
+						await trx
+							.update(pageOrders)
+							.set({ orderedIds: newOrderedIds })
+							.where(oldWhere);
+					}
+				}
+
+				// 5. 添加到新父页面排序中并更新排序
+				// 更新或插入新排序
+				await trx
+					.insert(pageOrders)
+					.values({
+						parentId: input.newParentId ?? null,
+						orderedIds: input.orderedIds,
+					})
+					.onConflictDoUpdate({
+						target: pageOrders.parentId,
+						set: { orderedIds: input.orderedIds },
+					});
+
+				return { success: true };
 			});
 		}),
 });

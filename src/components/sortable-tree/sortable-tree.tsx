@@ -281,6 +281,11 @@ export function SortableTree({
 			const clonedItems: FlattenedItem[] = JSON.parse(
 				JSON.stringify(flattenTree(items)),
 			);
+			const parentTreeItem = clonedItems.find(
+				({ id }) => id === projected.parentId,
+			);
+			const orderedIds = parentTreeItem?.children.map((item) => item.id);
+
 			const overIndex = clonedItems.findIndex(({ id }) => id === over.id);
 			const activeIndex = clonedItems.findIndex(({ id }) => id === active.id);
 			const activeTreeItem = clonedItems[activeIndex];

@@ -617,125 +617,88 @@ describe("Page 路由", async () => {
 			await callerAuthorized.page.delete([parentPage.id]);
 		});
 
-		it.todo(
-			"当移动页面时，应该自动从原父页面的排序中删除，并添加到新父页面的排序中",
-			async () => {
-				// 创建两个父页面
-				const parentPage1 = await callerAuthorized.page.create({
-					name: "测试父页面1",
-					type: PageType.md,
-				});
-				const parentPage2 = await callerAuthorized.page.create({
-					name: "测试父页面2",
-					type: PageType.md,
-				});
+		it("当移动页面时，应该自动从原父页面的排序中删除，并添加到新父页面的排序中", async () => {
+			// 创建两个父页面
+			const parentPage1 = await callerAuthorized.page.create({
+				name: "测试父页面1",
+				type: PageType.md,
+			});
+			const parentPage2 = await callerAuthorized.page.create({
+				name: "测试父页面2",
+				type: PageType.md,
+			});
 
-				// 在父页面1下创建子页面
-				const childPage = await callerAuthorized.page.create({
-					name: "测试子页面",
-					type: PageType.md,
-					parentId: parentPage1.id,
-				});
+			// 在父页面1下创建子页面
+			const childPage = await callerAuthorized.page.create({
+				name: "测试子页面",
+				type: PageType.md,
+				parentId: parentPage1.id,
+			});
 
-				// 验证父页面1的排序包含子页面
-				const originalOrder = await testDB.query.pageOrders.findFirst({
-					where(fields, operators) {
-						return operators.eq(fields.parentId, parentPage1.id);
-					},
-				});
-				expect(originalOrder?.orderedIds).toContain(childPage.id);
+			// 验证父页面1的排序包含子页面
+			const originalOrder = await testDB.query.pageOrders.findFirst({
+				where(fields, operators) {
+					return operators.eq(fields.parentId, parentPage1.id);
+				},
+			});
+			expect(originalOrder?.orderedIds).toContain(childPage.id);
 
-				// 移动子页面到父页面2（通过更新页面的parentId）
-				await testDB
-					.update(pages)
-					.set({ parentId: parentPage2.id })
-					.where(eq(pages.id, childPage.id));
+			// 使用 transferAndOrder 移动页面
+			await callerAuthorized.page.transferAndOrder({
+				pageId: childPage.id,
+				oldParentId: parentPage1.id,
+				newParentId: parentPage2.id,
+				orderedIds: [childPage.id], // 新父页面下的排序
+			});
 
-				// 更新路径关系
-				// 1. 删除旧路径
-				await testDB
-					.delete(pagesPath)
-					.where(
-						and(eq(pagesPath.descendant, childPage.id), gt(pagesPath.depth, 0)),
+			// 验证页面的 parentId 已更新
+			const updatedPage = await testDB.query.pages.findFirst({
+				where(fields, operators) {
+					return operators.eq(fields.id, childPage.id);
+				},
+			});
+			expect(updatedPage?.parentId).toBe(parentPage2.id);
+
+			// 验证路径关系已更新
+			const paths = await testDB.query.pagesPath.findMany({
+				where(fields, operators) {
+					return operators.and(
+						operators.eq(fields.descendant, childPage.id),
+						operators.gt(fields.depth, 0),
 					);
+				},
+			});
 
-				// 2. 添加新路径
-				const parentPaths = await testDB.query.pagesPath.findMany({
-					where(fields, operators) {
-						return operators.eq(fields.descendant, parentPage2.id);
-					},
-				});
+			// 验证路径中包含新父页面
+			const hasNewParentPath = paths.some(
+				(path) => path.ancestor === parentPage2.id,
+			);
+			expect(hasNewParentPath).toBe(true);
 
-				await testDB.insert(pagesPath).values(
-					parentPaths.map((path) => ({
-						ancestor: path.ancestor,
-						descendant: childPage.id,
-						depth: path.depth + 1,
-					})),
-				);
+			// 验证路径中不包含旧父页面
+			const hasOldParentPath = paths.some(
+				(path) => path.ancestor === parentPage1.id,
+			);
+			expect(hasOldParentPath).toBe(false);
 
-				// 3. 从原父页面排序中删除
-				const parent1Order = await testDB.query.pageOrders.findFirst({
-					where(fields, operators) {
-						return operators.eq(fields.parentId, parentPage1.id);
-					},
-				});
+			// 验证父页面1的排序不再包含子页面
+			const updatedOrder1 = await testDB.query.pageOrders.findFirst({
+				where(fields, operators) {
+					return operators.eq(fields.parentId, parentPage1.id);
+				},
+			});
+			expect(updatedOrder1?.orderedIds || []).not.toContain(childPage.id);
 
-				if (parent1Order) {
-					const newOrderedIds = parent1Order.orderedIds.filter(
-						(id) => id !== childPage.id,
-					);
+			// 验证父页面2的排序包含子页面
+			const updatedOrder2 = await testDB.query.pageOrders.findFirst({
+				where(fields, operators) {
+					return operators.eq(fields.parentId, parentPage2.id);
+				},
+			});
+			expect(updatedOrder2?.orderedIds || []).toContain(childPage.id);
 
-					if (newOrderedIds.length === 0) {
-						await testDB
-							.delete(pageOrders)
-							.where(eq(pageOrders.parentId, parentPage1.id));
-					} else {
-						await testDB
-							.update(pageOrders)
-							.set({ orderedIds: newOrderedIds })
-							.where(eq(pageOrders.parentId, parentPage1.id));
-					}
-				}
-
-				// 4. 添加到新父页面排序中
-				const parent2Order = await testDB.query.pageOrders.findFirst({
-					where(fields, operators) {
-						return operators.eq(fields.parentId, parentPage2.id);
-					},
-				});
-
-				if (parent2Order) {
-					await testDB
-						.update(pageOrders)
-						.set({ orderedIds: [...parent2Order.orderedIds, childPage.id] })
-						.where(eq(pageOrders.parentId, parentPage2.id));
-				} else {
-					await testDB.insert(pageOrders).values({
-						parentId: parentPage2.id,
-						orderedIds: [childPage.id],
-					});
-				}
-
-				// 验证父页面1的排序不再包含子页面
-				const updatedOrder1 = await testDB.query.pageOrders.findFirst({
-					where(fields, operators) {
-						return operators.eq(fields.parentId, parentPage1.id);
-					},
-				});
-				expect(updatedOrder1?.orderedIds || []).not.toContain(childPage.id);
-
-				// 验证父页面2的排序包含子页面
-				const updatedOrder2 = await testDB.query.pageOrders.findFirst({
-					where(fields, operators) {
-						return operators.eq(fields.parentId, parentPage2.id);
-					},
-				});
-				expect(updatedOrder2?.orderedIds || []).toContain(childPage.id);
-
-				// 清理测试数据
-				await callerAuthorized.page.delete([parentPage1.id, parentPage2.id]);
-			},
-		);
+			// 清理测试数据
+			await callerAuthorized.page.delete([parentPage1.id, parentPage2.id]);
+		});
 	});
 });
