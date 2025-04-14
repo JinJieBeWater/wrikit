@@ -171,7 +171,7 @@ describe("排序", () => {
 	})
 
 	describe("移动", () => {
-		it.todo("当对页面进行排序时，应该更新父页面的排序列表", async () => {
+		it("当对页面进行排序时，应该更新父页面的排序列表", async () => {
 			// 创建一个测试父页面
 			const parentPage = await callerAuthorized.page.create({
 				name: "测试父页面",
