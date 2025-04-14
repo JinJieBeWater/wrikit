@@ -1,12 +1,12 @@
-import { appRouter } from "@/server/api/root";
-import { NextResponse } from "next/server";
+import { appRouter } from "@/server/api/root"
+import { NextResponse } from "next/server"
 
 export async function GET() {
 	if (process.env.NODE_ENV !== "development") {
-		return new NextResponse("Not Found", { status: 404 });
+		return new NextResponse("Not Found", { status: 404 })
 	}
 
-	const { renderTrpcPanel } = await import("trpc-ui");
+	const { renderTrpcPanel } = await import("trpc-ui")
 
 	return new NextResponse(
 		renderTrpcPanel(appRouter, {
@@ -17,5 +17,5 @@ export async function GET() {
 			status: 200,
 			headers: [["Content-Type", "text/html"] as [string, string]],
 		},
-	);
+	)
 }

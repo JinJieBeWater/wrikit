@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from "vitest"
 import { session } from "../../../fake/user"
 import { setupAuthorizedTrpc } from "../../utils/setupTrpc"
-import { cleanSeedPage, seedPage, PageL0C0 } from "./utils"
+import { PageL0C0, cleanSeedPage, seedPage } from "./utils"
 
 describe("Page Pinned 路由", async () => {
 	let callerAuthorized: ReturnType<

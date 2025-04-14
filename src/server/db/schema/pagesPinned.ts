@@ -1,8 +1,8 @@
-import { relations } from "drizzle-orm";
-import { index, integer, primaryKey, uuid, varchar } from "drizzle-orm/pg-core";
-import { createTable } from "../tables.heplers";
-import { pages } from "./pages";
-import { users } from "./users";
+import { relations } from "drizzle-orm"
+import { index, integer, primaryKey, uuid, varchar } from "drizzle-orm/pg-core"
+import { createTable } from "../tables.heplers"
+import { pages } from "./pages"
+import { users } from "./users"
 
 export const pagesPinned = createTable(
 	"page_pinned",
@@ -15,7 +15,7 @@ export const pagesPinned = createTable(
 		pk: primaryKey({ columns: [table.userId, table.pageId] }),
 		userIdIdx: index("page_user_id_idx").on(table.userId),
 	}),
-);
+)
 
 export const pagesPinnedRelations = relations(pagesPinned, ({ one }) => ({
 	user: one(users, {
@@ -26,4 +26,4 @@ export const pagesPinnedRelations = relations(pagesPinned, ({ one }) => ({
 		fields: [pagesPinned.pageId],
 		references: [pages.id],
 	}),
-}));
+}))

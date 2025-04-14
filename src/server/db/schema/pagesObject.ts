@@ -2,8 +2,8 @@ import {
 	PageObjectItemTypeArray,
 	type PageObjectJson,
 	type PageObjectTemplate,
-} from "@/types/pageObject";
-import { relations } from "drizzle-orm";
+} from "@/types/pageObject"
+import { relations } from "drizzle-orm"
 import {
 	boolean,
 	integer,
@@ -11,23 +11,23 @@ import {
 	pgEnum,
 	uuid,
 	varchar,
-} from "drizzle-orm/pg-core";
-import { timestamps } from "../columns.helpers";
-import { createTable } from "../tables.heplers";
-import { pages } from "./pages";
-import { users } from "./users";
+} from "drizzle-orm/pg-core"
+import { timestamps } from "../columns.helpers"
+import { createTable } from "../tables.heplers"
+import { pages } from "./pages"
+import { users } from "./users"
 
 export const pageObjectItemEnum = pgEnum(
 	"page_object_item_ty",
 	PageObjectItemTypeArray,
-);
+)
 
 export const pageObjects = createTable("page_object", {
 	id: uuid("id").primaryKey().defaultRandom(),
 	pageId: uuid("page_id").notNull(),
 	templateId: integer("template_id").notNull(),
 	json: json("json").$type<PageObjectJson>().default([]),
-});
+})
 
 export const pageObjectRelations = relations(pageObjects, ({ one }) => ({
 	page: one(pages, {
@@ -38,7 +38,7 @@ export const pageObjectRelations = relations(pageObjects, ({ one }) => ({
 		fields: [pageObjects.templateId],
 		references: [pageObjectTemplates.id],
 	}),
-}));
+}))
 
 export const pageObjectTemplates = createTable("page_object_templates", {
 	id: uuid("id").primaryKey().defaultRandom(),
@@ -49,7 +49,7 @@ export const pageObjectTemplates = createTable("page_object_templates", {
 		.notNull()
 		.references(() => users.id),
 	...timestamps,
-});
+})
 
 export const pageObjectTemplateRelations = relations(
 	pageObjectTemplates,
@@ -59,4 +59,4 @@ export const pageObjectTemplateRelations = relations(
 			references: [users.id],
 		}),
 	}),
-);
+)

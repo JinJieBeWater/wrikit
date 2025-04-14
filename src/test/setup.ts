@@ -1,10 +1,10 @@
-import { beforeAll, vi } from "vitest"
 import type * as schema from "@/server/db/schema"
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js"
-import { setupDockerTestDb } from "./server/utils/setupDockerTestDb"
 import { users } from "@/server/db/schema"
-import { session, user } from "./fake/user"
 import { eq } from "drizzle-orm"
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js"
+import { beforeAll, vi } from "vitest"
+import { session, user } from "./fake/user"
+import { setupDockerTestDb } from "./server/utils/setupDockerTestDb"
 import { setupAuthorizedTrpc } from "./server/utils/setupTrpc"
 
 vi.mock("react", async (importOriginal) => {
@@ -18,10 +18,7 @@ vi.mock("react", async (importOriginal) => {
 })
 
 let testDB: PostgresJsDatabase<typeof schema>
-let callerAuthorized: ReturnType<
-	typeof setupAuthorizedTrpc
->["callerAuthorized"]
-
+let callerAuthorized: ReturnType<typeof setupAuthorizedTrpc>["callerAuthorized"]
 
 beforeAll(async () => {
 	const { db, cleanup } = await setupDockerTestDb()

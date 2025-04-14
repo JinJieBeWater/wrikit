@@ -1,14 +1,14 @@
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import type React from "react";
-import { type CSSProperties, forwardRef } from "react";
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+import type React from "react"
+import { type CSSProperties, forwardRef } from "react"
 
 export interface ActionProps extends React.HTMLAttributes<HTMLButtonElement> {
 	active?: {
-		fill: string;
-		background: string;
-	};
-	cursor?: CSSProperties["cursor"];
+		fill: string
+		background: string
+	}
+	cursor?: CSSProperties["cursor"]
 }
 
 export const Action = forwardRef<HTMLButtonElement, ActionProps>(
@@ -30,6 +30,6 @@ export const Action = forwardRef<HTMLButtonElement, ActionProps>(
 					} as CSSProperties
 				}
 			/>
-		);
+		)
 	},
-);
+)

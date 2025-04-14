@@ -1,15 +1,15 @@
-"use client";
-import { Trash2 } from "lucide-react";
+"use client"
+import { Trash2 } from "lucide-react"
 
 import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 	useSidebar,
-} from "@/components/ui/sidebar";
+} from "@/components/ui/sidebar"
 
-import * as React from "react";
+import * as React from "react"
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogContent,
@@ -17,7 +17,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@/components/ui/dialog"
 import {
 	Drawer,
 	DrawerClose,
@@ -27,9 +27,9 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 	DrawerTrigger,
-} from "@/components/ui/drawer";
-import { memo } from "react";
-import { PageList } from "./page-list";
+} from "@/components/ui/drawer"
+import { memo } from "react"
+import { PageList } from "./page-list"
 
 const PurePageTrashButton = () => {
 	return (
@@ -41,20 +41,20 @@ const PurePageTrashButton = () => {
 				</div>
 			</SidebarMenuButton>
 		</SidebarMenuItem>
-	);
-};
+	)
+}
 
-const PageTrashButton = memo(PurePageTrashButton);
+const PageTrashButton = memo(PurePageTrashButton)
 
 const PureInfinitePageTrash = () => {
-	return <PageList />;
-};
+	return <PageList />
+}
 
-const InfinitePageTrash = memo(PureInfinitePageTrash);
+const InfinitePageTrash = memo(PureInfinitePageTrash)
 
 const PurePageTrashModal = () => {
-	const [open, setOpen] = React.useState(false);
-	const { isMobile } = useSidebar();
+	const [open, setOpen] = React.useState(false)
+	const { isMobile } = useSidebar()
 
 	if (!isMobile) {
 		return (
@@ -75,7 +75,7 @@ const PurePageTrashModal = () => {
 					</DialogDescription>
 				</DialogContent>
 			</Dialog>
-		);
+		)
 	}
 
 	return (
@@ -102,7 +102,7 @@ const PurePageTrashModal = () => {
 				</DrawerFooter>
 			</DrawerContent>
 		</Drawer>
-	);
-};
+	)
+}
 
-export const PageTrashModal = memo(PurePageTrashModal);
+export const PageTrashModal = memo(PurePageTrashModal)

@@ -1,35 +1,35 @@
-"use client";
+"use client"
 
-import { cn } from "@/lib/utils";
-import { type RouterOutputs, api } from "@/trpc/react";
-import { useDraggable } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
-import { ChevronRight, Plus } from "lucide-react";
-import { memo, useRef, useState } from "react";
-import { PageTreeItem } from "./nav-page-tree-item";
-import { PageAction } from "./page-action";
-import { PageActionAdd } from "./page-action-add";
+import { cn } from "@/lib/utils"
+import { type RouterOutputs, api } from "@/trpc/react"
+import { useDraggable } from "@dnd-kit/core"
+import { CSS } from "@dnd-kit/utilities"
+import { ChevronRight, Plus } from "lucide-react"
+import { memo, useRef, useState } from "react"
+import { PageTreeItem } from "./nav-page-tree-item"
+import { PageAction } from "./page-action"
+import { PageActionAdd } from "./page-action-add"
 import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger,
-} from "./ui/collapsible";
+} from "./ui/collapsible"
 import {
 	SidebarMenuAction,
 	SidebarMenuItem,
 	SidebarMenuSub,
 	useSidebar,
-} from "./ui/sidebar";
+} from "./ui/sidebar"
 
 const PurePageTree = ({
 	page,
 	initialStack,
 }: {
-	page: RouterOutputs["page"]["getByParentId"][0];
-	initialStack?: RouterOutputs["page"]["getByParentId"];
+	page: RouterOutputs["page"]["getByParentId"][0]
+	initialStack?: RouterOutputs["page"]["getByParentId"]
 }) => {
-	const [open, setOpen] = useState(false);
-	const { isMobile } = useSidebar();
+	const [open, setOpen] = useState(false)
+	const { isMobile } = useSidebar()
 
 	const { data, isLoading, isError } = api.page.getByParentId.useQuery(
 		{
@@ -38,16 +38,16 @@ const PurePageTree = ({
 		{
 			refetchOnMount: false,
 		},
-	);
+	)
 
-	const stack = useRef(initialStack ? [...initialStack, page] : [page]);
+	const stack = useRef(initialStack ? [...initialStack, page] : [page])
 
 	const { attributes, listeners, setNodeRef, transform } = useDraggable({
 		id: `page-${page.id}`,
-	});
+	})
 	const style = {
 		transform: CSS.Translate.toString(transform),
-	};
+	}
 	return (
 		<SidebarMenuItem
 			ref={setNodeRef}
@@ -110,9 +110,9 @@ const PurePageTree = ({
 				</CollapsibleContent>
 			</Collapsible>
 		</SidebarMenuItem>
-	);
-};
+	)
+}
 
-export const PageTree = memo(PurePageTree);
+export const PageTree = memo(PurePageTree)
 
-PurePageTree.displayName = "PageTree";
+PurePageTree.displayName = "PageTree"

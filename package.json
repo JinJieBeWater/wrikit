@@ -7,7 +7,7 @@
 		"build": "cross-env NODE_ENV=production next build",
 		"check": "biome check .",
 		"check:unsafe": "biome check --write --unsafe .",
-		"check:write": "biome check --write .",
+		"check:write": "biome check --semicolons=as-needed --write .",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
 		"db:push": "drizzle-kit push",

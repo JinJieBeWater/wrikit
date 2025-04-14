@@ -1,13 +1,13 @@
-import { beforeAll, beforeEach, describe, expect, it } from "vitest"
-import { setupAuthorizedTrpc } from "../utils/setupTrpc"
 import { getAllRelatedPages } from "@/server/api/drizzle/getAllRelatedPages"
+import { session } from "@/test/fake/user"
+import { beforeAll, beforeEach, describe, expect, it } from "vitest"
 import {
-	cleanSeedPage,
 	PageArray,
 	PageL0C0,
+	cleanSeedPage,
 	seedPage,
 } from "../trpc/page/utils"
-import { session } from "@/test/fake/user"
+import { setupAuthorizedTrpc } from "../utils/setupTrpc"
 
 describe("Page 相关功能函数 单元测试", () => {
 	let callerAuthorized: ReturnType<
@@ -16,7 +16,7 @@ describe("Page 相关功能函数 单元测试", () => {
 	let ctx: ReturnType<typeof setupAuthorizedTrpc>["ctx"]
 
 	beforeAll(() => {
-		({ callerAuthorized, ctx } = setupAuthorizedTrpc({ session }))
+		;({ callerAuthorized, ctx } = setupAuthorizedTrpc({ session }))
 	})
 
 	beforeEach(async () => {

@@ -1,16 +1,16 @@
-import type { Session } from "next-auth";
-import type { createTRPCContext } from "../trpc";
+import type * as schema from "@/server/db/schema"
+import type { ExtractTablesWithRelations } from "drizzle-orm"
+import type { PgTransaction } from "drizzle-orm/pg-core"
 import type {
 	PostgresJsDatabase,
 	PostgresJsQueryResultHKT,
-} from "drizzle-orm/postgres-js";
-import type * as schema from "@/server/db/schema";
-import type { ExtractTablesWithRelations } from "drizzle-orm";
-import type { PgTransaction } from "drizzle-orm/pg-core";
+} from "drizzle-orm/postgres-js"
+import type { Session } from "next-auth"
+import type { createTRPCContext } from "../trpc"
 
 export type Context = Awaited<ReturnType<typeof createTRPCContext>> & {
-	session: Session;
-};
+	session: Session
+}
 
 export type DB =
 	| PostgresJsDatabase<typeof schema>
@@ -18,4 +18,4 @@ export type DB =
 			PostgresJsQueryResultHKT,
 			typeof schema,
 			ExtractTablesWithRelations<typeof schema>
-	  >;
+	  >

@@ -1,26 +1,26 @@
-import "@/styles/globals.css";
+import "@/styles/globals.css"
 
-import { GeistSans } from "geist/font/sans";
-import type { Metadata } from "next";
+import { GeistSans } from "geist/font/sans"
+import type { Metadata } from "next"
 
-import { SessionProvider } from "@/components/provider/session-provider";
-import { ThemeProvider } from "@/components/provider/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { auth } from "@/server/auth";
-import { TRPCReactProvider } from "@/trpc/react";
-import { Provider as WrapBalancerProvider } from "react-wrap-balancer";
+import { SessionProvider } from "@/components/provider/session-provider"
+import { ThemeProvider } from "@/components/provider/theme-provider"
+import { Toaster } from "@/components/ui/sonner"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { auth } from "@/server/auth"
+import { TRPCReactProvider } from "@/trpc/react"
+import { Provider as WrapBalancerProvider } from "react-wrap-balancer"
 
 export const metadata: Metadata = {
 	title: "Wrikit",
 	description: "a tool for writing",
 	icons: [{ rel: "icon", url: "/favicon.ico" }],
-};
+}
 
 export default async function RootLayout({
 	children,
 }: Readonly<{ children: React.ReactNode }>) {
-	const session = await auth();
+	const session = await auth()
 
 	return (
 		<html
@@ -46,5 +46,5 @@ export default async function RootLayout({
 				</ThemeProvider>
 			</body>
 		</html>
-	);
+	)
 }

@@ -1,6 +1,6 @@
-import { createOpenAI } from "@ai-sdk/openai";
-import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-import { experimental_createProviderRegistry as createProviderRegistry } from "ai";
+import { createOpenAI } from "@ai-sdk/openai"
+import { createOpenRouter } from "@openrouter/ai-sdk-provider"
+import { experimental_createProviderRegistry as createProviderRegistry } from "ai"
 
 export const registry = createProviderRegistry({
 	// register provider with prefix and default setup:
@@ -17,7 +17,7 @@ export const registry = createProviderRegistry({
 		textEmbeddingModel: (modelId: string) => {
 			throw new Error(
 				`textEmbeddingModel is not implemented for OpenRouterProvider. Model ID: ${modelId}`,
-			);
+			)
 		},
 	},
-});
+})

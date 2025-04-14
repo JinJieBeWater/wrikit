@@ -1,16 +1,16 @@
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import type { DefaultSession, NextAuthConfig } from "next-auth";
-import type { Provider } from "next-auth/providers";
-import DiscordProvider from "next-auth/providers/discord";
+import { DrizzleAdapter } from "@auth/drizzle-adapter"
+import type { DefaultSession, NextAuthConfig } from "next-auth"
+import type { Provider } from "next-auth/providers"
+import DiscordProvider from "next-auth/providers/discord"
 
-import { db } from "@/server/db";
+import { db } from "@/server/db"
 import {
 	accounts,
 	sessions,
 	users,
 	verificationTokens,
-} from "@/server/db/schema";
-import GitHub from "next-auth/providers/github";
+} from "@/server/db/schema"
+import GitHub from "next-auth/providers/github"
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -21,10 +21,10 @@ import GitHub from "next-auth/providers/github";
 declare module "next-auth" {
 	interface Session extends DefaultSession {
 		user: {
-			id: string;
+			id: string
 			// ...other properties
 			// role: UserRole;
-		} & DefaultSession["user"];
+		} & DefaultSession["user"]
 	}
 
 	// interface User {
@@ -33,17 +33,17 @@ declare module "next-auth" {
 	// }
 }
 
-const providers: Provider[] = [GitHub, DiscordProvider];
+const providers: Provider[] = [GitHub, DiscordProvider]
 export const providerMap = providers
 	.map((provider) => {
 		if (typeof provider === "function") {
-			const providerData = provider();
-			return { id: providerData.id, name: providerData.name };
+			const providerData = provider()
+			return { id: providerData.id, name: providerData.name }
 		} else {
-			return { id: provider.id, name: provider.name };
+			return { id: provider.id, name: provider.name }
 		}
 	})
-	.filter((provider) => provider.id !== "credentials");
+	.filter((provider) => provider.id !== "credentials")
 
 /**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
@@ -70,4 +70,4 @@ export const authConfig = {
 			},
 		}),
 	},
-} satisfies NextAuthConfig;
+} satisfies NextAuthConfig

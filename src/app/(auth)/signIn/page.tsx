@@ -1,18 +1,18 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
-import { signIn } from "@/server/auth";
-import { providerMap } from "@/server/auth/config";
-import { GalleryVerticalEnd } from "lucide-react";
-import Link from "next/link";
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { cn } from "@/lib/utils"
+import { signIn } from "@/server/auth"
+import { providerMap } from "@/server/auth/config"
+import { GalleryVerticalEnd } from "lucide-react"
+import Link from "next/link"
 
 export default async function SignInPage({
 	searchParams: params,
 }: {
-	searchParams: { callbackUrl: string | undefined };
+	searchParams: { callbackUrl: string | undefined }
 }) {
-	const { callbackUrl } = await params;
+	const { callbackUrl } = await params
 	return (
 		<div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10">
 			<div className="w-full max-w-sm">
@@ -58,11 +58,11 @@ export default async function SignInPage({
 						<div className="grid gap-4 sm:grid-cols-2">
 							<form
 								action={async () => {
-									"use server";
+									"use server"
 
 									await signIn(providerMap[0]?.id, {
 										redirectTo: callbackUrl ?? "",
-									});
+									})
 								}}
 							>
 								<Button variant="outline" className="w-full" type="submit">
@@ -104,5 +104,5 @@ export default async function SignInPage({
 				</div>
 			</div>
 		</div>
-	);
+	)
 }

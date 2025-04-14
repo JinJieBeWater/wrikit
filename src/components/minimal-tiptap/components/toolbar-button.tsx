@@ -1,18 +1,18 @@
-import { Toggle } from "@/components/ui/toggle";
+import { Toggle } from "@/components/ui/toggle"
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
-import type { TooltipContentProps } from "@radix-ui/react-tooltip";
-import * as React from "react";
+} from "@/components/ui/tooltip"
+import { cn } from "@/lib/utils"
+import type { TooltipContentProps } from "@radix-ui/react-tooltip"
+import * as React from "react"
 
 interface ToolbarButtonProps
 	extends React.ComponentPropsWithoutRef<typeof Toggle> {
-	isActive?: boolean;
-	tooltip?: string;
-	tooltipOptions?: TooltipContentProps;
+	isActive?: boolean
+	tooltip?: string
+	tooltipOptions?: TooltipContentProps
 }
 
 export const ToolbarButton = React.forwardRef<
@@ -32,10 +32,10 @@ export const ToolbarButton = React.forwardRef<
 			>
 				{children}
 			</Toggle>
-		);
+		)
 
 		if (!tooltip) {
-			return toggleButton;
+			return toggleButton
 		}
 
 		return (
@@ -47,10 +47,10 @@ export const ToolbarButton = React.forwardRef<
 					</div>
 				</TooltipContent>
 			</Tooltip>
-		);
+		)
 	},
-);
+)
 
-ToolbarButton.displayName = "ToolbarButton";
+ToolbarButton.displayName = "ToolbarButton"
 
-export default ToolbarButton;
+export default ToolbarButton

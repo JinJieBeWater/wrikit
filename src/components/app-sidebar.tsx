@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import {
 	AudioWaveform,
@@ -7,24 +7,24 @@ import {
 	Inbox,
 	Search,
 	Sparkles,
-} from "lucide-react";
-import type * as React from "react";
+} from "lucide-react"
+import type * as React from "react"
 
-import { NavMain } from "@/components/nav-main";
-import { NavSecondary } from "@/components/nav-secondary";
-import { TeamSwitcher } from "@/components/team-switcher";
+import { NavMain } from "@/components/nav-main"
+import { NavSecondary } from "@/components/nav-secondary"
+import { TeamSwitcher } from "@/components/team-switcher"
 import {
 	Sidebar,
 	SidebarContent,
 	SidebarFooter,
 	SidebarHeader,
 	SidebarRail,
-} from "@/components/ui/sidebar";
-import { NavPage } from "./nav-page";
-import { NavPagePinned } from "./nav-page-pinned";
-import { useSession } from "./provider/session-provider";
-import { ThemeSwitch } from "./theme-switch";
-import { NavUser } from "./nav-user";
+} from "@/components/ui/sidebar"
+import { NavPage } from "./nav-page"
+import { NavPagePinned } from "./nav-page-pinned"
+import { NavUser } from "./nav-user"
+import { useSession } from "./provider/session-provider"
+import { ThemeSwitch } from "./theme-switch"
 
 // This is sample data.
 const data = {
@@ -68,10 +68,10 @@ const data = {
 			badge: "10",
 		},
 	],
-};
+}
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-	const session = useSession();
+	const session = useSession()
 	// const { setOpen, open } = useSidebar();
 	// const [isMouseOver, setIsMouseOver] = useState(false);
 	// const timerRef = React.useRef<NodeJS.Timeout>();
@@ -138,5 +138,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 			</SidebarFooter>
 			<SidebarRail />
 		</Sidebar>
-	);
+	)
 }
