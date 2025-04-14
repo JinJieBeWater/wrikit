@@ -164,7 +164,7 @@ export const usePageTrash = ({
 				toast.error("Failed to restore page from trash");
 			}
 		},
-		onSuccess(_data, variables, ctx) {
+		onSuccess(_data, variables) {
 			// trash
 			if (variables.isDeleted) {
 				utils.page.infinitePage.invalidate();
