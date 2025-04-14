@@ -9,7 +9,7 @@ afterAll(async () => {
 	await testDB.delete(users).where(eq(users.id, user.id))
 })
 
-describe("Post 路由", async () => {
+describe("基础", async () => {
 	let callerAuthorized: ReturnType<
 		typeof setupAuthorizedTrpc
 	>["callerAuthorized"]

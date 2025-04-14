@@ -25,6 +25,13 @@ import { NavPagePinned } from "./nav-page-pinned"
 import { NavUser } from "./nav-user"
 import { useSession } from "./provider/session-provider"
 import { ThemeSwitch } from "./theme-switch"
+import {
+	ScrollArea,
+	ScrollAreaRoot,
+	ScrollAreaViewport,
+	ScrollBar,
+} from "./ui/scroll-area"
+import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area"
 
 // This is sample data.
 const data = {
@@ -121,17 +128,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				</div>
 				<NavMain items={data.navMain} />
 			</SidebarHeader>
-			<SidebarContent>
-				{/* <NavPinned pinnedItems={data.pinnedItems} /> */}
-				{/* <NavPages pages={data.pages} /> */}
-				{session?.user?.id && (
-					<>
-						<NavPagePinned />
+			<SidebarContent className="-mr-2">
+				<ScrollAreaRoot className="h-[calc(100vh-18rem)] pr-2">
+					<ScrollAreaViewport>
+						{session?.user?.id && (
+							<>
+								<NavPagePinned />
 
-						<NavPage />
-					</>
-				)}
-				<NavSecondary className="mt-auto" />
+								<NavPage />
+							</>
+						)}
+						<NavSecondary className="mt-auto" />
+					</ScrollAreaViewport>
+					<ScrollBar />
+					<ScrollAreaPrimitive.Corner />
+				</ScrollAreaRoot>
 			</SidebarContent>
 			<SidebarFooter>
 				<NavUser />

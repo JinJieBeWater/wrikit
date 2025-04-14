@@ -182,12 +182,20 @@ export const pageRouter = createTRPCRouter({
 				.from(pageOrders)
 				.where(where)
 				.limit(1)
-			const orderedIds = order?.orderedIds ?? shouldNeverHappen("必须有排序")
-
-			// 根据排序重新排序
-			rootPages = rootPages.sort((a, b) => {
-				return orderedIds.indexOf(a.id) - orderedIds.indexOf(b.id)
-			})
+			// 为了完整性，如果没有排序，则补全排序
+			const orderedIds = order?.orderedIds
+			if (orderedIds) {
+				// 根据排序重新排序
+				rootPages = rootPages.sort((a, b) => {
+					return orderedIds.indexOf(a.id) - orderedIds.indexOf(b.id)
+				})
+			} else {
+				// 补全排序
+				await ctx.db.insert(pageOrders).values({
+					parentId: parentId ?? null,
+					orderedIds: rootPages.map((page) => page.id),
+				})
+			}
 
 			return rootPages.map((page) => ({
 				...page,

@@ -3,7 +3,7 @@ import { session } from "../../../fake/user"
 import { setupAuthorizedTrpc } from "../../utils/setupTrpc"
 import { PageL0C0, cleanSeedPage, seedPage } from "./utils"
 
-describe("Page Pinned 路由", async () => {
+describe("固定", async () => {
 	let callerAuthorized: ReturnType<
 		typeof setupAuthorizedTrpc
 	>["callerAuthorized"]
