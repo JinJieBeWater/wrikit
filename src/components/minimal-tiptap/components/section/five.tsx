@@ -1,22 +1,22 @@
-import type { toggleVariants } from "@/components/ui/toggle";
+import type { toggleVariants } from "@/components/ui/toggle"
 import {
 	CaretDownIcon,
 	CodeIcon,
 	DividerHorizontalIcon,
 	PlusIcon,
 	QuoteIcon,
-} from "@radix-ui/react-icons";
-import type { Editor } from "@tiptap/react";
-import type { VariantProps } from "class-variance-authority";
-import type * as React from "react";
-import type { FormatAction } from "../../types";
-import { ImageEditDialog } from "../image/image-edit-dialog";
-import { LinkEditPopover } from "../link/link-edit-popover";
-import { ToolbarSection } from "../toolbar-section";
+} from "@radix-ui/react-icons"
+import type { Editor } from "@tiptap/react"
+import type { VariantProps } from "class-variance-authority"
+import type * as React from "react"
+import type { FormatAction } from "../../types"
+import { ImageEditDialog } from "../image/image-edit-dialog"
+import { LinkEditPopover } from "../link/link-edit-popover"
+import { ToolbarSection } from "../toolbar-section"
 
-type InsertElementAction = "codeBlock" | "blockquote" | "horizontalRule";
+type InsertElementAction = "codeBlock" | "blockquote" | "horizontalRule"
 interface InsertElement extends FormatAction {
-	value: InsertElementAction;
+	value: InsertElementAction
 }
 
 const formatActions: InsertElement[] = [
@@ -50,12 +50,12 @@ const formatActions: InsertElement[] = [
 			editor.can().chain().focus().setHorizontalRule().run(),
 		shortcuts: ["mod", "alt", "-"],
 	},
-];
+]
 
 interface SectionFiveProps extends VariantProps<typeof toggleVariants> {
-	editor: Editor;
-	activeActions?: InsertElementAction[];
-	mainActionCount?: number;
+	editor: Editor
+	activeActions?: InsertElementAction[]
+	mainActionCount?: number
 }
 
 export const SectionFive: React.FC<SectionFiveProps> = ({
@@ -85,9 +85,9 @@ export const SectionFive: React.FC<SectionFiveProps> = ({
 				variant={variant}
 			/>
 		</>
-	);
-};
+	)
+}
 
-SectionFive.displayName = "SectionFive";
+SectionFive.displayName = "SectionFive"
 
-export default SectionFive;
+export default SectionFive

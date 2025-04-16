@@ -7,15 +7,15 @@
  * need to use are documented accordingly near the end.
  */
 
-import { TRPCError, initTRPC } from "@trpc/server";
-import superjson from "superjson";
-import { ZodError } from "zod";
+import { TRPCError, initTRPC } from "@trpc/server"
+import superjson from "superjson"
+import { ZodError } from "zod"
 
-import { auth } from "@/server/auth";
-import { db } from "@/server/db";
-import type { TRPCPanelMeta } from "trpc-ui";
-import type { Session } from "next-auth";
-import { env } from "@/env";
+import { env } from "@/env"
+import { auth } from "@/server/auth"
+import { db } from "@/server/db"
+import type { Session } from "next-auth"
+import type { TRPCPanelMeta } from "trpc-ui"
 
 /**
  * 1. CONTEXT
@@ -30,14 +30,14 @@ import { env } from "@/env";
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-	const session = await auth();
+	const session = await auth()
 
 	return {
 		db,
 		session,
 		...opts,
-	};
-};
+	}
+}
 
 /**
  * Inner context. Will always be available in your procedures, in contrast to the outer context.
@@ -49,15 +49,15 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
  * @see https://trpc.io/docs/v11/context#inner-and-outer-context
  */
 export function createContextInner(opts: {
-	session: Session | null;
-	db: typeof db;
+	session: Session | null
+	db: typeof db
 }) {
-	const headers = new Headers();
+	const headers = new Headers()
 	return {
 		db: opts.db,
 		session: opts.session,
 		headers,
-	};
+	}
 }
 
 /**
@@ -80,16 +80,16 @@ const t = initTRPC
 					zodError:
 						error.cause instanceof ZodError ? error.cause.flatten() : null,
 				},
-			};
+			}
 		},
-	});
+	})
 
 /**
  * Create a server-side caller.
  *
  * @see https://trpc.io/docs/server/server-side-calls
  */
-export const createCallerFactory = t.createCallerFactory;
+export const createCallerFactory = t.createCallerFactory
 
 /**
  * 3. ROUTER & PROCEDURE (THE IMPORTANT BIT)
@@ -103,7 +103,7 @@ export const createCallerFactory = t.createCallerFactory;
  *
  * @see https://trpc.io/docs/router
  */
-export const createTRPCRouter = t.router;
+export const createTRPCRouter = t.router
 
 /**
  * Middleware for timing procedure execution and adding an artificial delay in development.
@@ -112,37 +112,37 @@ export const createTRPCRouter = t.router;
  * network latency that would occur in production but not in local development.
  */
 const timingMiddleware = t.middleware(async ({ next, path }) => {
-	const start = Date.now();
+	const start = Date.now()
 
-	const result = await next();
+	const result = await next()
 
 	if (t._config.isDev && env.NODE_ENV !== "test") {
 		// artificial delay in dev
-		const waitMs = Math.floor(Math.random() * 400) + 100;
-		await new Promise((resolve) => setTimeout(resolve, waitMs));
+		const waitMs = Math.floor(Math.random() * 400) + 100
+		await new Promise((resolve) => setTimeout(resolve, waitMs))
 
-		const end = Date.now();
+		const end = Date.now()
 		console.log(
 			`[TRPC TIMI] artificial delay for ${path} took ⚡️ ${end - start}ms`,
-		);
+		)
 	}
 
-	return result;
-});
+	return result
+})
 
 const performanceMonitor = t.middleware(async ({ next, path }) => {
-	const start = Date.now();
+	const start = Date.now()
 
-	const result = await next();
+	const result = await next()
 
 	if (t._config.isDev) {
-		const end = Date.now();
+		const end = Date.now()
 
-		console.log(`[TRPC PERF] ${path} took ⚡️ ${end - start}ms to execute`);
+		console.log(`[TRPC PERF] ${path} took ⚡️ ${end - start}ms to execute`)
 	}
 
-	return result;
-});
+	return result
+})
 
 /**
  * Public (unauthenticated) procedure
@@ -153,7 +153,7 @@ const performanceMonitor = t.middleware(async ({ next, path }) => {
  */
 export const publicProcedure = t.procedure
 	.use(timingMiddleware)
-	.use(performanceMonitor);
+	.use(performanceMonitor)
 
 /**
  * Protected (authenticated) procedure
@@ -168,12 +168,12 @@ export const protectedProcedure = t.procedure
 	.use(performanceMonitor)
 	.use(({ ctx, next }) => {
 		if (!ctx.session || !ctx.session.user) {
-			throw new TRPCError({ code: "UNAUTHORIZED" });
+			throw new TRPCError({ code: "UNAUTHORIZED" })
 		}
 		return next({
 			ctx: {
 				// infers the `session` as non-nullable
 				session: { ...ctx.session, user: ctx.session.user },
 			},
-		});
-	});
+		})
+	})

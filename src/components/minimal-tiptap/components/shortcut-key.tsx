@@ -1,18 +1,18 @@
-import { cn } from "@/lib/utils";
-import * as React from "react";
-import { getShortcutKey } from "../utils";
+import { cn } from "@/lib/utils"
+import * as React from "react"
+import { getShortcutKey } from "../utils"
 
 export interface ShortcutKeyProps
 	extends React.HTMLAttributes<HTMLSpanElement> {
-	keys: string[];
+	keys: string[]
 }
 
 export const ShortcutKey = React.forwardRef<HTMLSpanElement, ShortcutKeyProps>(
 	({ className, keys, ...props }, ref) => {
-		const modifiedKeys = keys.map((key) => getShortcutKey(key));
+		const modifiedKeys = keys.map((key) => getShortcutKey(key))
 		const ariaLabel = modifiedKeys
 			.map((shortcut) => shortcut.readable)
-			.join(" + ");
+			.join(" + ")
 
 		return (
 			<span
@@ -36,8 +36,8 @@ export const ShortcutKey = React.forwardRef<HTMLSpanElement, ShortcutKeyProps>(
 					</kbd>
 				))}
 			</span>
-		);
+		)
 	},
-);
+)
 
-ShortcutKey.displayName = "ShortcutKey";
+ShortcutKey.displayName = "ShortcutKey"

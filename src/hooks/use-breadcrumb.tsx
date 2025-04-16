@@ -1,5 +1,5 @@
-"use client";
-import { useParams, usePathname } from "next/navigation";
+"use client"
+import { useParams, usePathname } from "next/navigation"
 import {
 	type Dispatch,
 	type SetStateAction,
@@ -8,65 +8,65 @@ import {
 	useContext,
 	useEffect,
 	useState,
-} from "react";
+} from "react"
 
 interface BreadcrumbItem {
-	label: string;
-	path: string;
+	label: string
+	path: string
 }
 
 interface BreadcrumbContextType {
-	breadcrumbs: BreadcrumbItem[];
-	setBreadcrumbs: Dispatch<SetStateAction<BreadcrumbItem[]>>;
+	breadcrumbs: BreadcrumbItem[]
+	setBreadcrumbs: Dispatch<SetStateAction<BreadcrumbItem[]>>
 }
 
-const BreadcrumbContext = createContext<BreadcrumbContextType | null>(null);
+const BreadcrumbContext = createContext<BreadcrumbContextType | null>(null)
 
 export function BreadcrumbProvider({
 	children,
 }: {
-	children: React.ReactNode;
+	children: React.ReactNode
 }) {
-	const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
+	const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([])
 
 	return (
 		<BreadcrumbContext.Provider value={{ breadcrumbs, setBreadcrumbs }}>
 			{children}
 		</BreadcrumbContext.Provider>
-	);
+	)
 }
 
 export function useBreadcrumb() {
-	const context = useContext(BreadcrumbContext);
-	const pathname = usePathname();
+	const context = useContext(BreadcrumbContext)
+	const pathname = usePathname()
 
 	if (!context) {
-		throw new Error("useBreadcrumb must be used within a BreadcrumbProvider");
+		throw new Error("useBreadcrumb must be used within a BreadcrumbProvider")
 	}
 
-	const { breadcrumbs, setBreadcrumbs } = context;
+	const { breadcrumbs, setBreadcrumbs } = context
 
 	const getBreadcrumbs = useCallback((pathname: string) => {
-		const paths = pathname.split("/");
-		paths.shift();
-		const items: BreadcrumbItem[] = [];
+		const paths = pathname.split("/")
+		paths.shift()
+		const items: BreadcrumbItem[] = []
 		for (let i = 0; i < paths.length; i++) {
-			const path = paths.slice(0, i + 1).join("/");
+			const path = paths.slice(0, i + 1).join("/")
 			items.push({
 				path,
 				label: paths[i] ?? "",
-			});
+			})
 		}
 
-		return items;
-	}, []);
+		return items
+	}, [])
 
 	useEffect(() => {
-		setBreadcrumbs(getBreadcrumbs(pathname));
-	}, [pathname, getBreadcrumbs, setBreadcrumbs]);
+		setBreadcrumbs(getBreadcrumbs(pathname))
+	}, [pathname, getBreadcrumbs, setBreadcrumbs])
 
 	return {
 		breadcrumbs,
 		setBreadcrumbs,
-	};
+	}
 }

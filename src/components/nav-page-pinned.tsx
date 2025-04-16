@@ -1,16 +1,16 @@
-"use client";
+"use client"
 
-import { api } from "@/trpc/react";
-import { PageTree } from "./nav-page";
+import { api } from "@/trpc/react"
+import { PageTree } from "./nav-page"
 import {
 	SidebarGroup,
 	SidebarGroupContent,
 	SidebarGroupLabel,
 	SidebarMenu,
-} from "./ui/sidebar";
+} from "./ui/sidebar"
 
 export function NavPagePinned() {
-	const [roots] = api.pagePinned.get.useSuspenseQuery();
+	const [roots] = api.pagePinned.get.useSuspenseQuery()
 
 	return (
 		<>
@@ -29,5 +29,5 @@ export function NavPagePinned() {
 				</SidebarGroup>
 			)}
 		</>
-	);
+	)
 }

@@ -1,26 +1,26 @@
-import * as React from "react";
-import "./styles/index.css";
+import * as React from "react"
+import "./styles/index.css"
 
-import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
-import type { Content, Editor } from "@tiptap/react";
-import { EditorContent } from "@tiptap/react";
-import { LinkBubbleMenu } from "./components/bubble-menu/link-bubble-menu";
-import { MeasuredContainer } from "./components/measured-container";
-import { SectionFive } from "./components/section/five";
-import { SectionFour } from "./components/section/four";
-import { SectionOne } from "./components/section/one";
-import { SectionThree } from "./components/section/three";
-import { SectionTwo } from "./components/section/two";
-import type { UseMinimalTiptapEditorProps } from "./hooks/use-minimal-tiptap";
-import { useMinimalTiptapEditor } from "./hooks/use-minimal-tiptap";
+import { Separator } from "@/components/ui/separator"
+import { cn } from "@/lib/utils"
+import type { Content, Editor } from "@tiptap/react"
+import { EditorContent } from "@tiptap/react"
+import { LinkBubbleMenu } from "./components/bubble-menu/link-bubble-menu"
+import { MeasuredContainer } from "./components/measured-container"
+import { SectionFive } from "./components/section/five"
+import { SectionFour } from "./components/section/four"
+import { SectionOne } from "./components/section/one"
+import { SectionThree } from "./components/section/three"
+import { SectionTwo } from "./components/section/two"
+import type { UseMinimalTiptapEditorProps } from "./hooks/use-minimal-tiptap"
+import { useMinimalTiptapEditor } from "./hooks/use-minimal-tiptap"
 
 export interface MinimalTiptapProps
 	extends Omit<UseMinimalTiptapEditorProps, "onUpdate"> {
-	value?: Content;
-	onChange?: (value: Content) => void;
-	className?: string;
-	editorContentClassName?: string;
+	value?: Content
+	onChange?: (value: Content) => void
+	className?: string
+	editorContentClassName?: string
 }
 
 const Toolbar = ({ editor }: { editor: Editor }) => (
@@ -64,7 +64,7 @@ const Toolbar = ({ editor }: { editor: Editor }) => (
 			/>
 		</div>
 	</div>
-);
+)
 
 export const MinimalTiptapEditor = React.forwardRef<
 	HTMLDivElement,
@@ -75,10 +75,10 @@ export const MinimalTiptapEditor = React.forwardRef<
 		onUpdate: onChange,
 		immediatelyRender: false,
 		...props,
-	});
+	})
 
 	if (!editor) {
-		return null;
+		return null
 	}
 
 	return (
@@ -95,9 +95,9 @@ export const MinimalTiptapEditor = React.forwardRef<
 			/>
 			<LinkBubbleMenu editor={editor} />
 		</MeasuredContainer>
-	);
-});
+	)
+})
 
-MinimalTiptapEditor.displayName = "MinimalTiptapEditor";
+MinimalTiptapEditor.displayName = "MinimalTiptapEditor"
 
-export default MinimalTiptapEditor;
+export default MinimalTiptapEditor

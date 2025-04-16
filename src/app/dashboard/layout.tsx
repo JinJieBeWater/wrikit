@@ -1,26 +1,26 @@
-import { AppSidebar } from "@/components/app-sidebar";
-import { NavActions } from "@/components/nav-actions";
-import { Separator } from "@/components/ui/separator";
+import { AppSidebar } from "@/components/app-sidebar"
+import { NavActions } from "@/components/nav-actions"
+import { Separator } from "@/components/ui/separator"
 import {
 	SidebarInset,
 	SidebarProvider,
 	SidebarTrigger,
-} from "@/components/ui/sidebar";
-import { auth, signIn } from "@/server/auth";
-import { HydrateClient, api } from "@/trpc/server";
-import { redirect } from "next/navigation";
+} from "@/components/ui/sidebar"
+import { auth, signIn } from "@/server/auth"
+import { HydrateClient, api } from "@/trpc/server"
+import { redirect } from "next/navigation"
 
 export default async function Layout({
 	children,
 }: {
-	children: React.ReactNode;
+	children: React.ReactNode
 }) {
-	const session = await auth();
-	if (!session) redirect("/api/auth/signin");
+	const session = await auth()
+	if (!session) redirect("/api/auth/signin")
 
 	if (session?.user) {
-		void api.page.getByParentId.prefetch({});
-		void api.pagePinned.get.prefetch();
+		void api.page.getByParentId.prefetch({})
+		void api.pagePinned.get.prefetch()
 	}
 
 	return (
@@ -42,5 +42,5 @@ export default async function Layout({
 				</SidebarInset>
 			</SidebarProvider>
 		</HydrateClient>
-	);
+	)
 }

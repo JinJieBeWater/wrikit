@@ -1,8 +1,8 @@
-"use client";
+"use client"
 
-import { usePagePin } from "@/hooks/use-page-pin";
-import { usePageTrash } from "@/hooks/use-page-trash";
-import type { RouterOutputs } from "@/trpc/react";
+import { usePagePin } from "@/hooks/use-page-pin"
+import { usePageTrash } from "@/hooks/use-page-trash"
+import type { RouterOutputs } from "@/trpc/react"
 import {
 	ArrowUpRight,
 	CopyPlus,
@@ -12,26 +12,26 @@ import {
 	PinOff,
 	Share2,
 	Trash2,
-} from "lucide-react";
-import { memo } from "react";
+} from "lucide-react"
+import { memo } from "react"
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import { SidebarMenuAction, useSidebar } from "./ui/sidebar";
+} from "./ui/dropdown-menu"
+import { SidebarMenuAction, useSidebar } from "./ui/sidebar"
 
 export function PurePageAction({
 	page,
 }: {
-	page: RouterOutputs["page"]["getByParentId"][0];
+	page: RouterOutputs["page"]["getByParentId"][0]
 }) {
-	const { isMobile } = useSidebar();
+	const { isMobile } = useSidebar()
 
-	const { isPinned, createPinned, deletePinned } = usePagePin(page);
-	const { toggleTrash } = usePageTrash({ page });
+	const { isPinned, createPinned, deletePinned } = usePagePin(page)
+	const { toggleTrash } = usePageTrash({ page })
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -48,9 +48,9 @@ export function PurePageAction({
 				<DropdownMenuItem
 					onClick={() => {
 						if (isPinned) {
-							deletePinned.mutate([page.id]);
+							deletePinned.mutate([page.id])
 						} else {
-							createPinned.mutate({ pageId: page.id });
+							createPinned.mutate({ pageId: page.id })
 						}
 					}}
 				>
@@ -98,9 +98,9 @@ export function PurePageAction({
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>
-	);
+	)
 }
 
-export const PageAction = memo(PurePageAction);
+export const PageAction = memo(PurePageAction)
 
-PurePageAction.displayName = "PageAction";
+PurePageAction.displayName = "PageAction"

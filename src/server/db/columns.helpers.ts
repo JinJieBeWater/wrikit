@@ -1,5 +1,5 @@
-import { sql } from "drizzle-orm";
-import { timestamp } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm"
+import { timestamp } from "drizzle-orm/pg-core"
 
 // columns.helpers.ts
 export const timestamps = {
@@ -9,4 +9,4 @@ export const timestamps = {
 	updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
 		() => new Date(),
 	),
-};
+}

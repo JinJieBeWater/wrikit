@@ -1,26 +1,26 @@
-"use client";
-import { GridPattern } from "@/components/magicui/grid-pattern";
-import { PageIcon } from "@/components/page-icon";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
-import { api } from "@/trpc/react";
-import { PageType } from "@/types/page";
-import { notFound, useParams } from "next/navigation";
-import { MdEditor } from "../_components/md-editor";
-import { TitleEditor } from "../_components/title-editor";
-import Loading from "./loading";
+"use client"
+import { GridPattern } from "@/components/magicui/grid-pattern"
+import { PageIcon } from "@/components/page-icon"
+import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { cn } from "@/lib/utils"
+import { api } from "@/trpc/react"
+import { PageType } from "@/types/page"
+import { notFound, useParams } from "next/navigation"
+import { MdEditor } from "../_components/md-editor"
+import { TitleEditor } from "../_components/title-editor"
+import Loading from "./loading"
 
 export default function Page() {
-	const { id } = useParams();
+	const { id } = useParams()
 
 	const { data: page, isLoading } = api.page.get.useQuery({
 		id: String(id),
-	});
+	})
 
-	if (isLoading) return <Loading />;
+	if (isLoading) return <Loading />
 
-	if (!page) notFound();
+	if (!page) notFound()
 
 	return (
 		<ScrollArea className={cn("flex h-full w-full flex-col")}>
@@ -45,5 +45,5 @@ export default function Page() {
 				{page.type === PageType.pure && <MdEditor page={page} />}
 			</div>
 		</ScrollArea>
-	);
+	)
 }

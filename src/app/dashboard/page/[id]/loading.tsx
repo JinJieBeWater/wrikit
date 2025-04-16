@@ -1,6 +1,6 @@
-import { GridPattern } from "@/components/magicui/grid-pattern";
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@udecode/cn";
+import { GridPattern } from "@/components/magicui/grid-pattern"
+import { Skeleton } from "@/components/ui/skeleton"
+import { cn } from "@udecode/cn"
 
 export default function Loading() {
 	return (
@@ -22,5 +22,5 @@ export default function Loading() {
 				<Skeleton className="w-full grow rounded-xl" />
 			</div>
 		</div>
-	);
+	)
 }

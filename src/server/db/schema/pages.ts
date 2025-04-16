@@ -1,5 +1,5 @@
-import { type Icon, PageTypeArray } from "@/types/page";
-import { relations } from "drizzle-orm";
+import { type Icon, PageTypeArray } from "@/types/page"
+import { relations } from "drizzle-orm"
 import {
 	boolean,
 	index,
@@ -10,12 +10,12 @@ import {
 	unique,
 	uuid,
 	varchar,
-} from "drizzle-orm/pg-core";
-import { timestamps } from "../columns.helpers";
-import { createTable } from "../tables.heplers";
-import { users } from "./users";
+} from "drizzle-orm/pg-core"
+import { timestamps } from "../columns.helpers"
+import { createTable } from "../tables.heplers"
+import { users } from "./users"
 
-export const pageEnum = pgEnum("page_ty", PageTypeArray);
+export const pageEnum = pgEnum("page_ty", PageTypeArray)
 
 export const pages = createTable(
 	"page",
@@ -36,7 +36,7 @@ export const pages = createTable(
 		parentIdIdx: index("page_parent_id_idx").on(table.parentId),
 		createdByIdIdx: index("page_created_by_idx").on(table.createdById),
 	}),
-);
+)
 
 export const pagesRelations = relations(pages, ({ one }) => ({
 	parent: one(pages, {
@@ -47,7 +47,7 @@ export const pagesRelations = relations(pages, ({ one }) => ({
 		fields: [pages.createdById],
 		references: [users.id],
 	}),
-}));
+}))
 
 export const pagesPath = createTable(
 	"page_path",
@@ -61,7 +61,7 @@ export const pagesPath = createTable(
 		ancestorIdx: index("page_path_ancestor_idx").on(table.ancestor),
 		descendantIdx: index("page_path_descendant_idx").on(table.descendant),
 	}),
-);
+)
 
 export const pagesPathRelations = relations(pagesPath, ({ one }) => ({
 	descendant: one(pages, {
@@ -72,22 +72,22 @@ export const pagesPathRelations = relations(pagesPath, ({ one }) => ({
 		fields: [pagesPath.ancestor],
 		references: [pages.id],
 	}),
-}));
+}))
 
 export const pageOrders = createTable(
 	"page_order",
 	{
-		parentId: uuid("parent_id").notNull(),
+		parentId: uuid("parent_id"),
 		orderedIds: uuid("ordered_ids").array().notNull(),
 	},
 	(table) => ({
 		parentIdIdx: unique("page_order_parent_id_idx").on(table.parentId),
 	}),
-);
+)
 
 export const pageOrdersRelations = relations(pageOrders, ({ one }) => ({
 	parent: one(pages, {
 		fields: [pageOrders.parentId],
 		references: [pages.id],
 	}),
-}));
+}))

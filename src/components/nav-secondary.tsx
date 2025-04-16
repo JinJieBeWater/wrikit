@@ -1,4 +1,4 @@
-import { Blocks, MessageCircleQuestion, Settings2 } from "lucide-react";
+import { Blocks, MessageCircleQuestion, Settings2 } from "lucide-react"
 
 import {
 	SidebarGroup,
@@ -8,8 +8,8 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 	useSidebar,
-} from "@/components/ui/sidebar";
-import { PageTrashModal } from "./page-trash-modal";
+} from "@/components/ui/sidebar"
+import { PageTrashModal } from "./page-trash-modal"
 
 export function NavSecondary({
 	...props
@@ -46,5 +46,5 @@ export function NavSecondary({
 				</SidebarGroupContent>
 			</SidebarGroup>
 		</>
-	);
+	)
 }

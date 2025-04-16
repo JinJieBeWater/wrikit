@@ -1,14 +1,14 @@
-import type { toggleVariants } from "@/components/ui/toggle";
-import { CaretDownIcon, ListBulletIcon } from "@radix-ui/react-icons";
-import type { Editor } from "@tiptap/react";
-import type { VariantProps } from "class-variance-authority";
-import type * as React from "react";
-import type { FormatAction } from "../../types";
-import { ToolbarSection } from "../toolbar-section";
+import type { toggleVariants } from "@/components/ui/toggle"
+import { CaretDownIcon, ListBulletIcon } from "@radix-ui/react-icons"
+import type { Editor } from "@tiptap/react"
+import type { VariantProps } from "class-variance-authority"
+import type * as React from "react"
+import type { FormatAction } from "../../types"
+import { ToolbarSection } from "../toolbar-section"
 
-type ListItemAction = "orderedList" | "bulletList";
+type ListItemAction = "orderedList" | "bulletList"
 interface ListItem extends FormatAction {
-	value: ListItemAction;
+	value: ListItemAction
 }
 
 const formatActions: ListItem[] = [
@@ -43,12 +43,12 @@ const formatActions: ListItem[] = [
 			editor.can().chain().focus().toggleBulletList().run(),
 		shortcuts: ["mod", "shift", "8"],
 	},
-];
+]
 
 interface SectionFourProps extends VariantProps<typeof toggleVariants> {
-	editor: Editor;
-	activeActions?: ListItemAction[];
-	mainActionCount?: number;
+	editor: Editor
+	activeActions?: ListItemAction[]
+	mainActionCount?: number
 }
 
 export const SectionFour: React.FC<SectionFourProps> = ({
@@ -74,9 +74,9 @@ export const SectionFour: React.FC<SectionFourProps> = ({
 			size={size}
 			variant={variant}
 		/>
-	);
-};
+	)
+}
 
-SectionFour.displayName = "SectionFour";
+SectionFour.displayName = "SectionFour"
 
-export default SectionFour;
+export default SectionFour

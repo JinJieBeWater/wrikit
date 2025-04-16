@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import {
 	BadgeCheck,
@@ -7,9 +7,9 @@ import {
 	CreditCard,
 	LogOut,
 	Sparkles,
-} from "lucide-react";
+} from "lucide-react"
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -18,23 +18,23 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu"
 import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
 	useSidebar,
-} from "@/components/ui/sidebar";
-import * as React from "react";
-import { useSession } from "./provider/session-provider";
-import { signOut } from "next-auth/react";
+} from "@/components/ui/sidebar"
+import { signOut } from "next-auth/react"
+import * as React from "react"
+import { useSession } from "./provider/session-provider"
 
 export function NavUser() {
-	const { isMobile } = useSidebar();
-	const session = useSession();
+	const { isMobile } = useSidebar()
+	const session = useSession()
 
 	if (!session?.user) {
-		return null;
+		return null
 	}
 
 	return (
@@ -116,5 +116,5 @@ export function NavUser() {
 				</DropdownMenu>
 			</SidebarMenuItem>
 		</SidebarMenu>
-	);
+	)
 }

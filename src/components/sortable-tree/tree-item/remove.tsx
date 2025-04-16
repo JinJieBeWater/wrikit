@@ -1,5 +1,5 @@
-import React from "react";
-import { Action, type ActionProps } from "./action";
+import React from "react"
+import { Action, type ActionProps } from "./action"
 
 export function Remove(props: ActionProps) {
 	return (
@@ -18,5 +18,5 @@ export function Remove(props: ActionProps) {
 				/>
 			</svg>
 		</Action>
-	);
+	)
 }

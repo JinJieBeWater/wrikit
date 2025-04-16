@@ -1,27 +1,27 @@
-import { cn } from "@/lib/utils";
-import type { UniqueIdentifier } from "@dnd-kit/core";
-import { ChevronDown } from "lucide-react";
-import type React from "react";
-import { type HTMLAttributes, forwardRef } from "react";
-import { Action, type ActionProps } from "./action";
-import { Handle } from "./handle";
-import { Remove } from "./remove";
+import { cn } from "@/lib/utils"
+import type { UniqueIdentifier } from "@dnd-kit/core"
+import { ChevronDown } from "lucide-react"
+import type React from "react"
+import { type HTMLAttributes, forwardRef } from "react"
+import { Action, type ActionProps } from "./action"
+import { Handle } from "./handle"
+import { Remove } from "./remove"
 
 export interface Props extends Omit<HTMLAttributes<HTMLLIElement>, "id"> {
-	childCount?: number;
-	clone?: boolean;
-	collapsed?: boolean;
-	depth: number;
-	disableInteraction?: boolean;
-	disableSelection?: boolean;
-	ghost?: boolean;
-	handleProps?: ActionProps;
-	indicator?: boolean;
-	indentationWidth: number;
-	value: UniqueIdentifier;
-	onCollapse?(): void;
-	onRemove?(): void;
-	wrapperRef?(node: HTMLLIElement): void;
+	childCount?: number
+	clone?: boolean
+	collapsed?: boolean
+	depth: number
+	disableInteraction?: boolean
+	disableSelection?: boolean
+	ghost?: boolean
+	handleProps?: ActionProps
+	indicator?: boolean
+	indentationWidth: number
+	value: UniqueIdentifier
+	onCollapse?(): void
+	onRemove?(): void
+	wrapperRef?(node: HTMLLIElement): void
 }
 
 export const TreeItem = forwardRef<HTMLDivElement, Props>(
@@ -103,8 +103,8 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
 					) : null}
 				</div>
 			</li>
-		);
+		)
 	},
-);
+)
 
-const collapseIcon = <ChevronDown />;
+const collapseIcon = <ChevronDown />

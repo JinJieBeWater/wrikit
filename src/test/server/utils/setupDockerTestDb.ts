@@ -1,14 +1,14 @@
-import { PostgreSqlContainer } from "@testcontainers/postgresql";
-import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { migrate } from "drizzle-orm/postgres-js/migrator";
-import path from "node:path";
-import postgres from "postgres";
-import * as schema from "@/server/db/schema";
+import path from "node:path"
+import * as schema from "@/server/db/schema"
+import { PostgreSqlContainer } from "@testcontainers/postgresql"
+import { type PostgresJsDatabase, drizzle } from "drizzle-orm/postgres-js"
+import { migrate } from "drizzle-orm/postgres-js/migrator"
+import postgres from "postgres"
 
 export async function setupDockerTestDb() {
-	const POSTGRES_USER = "test";
-	const POSTGRES_PASSWORD = "test";
-	const POSTGRES_DB = "test";
+	const POSTGRES_USER = "test"
+	const POSTGRES_PASSWORD = "test"
+	const POSTGRES_DB = "test"
 
 	// Make sure to use Postgres 15 with pg_uuidv7 installed
 	// Ensure you have the pg_uuidv7 docker image locally
@@ -21,23 +21,23 @@ export async function setupDockerTestDb() {
 			POSTGRES_DB: POSTGRES_DB,
 		})
 		.withExposedPorts(5433)
-		.start();
+		.start()
 
-	const connectionString = `postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${container.getHost()}:${container.getFirstMappedPort()}/${POSTGRES_DB}`;
-	const client = postgres(connectionString);
-	const db = drizzle(client, { schema });
+	const connectionString = `postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${container.getHost()}:${container.getFirstMappedPort()}/${POSTGRES_DB}`
+	const client = postgres(connectionString)
+	const db = drizzle(client, { schema })
 
 	// await db.execute(sql`CREATE EXTENSION IF NOT EXISTS pg_uuidv7`);
-	const migrationPath = path.join(process.cwd(), "drizzle");
+	const migrationPath = path.join(process.cwd(), "drizzle")
 	await migrate(db, {
 		migrationsFolder: migrationPath,
-	});
+	})
 
 	const cleanup = async () => {
 		// await db.execute(sql`DROP EXTENSION IF EXISTS pg_uuidv7`);
-		await container.stop();
-		await client.end();
-	};
+		await container.stop()
+		await client.end()
+	}
 
-	return { db, cleanup };
+	return { db, cleanup }
 }

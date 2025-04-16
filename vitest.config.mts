@@ -1,9 +1,9 @@
-import react from "@vitejs/plugin-react";
-import tsconfigPaths from "vite-tsconfig-paths";
-import { defineConfig } from "vitest/config";
-import nextEnv from "@next/env";
+import nextEnv from "@next/env"
+import react from "@vitejs/plugin-react"
+import tsconfigPaths from "vite-tsconfig-paths"
+import { defineConfig } from "vitest/config"
 
-nextEnv.loadEnvConfig(process.cwd());
+nextEnv.loadEnvConfig(process.cwd())
 
 export default defineConfig({
 	plugins: [tsconfigPaths(), react()],
@@ -20,4 +20,4 @@ export default defineConfig({
 			"@": "/src",
 		},
 	},
-});
+})

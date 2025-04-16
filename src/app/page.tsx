@@ -1,18 +1,18 @@
-import Link from "next/link";
+import Link from "next/link"
 
-import { LatestPost } from "@/app/_components/post";
-import { auth } from "@/server/auth";
-import { HydrateClient, api } from "@/trpc/server";
-import { redirect } from "next/navigation";
+import { LatestPost } from "@/app/_components/post"
+import { auth } from "@/server/auth"
+import { HydrateClient, api } from "@/trpc/server"
+import { redirect } from "next/navigation"
 
 export default async function Home() {
-	redirect("/dashboard/home");
+	redirect("/dashboard/home")
 
-	const hello = await api.post.hello({ text: "from tRPC" });
-	const session = await auth();
+	const hello = await api.post.hello({ text: "from tRPC" })
+	const session = await auth()
 
 	if (session?.user) {
-		void api.post.getLatest.prefetch();
+		void api.post.getLatest.prefetch()
 	}
 
 	return (
@@ -68,5 +68,5 @@ export default async function Home() {
 				</div>
 			</main>
 		</HydrateClient>
-	);
+	)
 }

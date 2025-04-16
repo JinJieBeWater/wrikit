@@ -5,7 +5,7 @@
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
 
-export * from "./pages";
-export * from "./users";
-export * from "./pagesObject";
-export * from "./pagesPinned";
+export * from "./pages"
+export * from "./users"
+export * from "./pagesObject"
+export * from "./pagesPinned"

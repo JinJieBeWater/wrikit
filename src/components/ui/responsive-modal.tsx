@@ -1,19 +1,19 @@
-"use client";
+"use client"
 
-import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { type VariantProps, cva } from "class-variance-authority";
-import { X } from "lucide-react";
-import * as React from "react";
+import * as DialogPrimitive from "@radix-ui/react-dialog"
+import { type VariantProps, cva } from "class-variance-authority"
+import { X } from "lucide-react"
+import * as React from "react"
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
-const ResponsiveModal = DialogPrimitive.Root;
+const ResponsiveModal = DialogPrimitive.Root
 
-const ResponsiveModalTrigger = DialogPrimitive.Trigger;
+const ResponsiveModalTrigger = DialogPrimitive.Trigger
 
-const ResponsiveModalClose = DialogPrimitive.Close;
+const ResponsiveModalClose = DialogPrimitive.Close
 
-const ResponsiveModalPortal = DialogPrimitive.Portal;
+const ResponsiveModalPortal = DialogPrimitive.Portal
 
 const ResponsiveModalOverlay = React.forwardRef<
 	React.ElementRef<typeof DialogPrimitive.Overlay>,
@@ -27,8 +27,8 @@ const ResponsiveModalOverlay = React.forwardRef<
 		{...props}
 		ref={ref}
 	/>
-));
-ResponsiveModalOverlay.displayName = DialogPrimitive.Overlay.displayName;
+))
+ResponsiveModalOverlay.displayName = DialogPrimitive.Overlay.displayName
 
 const ResponsiveModalVariants = cva(
 	cn(
@@ -50,7 +50,7 @@ const ResponsiveModalVariants = cva(
 			side: "bottom",
 		},
 	},
-);
+)
 
 interface ResponsiveModalContentProps
 	extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>,
@@ -74,8 +74,8 @@ const ResponsiveModalContent = React.forwardRef<
 			</ResponsiveModalClose>
 		</DialogPrimitive.Content>
 	</ResponsiveModalPortal>
-));
-ResponsiveModalContent.displayName = DialogPrimitive.Content.displayName;
+))
+ResponsiveModalContent.displayName = DialogPrimitive.Content.displayName
 
 const ResponsiveModalHeader = ({
 	className,
@@ -88,8 +88,8 @@ const ResponsiveModalHeader = ({
 		)}
 		{...props}
 	/>
-);
-ResponsiveModalHeader.displayName = "ResponsiveModalHeader";
+)
+ResponsiveModalHeader.displayName = "ResponsiveModalHeader"
 
 const ResponsiveModalFooter = ({
 	className,
@@ -102,8 +102,8 @@ const ResponsiveModalFooter = ({
 		)}
 		{...props}
 	/>
-);
-ResponsiveModalFooter.displayName = "ResponsiveModalFooter";
+)
+ResponsiveModalFooter.displayName = "ResponsiveModalFooter"
 
 const ResponsiveModalTitle = React.forwardRef<
 	React.ElementRef<typeof DialogPrimitive.Title>,
@@ -114,8 +114,8 @@ const ResponsiveModalTitle = React.forwardRef<
 		className={cn("font-semibold text-foreground text-lg", className)}
 		{...props}
 	/>
-));
-ResponsiveModalTitle.displayName = DialogPrimitive.Title.displayName;
+))
+ResponsiveModalTitle.displayName = DialogPrimitive.Title.displayName
 
 const ResponsiveModalDescription = React.forwardRef<
 	React.ElementRef<typeof DialogPrimitive.Description>,
@@ -126,9 +126,8 @@ const ResponsiveModalDescription = React.forwardRef<
 		className={cn("text-muted-foreground text-sm", className)}
 		{...props}
 	/>
-));
-ResponsiveModalDescription.displayName =
-	DialogPrimitive.Description.displayName;
+))
+ResponsiveModalDescription.displayName = DialogPrimitive.Description.displayName
 
 export {
 	ResponsiveModal,
@@ -141,4 +140,4 @@ export {
 	ResponsiveModalFooter,
 	ResponsiveModalTitle,
 	ResponsiveModalDescription,
-};
+}

@@ -1,0 +1,1 @@
+ALTER TABLE "wrikit_page_order" ALTER COLUMN "parent_id" DROP NOT NULL;

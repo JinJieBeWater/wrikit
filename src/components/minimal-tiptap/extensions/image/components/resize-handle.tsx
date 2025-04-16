@@ -1,8 +1,8 @@
-import { cn } from "@/lib/utils";
-import * as React from "react";
+import { cn } from "@/lib/utils"
+import * as React from "react"
 
 interface ResizeProps extends React.HTMLAttributes<HTMLDivElement> {
-	isResizing?: boolean;
+	isResizing?: boolean
 }
 
 export const ResizeHandle = React.forwardRef<HTMLDivElement, ResizeProps>(
@@ -22,8 +22,8 @@ export const ResizeHandle = React.forwardRef<HTMLDivElement, ResizeProps>(
 				ref={ref}
 				{...props}
 			/>
-		);
+		)
 	},
-);
+)
 
-ResizeHandle.displayName = "ResizeHandle";
+ResizeHandle.displayName = "ResizeHandle"

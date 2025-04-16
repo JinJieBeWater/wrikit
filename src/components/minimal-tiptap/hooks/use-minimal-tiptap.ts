@@ -1,14 +1,14 @@
-import { cn } from "@/lib/utils";
-import { Placeholder } from "@tiptap/extension-placeholder";
-import { TextStyle } from "@tiptap/extension-text-style";
-import { Typography } from "@tiptap/extension-typography";
-import { Underline } from "@tiptap/extension-underline";
-import type { Editor } from "@tiptap/react";
-import type { Content, UseEditorOptions } from "@tiptap/react";
-import { useEditor } from "@tiptap/react";
-import { StarterKit } from "@tiptap/starter-kit";
-import * as React from "react";
-import { toast } from "sonner";
+import { cn } from "@/lib/utils"
+import { Placeholder } from "@tiptap/extension-placeholder"
+import { TextStyle } from "@tiptap/extension-text-style"
+import { Typography } from "@tiptap/extension-typography"
+import { Underline } from "@tiptap/extension-underline"
+import type { Editor } from "@tiptap/react"
+import type { Content, UseEditorOptions } from "@tiptap/react"
+import { useEditor } from "@tiptap/react"
+import { StarterKit } from "@tiptap/starter-kit"
+import * as React from "react"
+import { toast } from "sonner"
 import {
 	CodeBlockLowlight,
 	Color,
@@ -19,18 +19,18 @@ import {
 	ResetMarksOnEnter,
 	Selection,
 	UnsetAllMarks,
-} from "../extensions";
-import { useThrottle } from "../hooks/use-throttle";
-import { fileToBase64, getOutput, randomId } from "../utils";
+} from "../extensions"
+import { useThrottle } from "../hooks/use-throttle"
+import { fileToBase64, getOutput, randomId } from "../utils"
 
 export interface UseMinimalTiptapEditorProps extends UseEditorOptions {
-	value?: Content;
-	output?: "html" | "json" | "text";
-	placeholder?: string;
-	editorClassName?: string;
-	throttleDelay?: number;
-	onUpdate?: (content: Content) => void;
-	onBlur?: (content: Content) => void;
+	value?: Content
+	output?: "html" | "json" | "text"
+	placeholder?: string
+	editorClassName?: string
+	throttleDelay?: number
+	onUpdate?: (content: Content) => void
+	onBlur?: (content: Content) => void
 }
 
 const createExtensions = (placeholder: string) => [
@@ -56,20 +56,20 @@ const createExtensions = (placeholder: string) => [
 			// This function should return the uploaded image URL.
 
 			// wait 3s to simulate upload
-			await new Promise((resolve) => setTimeout(resolve, 3000));
+			await new Promise((resolve) => setTimeout(resolve, 3000))
 
-			const src = await fileToBase64(file);
+			const src = await fileToBase64(file)
 
 			// either return { id: string | number, src: string } or just src
 			// return src;
-			return { id: randomId(), src };
+			return { id: randomId(), src }
 		},
 		onToggle(editor, files, pos) {
 			editor.commands.insertContentAt(
 				pos,
 				files.map((image) => {
-					const blobUrl = URL.createObjectURL(image);
-					const id = randomId();
+					const blobUrl = URL.createObjectURL(image)
+					const id = randomId()
 
 					return {
 						type: "image",
@@ -80,12 +80,12 @@ const createExtensions = (placeholder: string) => [
 							title: image.name,
 							fileName: image.name,
 						},
-					};
+					}
 				}),
-			);
+			)
 		},
 		onImageRemoved({ id, src }) {
-			console.log("Image removed", { id, src });
+			console.log("Image removed", { id, src })
 		},
 		onValidationError(errors) {
 			// biome-ignore lint/complexity/noForEach: <explanation>
@@ -93,30 +93,30 @@ const createExtensions = (placeholder: string) => [
 				toast.error("Image validation error", {
 					position: "bottom-right",
 					description: error.reason,
-				});
-			});
+				})
+			})
 		},
 		onActionSuccess({ action }) {
 			const mapping = {
 				copyImage: "Copy Image",
 				copyLink: "Copy Link",
 				download: "Download",
-			};
+			}
 			toast.success(mapping[action], {
 				position: "bottom-right",
 				description: "Image action success",
-			});
+			})
 		},
 		onActionError(error, { action }) {
 			const mapping = {
 				copyImage: "Copy Image",
 				copyLink: "Copy Link",
 				download: "Download",
-			};
+			}
 			toast.error(`Failed to ${mapping[action]}`, {
 				position: "bottom-right",
 				description: error.message,
-			});
+			})
 		},
 	}),
 	FileHandler.configure({
@@ -126,22 +126,22 @@ const createExtensions = (placeholder: string) => [
 		onDrop: (editor, files, pos) => {
 			// biome-ignore lint/complexity/noForEach: <explanation>
 			files.forEach(async (file) => {
-				const src = await fileToBase64(file);
+				const src = await fileToBase64(file)
 				editor.commands.insertContentAt(pos, {
 					type: "image",
 					attrs: { src },
-				});
-			});
+				})
+			})
 		},
 		onPaste: (editor, files) => {
 			// biome-ignore lint/complexity/noForEach: <explanation>
 			files.forEach(async (file) => {
-				const src = await fileToBase64(file);
+				const src = await fileToBase64(file)
 				editor.commands.insertContent({
 					type: "image",
 					attrs: { src },
-				});
-			});
+				})
+			})
 		},
 		onValidationError: (errors) => {
 			// biome-ignore lint/complexity/noForEach: <explanation>
@@ -149,8 +149,8 @@ const createExtensions = (placeholder: string) => [
 				toast.error("Image validation error", {
 					position: "bottom-right",
 					description: error.reason,
-				});
-			});
+				})
+			})
 		},
 	}),
 	Color,
@@ -162,7 +162,7 @@ const createExtensions = (placeholder: string) => [
 	ResetMarksOnEnter,
 	CodeBlockLowlight,
 	Placeholder.configure({ placeholder: () => placeholder }),
-];
+]
 
 export const useMinimalTiptapEditor = ({
 	value,
@@ -177,26 +177,26 @@ export const useMinimalTiptapEditor = ({
 	const throttledSetValue = useThrottle(
 		(value: Content) => onUpdate?.(value),
 		throttleDelay,
-	);
+	)
 
 	const handleUpdate = React.useCallback(
 		(editor: Editor) => throttledSetValue(getOutput(editor, output)),
 		[output, throttledSetValue],
-	);
+	)
 
 	const handleCreate = React.useCallback(
 		(editor: Editor) => {
 			if (value && editor.isEmpty) {
-				editor.commands.setContent(value);
+				editor.commands.setContent(value)
 			}
 		},
 		[value],
-	);
+	)
 
 	const handleBlur = React.useCallback(
 		(editor: Editor) => onBlur?.(getOutput(editor, output)),
 		[output, onBlur],
-	);
+	)
 
 	const editor = useEditor({
 		extensions: createExtensions(placeholder),
@@ -212,9 +212,9 @@ export const useMinimalTiptapEditor = ({
 		onCreate: ({ editor }) => handleCreate(editor),
 		onBlur: ({ editor }) => handleBlur(editor),
 		...props,
-	});
+	})
 
-	return editor;
-};
+	return editor
+}
 
-export default useMinimalTiptapEditor;
+export default useMinimalTiptapEditor

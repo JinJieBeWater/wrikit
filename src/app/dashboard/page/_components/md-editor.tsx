@@ -1,26 +1,26 @@
-"use client";
+"use client"
 
-import { MinimalTiptapEditor } from "@/components/minimal-tiptap";
-import { api } from "@/trpc/react";
-import type { Page } from "@/types/page";
-import type { Content } from "@tiptap/react";
-import { useCallback, useState } from "react";
-import { toast } from "sonner";
-import { useDebounceCallback } from "usehooks-ts";
+import { MinimalTiptapEditor } from "@/components/minimal-tiptap"
+import { api } from "@/trpc/react"
+import type { Page } from "@/types/page"
+import type { Content } from "@tiptap/react"
+import { useCallback, useState } from "react"
+import { toast } from "sonner"
+import { useDebounceCallback } from "usehooks-ts"
 
 interface MdEditorProps {
-	page: Page;
+	page: Page
 }
 
 export function MdEditor({ page }: MdEditorProps) {
-	const utils = api.useUtils();
+	const utils = api.useUtils()
 
 	const updatePage = api.page.update.useMutation({
 		onMutate: (variables) => {
 			// 从 queryCache 中获取数据
 			const prevData = utils.page.get.getData({
 				id: page.id,
-			});
+			})
 			// 乐观更新
 			if (prevData) {
 				utils.page.get.setData(
@@ -31,10 +31,10 @@ export function MdEditor({ page }: MdEditorProps) {
 						...prevData,
 						content: variables.content && JSON.parse(variables.content),
 					},
-				);
+				)
 			}
 
-			return { prevData };
+			return { prevData }
 		},
 		onError(_err, _newPage, ctx) {
 			// 当修改失败后，使用来自 onMutate 中的值
@@ -43,27 +43,27 @@ export function MdEditor({ page }: MdEditorProps) {
 					id: page.id,
 				},
 				ctx?.prevData,
-			);
-			toast.error("please try again later or check your network");
+			)
+			toast.error("please try again later or check your network")
 		},
-	});
+	})
 
 	const updatePageDebounced = useDebounceCallback((value: Content) => {
 		updatePage.mutate({
 			id: page.id,
 			content: JSON.stringify(value),
-		});
-	}, 1000);
+		})
+	}, 1000)
 
-	const [value, setValue] = useState<Content>((page?.content as Content) ?? "");
+	const [value, setValue] = useState<Content>((page?.content as Content) ?? "")
 
 	const handleChange = useCallback(
 		(value: Content) => {
-			setValue(value);
-			updatePageDebounced(value);
+			setValue(value)
+			updatePageDebounced(value)
 		},
 		[updatePageDebounced],
-	);
+	)
 
 	return (
 		<>
@@ -82,5 +82,5 @@ export function MdEditor({ page }: MdEditorProps) {
 				}
 			</div>
 		</>
-	);
+	)
 }
